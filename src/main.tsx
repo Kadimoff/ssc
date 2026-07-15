@@ -37,7 +37,7 @@ const liveRoute = createRoute({ getParentRoute: () => appRoute, path: '/live', c
 const signInRoute = createRoute({ getParentRoute: () => rootRoute, path: '/sign-in', component: SignInPage })
 const signUpRoute = createRoute({ getParentRoute: () => rootRoute, path: '/sign-up', component: SignUpPage })
 const routeTree = rootRoute.addChildren([landingRoute, appRoute.addChildren([feedRoute, profileRoute, networkRoute, startupsRoute, startupDetailRoute, mentorshipRoute, programsRoute, adminRoute, investorsRoute, rankingsRoute, communitiesRoute, communityDetailRoute, messagesRoute, notificationsRoute, jobsRoute, newsRoute, liveRoute]), signInRoute, signUpRoute])
-const router = createRouter({ routeTree, defaultPreload: 'intent' })
+const router = createRouter({ routeTree, defaultPreload: 'intent', basepath: '/ssc' })
 
 declare module '@tanstack/react-router' { interface Register { router: typeof router } }
 
