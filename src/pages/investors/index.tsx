@@ -3,8 +3,8 @@ import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import {
   AlertTriangle, BarChart3, Bookmark, CheckCircle2, ChevronRight, Columns3,
-  Compass, GraduationCap, MapPin, MessagesSquare, Rocket, Search, ShieldCheck, Sparkles, Target,
-  TrendingUp, Trophy, Users,
+  Compass, FileCheck2, GraduationCap, MapPin, MessagesSquare, Rocket, Search, ShieldCheck, Sparkles, StickyNote, Target,
+  TrendingUp, Trophy, Users, Workflow,
 } from 'lucide-react'
 import { mentors as staticMentors, startups as staticStartups, type MentorData, type StartupData } from '@/data/platform-content'
 import { assistantContextFromSnapshot, type AssistantResponse, type AssistantResult } from '@/features/assistant/types'
@@ -15,16 +15,30 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { BarList, Donut, Funnel } from '@/components/investor/charts'
 import { PageContainer, PageHeading, PageLoading } from '@/app/app-shared'
 import { useSnapshot } from '@/app/app-data'
 import { apiClient } from '@/data/client'
 
-type InvestorTab = 'overview' | 'discover' | 'compare' | 'mentors'
+type InvestorTab = 'overview' | 'discover' | 'pipeline' | 'compare' | 'mentors'
+type PipelineStage = 'sourced' | 'screening' | 'meeting' | 'diligence' | 'passed'
 
 const WATCHLIST_KEY = 'ssc.investorWatchlist.v1'
 const COMPARE_KEY = 'ssc.investorCompare.v1'
+const PIPELINE_KEY = 'ssc.investorPipeline.v1'
+const NOTES_KEY = 'ssc.investorNotes.v1'
+const pipelineStages: PipelineStage[] = ['sourced', 'screening', 'meeting', 'diligence', 'passed']
+
+function readRecord<T extends string>(key: string, fallback: Record<string, T> = {}) {
+  try {
+    const value = JSON.parse(localStorage.getItem(key) ?? 'null')
+    return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, T> : fallback
+  } catch {
+    return fallback
+  }
+}
 
 function readStringSet(key: string, fallback: string[] = []) {
   try {
@@ -55,9 +69,17 @@ export function InvestorsPage() {
   const [thesis, setThesis] = useState('')
   const [stage, setStage] = useState('All')
   const [sector, setSector] = useState('All')
+  const [location, setLocation] = useState('All')
   const [minReadiness, setMinReadiness] = useState(0)
+  const [verifiedEvidenceOnly, setVerifiedEvidenceOnly] = useState(false)
+  const [completeTeamOnly, setCompleteTeamOnly] = useState(false)
+  const [sort, setSort] = useState<'match' | 'readiness' | 'team'>('match')
   const [watched, setWatched] = useState<Set<string>>(() => readStringSet(WATCHLIST_KEY, ['mediroute']))
   const [compared, setCompared] = useState<Set<string>>(() => readStringSet(COMPARE_KEY))
+  const [pipeline, setPipeline] = useState<Record<string, PipelineStage>>(() => readRecord(PIPELINE_KEY, {
+    mediroute: 'diligence', greenstack: 'meeting', 'campus-cart': 'screening', agrivision: 'sourced',
+  }))
+  const [notes, setNotes] = useState<Record<string, string>>(() => readRecord(NOTES_KEY))
   const [remoteResponse, setRemoteResponse] = useState<AssistantResponse | null>(null)
   const [matching, setMatching] = useState(false)
   if (!data) return <PageLoading />
@@ -68,9 +90,23 @@ export function InvestorsPage() {
   const thesisResponse = remoteResponse ?? runAssistant(thesis || 'Show the strongest available ventures', context, 'investor_discovery')
   const stages = ['All', ...new Set(startups.map((startup) => startup.stage))]
   const sectors = ['All', ...new Set(startups.map((startup) => startup.sector))]
+  const locations = ['All', ...new Set(startups.map((startup) => startup.location))]
+  const verifiedStartupEvidence = new Set(data.evidenceArtifacts.filter((item) => item.ownerType === 'startup' && item.verificationStatus === 'verified').map((item) => item.ownerId))
   const ranked = thesisResponse.results.filter((result) => {
     const startup = startups.find((item) => item.slug === result.entityId)
-    return startup && (stage === 'All' || startup.stage === stage) && (sector === 'All' || startup.sector === sector) && startup.score >= minReadiness
+    return startup &&
+      (stage === 'All' || startup.stage === stage) &&
+      (sector === 'All' || startup.sector === sector) &&
+      (location === 'All' || startup.location === location) &&
+      startup.score >= minReadiness &&
+      (!verifiedEvidenceOnly || verifiedStartupEvidence.has(startup.slug)) &&
+      (!completeTeamOnly || startup.openRoles.length === 0)
+  }).sort((left, right) => {
+    const leftStartup = startups.find((item) => item.slug === left.entityId)
+    const rightStartup = startups.find((item) => item.slug === right.entityId)
+    if (sort === 'readiness') return (rightStartup?.score ?? 0) - (leftStartup?.score ?? 0)
+    if (sort === 'team') return (leftStartup?.openRoles.length ?? 0) - (rightStartup?.openRoles.length ?? 0)
+    return right.explanation.totalScore - left.explanation.totalScore
   })
   const analytics = computeInvestorAnalytics(startups, data.evidenceArtifacts, watched)
   const comparedStartups = startups.filter((startup) => compared.has(startup.slug))
@@ -78,6 +114,7 @@ export function InvestorsPage() {
   const TABS: { key: InvestorTab; label: string; icon: typeof Compass }[] = [
     { key: 'overview', label: 'Overview', icon: BarChart3 },
     { key: 'discover', label: 'Thesis discovery', icon: Compass },
+    { key: 'pipeline', label: 'Deal pipeline', icon: Workflow },
     { key: 'compare', label: `Compare${compared.size ? ` (${compared.size})` : ''}`, icon: Columns3 },
     { key: 'mentors', label: 'Mentors', icon: GraduationCap },
   ]
@@ -129,8 +166,27 @@ export function InvestorsPage() {
       draftThesis={draftThesis} setDraftThesis={setDraftThesis} applyThesis={() => void applyThesis()} matching={matching}
       response={thesisResponse} ranked={ranked} stage={stage} setStage={setStage} stages={stages}
       sector={sector} setSector={setSector} sectors={sectors} minReadiness={minReadiness} setMinReadiness={setMinReadiness}
+      location={location} setLocation={setLocation} locations={locations}
+      verifiedEvidenceOnly={verifiedEvidenceOnly} setVerifiedEvidenceOnly={setVerifiedEvidenceOnly}
+      completeTeamOnly={completeTeamOnly} setCompleteTeamOnly={setCompleteTeamOnly}
+      sort={sort} setSort={setSort} verifiedStartupEvidence={verifiedStartupEvidence}
       startups={startups}
       watched={watched} compared={compared} onWatch={toggleWatch} onCompare={toggleCompare}
+      onOpen={(slug) => navigate({ to: '/startups/$slug', params: { slug } })}
+    />}
+    {tab === 'pipeline' && <InvestorPipeline
+      startups={startups} ranked={thesisResponse.results} pipeline={pipeline} notes={notes}
+      verifiedStartupEvidence={verifiedStartupEvidence}
+      onStage={(slug, value) => setPipeline((current) => {
+        const next = { ...current, [slug]: value }
+        localStorage.setItem(PIPELINE_KEY, JSON.stringify(next))
+        return next
+      })}
+      onNote={(slug, value) => setNotes((current) => {
+        const next = { ...current, [slug]: value }
+        localStorage.setItem(NOTES_KEY, JSON.stringify(next))
+        return next
+      })}
       onOpen={(slug) => navigate({ to: '/startups/$slug', params: { slug } })}
     />}
     {tab === 'compare' && <InvestorCompare startups={comparedStartups} response={thesisResponse} onRemove={toggleCompare} onDiscover={() => setTab('discover')} />}
@@ -175,7 +231,9 @@ function InvestorOverview({
 
 function InvestorDiscovery({
   draftThesis, setDraftThesis, applyThesis, response, ranked, stage, setStage, stages, sector, setSector, sectors,
-  minReadiness, setMinReadiness, watched, compared, onWatch, onCompare, onOpen, startups, matching,
+  location, setLocation, locations, minReadiness, setMinReadiness, verifiedEvidenceOnly, setVerifiedEvidenceOnly,
+  completeTeamOnly, setCompleteTeamOnly, sort, setSort, verifiedStartupEvidence,
+  watched, compared, onWatch, onCompare, onOpen, startups, matching,
 }: {
   draftThesis: string
   setDraftThesis: (value: string) => void
@@ -190,8 +248,18 @@ function InvestorDiscovery({
   sector: string
   setSector: (value: string) => void
   sectors: string[]
+  location: string
+  setLocation: (value: string) => void
+  locations: string[]
   minReadiness: number
   setMinReadiness: (value: number) => void
+  verifiedEvidenceOnly: boolean
+  setVerifiedEvidenceOnly: (value: boolean) => void
+  completeTeamOnly: boolean
+  setCompleteTeamOnly: (value: boolean) => void
+  sort: 'match' | 'readiness' | 'team'
+  setSort: (value: 'match' | 'readiness' | 'team') => void
+  verifiedStartupEvidence: Set<string>
   watched: Set<string>
   compared: Set<string>
   onWatch: (startup: StartupData) => void
@@ -200,22 +268,79 @@ function InvestorDiscovery({
 }) {
   return <>
     <Card className='mb-6 overflow-hidden border-primary/20'><div className='h-1 bg-gradient-to-r from-primary via-primary/30 to-transparent' /><CardHeader><CardTitle className='flex items-center gap-2'><Sparkles className='text-primary' />Describe your investment thesis</CardTitle><CardDescription>Use natural language. Matching remains explainable and based only on available prototype fields.</CardDescription></CardHeader><CardContent>
-      <form onSubmit={(event) => { event.preventDefault(); applyThesis() }} className='space-y-3'><Textarea value={draftThesis} onChange={(event) => setDraftThesis(event.target.value)} className='min-h-24 text-base' placeholder='Example: B2B ClimateTech, MVP or pilot stage, readiness above 75, with a complete technical team.' /><div className='flex flex-wrap items-center justify-between gap-3'><div className='flex flex-wrap gap-2'>{['MVP ClimateTech above 80% readiness', 'HealthTech pilot ventures', 'EdTech with complete teams'].map((example) => <Button key={example} type='button' variant='outline' size='sm' onClick={() => setDraftThesis(example)}>{example}</Button>)}</div><Button disabled={matching}><Search />{matching ? 'Matching…' : 'Analyze thesis'}</Button></div></form>
+      <form onSubmit={(event) => { event.preventDefault(); applyThesis() }} className='space-y-3'><Textarea value={draftThesis} onChange={(event) => setDraftThesis(event.target.value)} className='min-h-24 text-base' placeholder='Example: B2B ClimateTech, MVP or pilot stage, readiness above 75, with a complete technical team.' /><div className='flex flex-wrap items-center justify-between gap-3'><div className='flex flex-wrap gap-2'>{['MVP ClimateTech above 80% readiness', 'HealthTech pilot ventures', 'Baku marketplaces with verified evidence', 'AgriTech with technical teams'].map((example) => <Button key={example} type='button' variant='outline' size='sm' onClick={() => setDraftThesis(example)}>{example}</Button>)}</div><Button disabled={matching}><Search />{matching ? 'Matching…' : 'Analyze thesis'}</Button></div></form>
     </CardContent></Card>
 
-    <div className='mb-5 space-y-3 rounded-xl border bg-card/50 p-4'><AssistantCriteriaChips response={response} /><div className='grid gap-4 lg:grid-cols-[1fr_1fr_220px]'><FilterGroup label='Stage' values={stages} selected={stage} onSelect={setStage} /><FilterGroup label='Sector' values={sectors} selected={sector} onSelect={setSector} /><label className='text-xs font-semibold text-muted-foreground'>Minimum readiness: {minReadiness}%<input className='mt-3 w-full accent-primary' type='range' min='0' max='95' step='5' value={minReadiness} onChange={(event) => setMinReadiness(Number(event.target.value))} /></label></div></div>
+    <div className='mb-5 space-y-4 rounded-xl border bg-card/50 p-4'>
+      <AssistantCriteriaChips response={response} />
+      <div className='grid gap-4 xl:grid-cols-3'><FilterGroup label='Stage' values={stages} selected={stage} onSelect={setStage} /><FilterGroup label='Sector' values={sectors} selected={sector} onSelect={setSector} /><FilterGroup label='Location' values={locations} selected={location} onSelect={setLocation} /></div>
+      <div className='grid gap-4 border-t pt-4 md:grid-cols-[1fr_auto_auto_auto] md:items-end'>
+        <label className='text-xs font-semibold text-muted-foreground'>Minimum readiness: {minReadiness}%<input className='mt-3 w-full accent-primary' type='range' min='0' max='95' step='5' value={minReadiness} onChange={(event) => setMinReadiness(Number(event.target.value))} /></label>
+        <button type='button' onClick={() => setVerifiedEvidenceOnly(!verifiedEvidenceOnly)} className={cn('rounded-xl border px-3 py-2 text-xs font-semibold', verifiedEvidenceOnly && 'border-primary/40 bg-primary/10 text-primary')}><FileCheck2 className='mr-1 inline size-3.5' />Verified evidence</button>
+        <button type='button' onClick={() => setCompleteTeamOnly(!completeTeamOnly)} className={cn('rounded-xl border px-3 py-2 text-xs font-semibold', completeTeamOnly && 'border-primary/40 bg-primary/10 text-primary')}><Users className='mr-1 inline size-3.5' />Complete team</button>
+        <label className='text-xs font-semibold text-muted-foreground'>Sort by<select value={sort} onChange={(event) => setSort(event.target.value as typeof sort)} className='mt-1 block h-9 rounded-lg border bg-background px-2 text-foreground'><option value='match'>Thesis match</option><option value='readiness'>Readiness</option><option value='team'>Fewest team gaps</option></select></label>
+      </div>
+    </div>
 
     <div className='mb-4 flex items-center justify-between gap-3'><div><h2 className='text-xl font-bold'>Ranked venture matches</h2><p className='text-sm text-muted-foreground'>{ranked.length} ventures meet the current thesis and filters.</p></div><Badge variant='outline'>Relevance, not prediction</Badge></div>
     <div className='grid gap-5 lg:grid-cols-2'>{ranked.map((result) => {
       const startup = startups.find((item) => item.slug === result.entityId)
       if (!startup) return null
       const current = startup.milestones.find((item) => item.status === 'current')
-      return <Card key={startup.slug} className='glass-card flex flex-col overflow-hidden'><div className='h-0.5 bg-gradient-to-r from-primary/40 via-primary/10 to-transparent' /><CardHeader className='flex-row items-start gap-3'><span className='grid size-12 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary'><Rocket /></span><div className='min-w-0 flex-1'><div className='flex flex-wrap items-center gap-2'><CardTitle className='text-base'>{startup.name}</CardTitle><Badge variant='secondary'>{startup.sector}</Badge><Badge variant='outline'>{startup.stage}</Badge></div><CardDescription className='mt-1 flex items-center gap-1'><MapPin className='size-3' />{startup.location}</CardDescription></div><div className='text-right'><div className='text-2xl font-extrabold text-primary'>{result.explanation.totalScore}%</div><div className='text-[10px] uppercase text-muted-foreground'>thesis match</div></div></CardHeader>
+      return <Card key={startup.slug} className='glass-card flex flex-col overflow-hidden'><div className='h-0.5 bg-gradient-to-r from-primary/40 via-primary/10 to-transparent' /><CardHeader className='flex-row items-start gap-3'><span className='grid size-12 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary'><Rocket /></span><div className='min-w-0 flex-1'><div className='flex flex-wrap items-center gap-2'><CardTitle className='text-base'>{startup.name}</CardTitle><Badge variant='secondary'>{startup.sector}</Badge><Badge variant='outline'>{startup.stage}</Badge>{verifiedStartupEvidence.has(startup.slug) && <Badge className='gap-1 bg-emerald-500/10 text-emerald-600'><FileCheck2 className='size-3' />Evidence</Badge>}</div><CardDescription className='mt-1 flex items-center gap-1'><MapPin className='size-3' />{startup.location}</CardDescription></div><div className='text-right'><div className='text-2xl font-extrabold text-primary'>{result.explanation.totalScore}%</div><div className='text-[10px] uppercase text-muted-foreground'>thesis match</div></div></CardHeader>
         <CardContent className='flex-1 space-y-4'><p className='text-sm leading-6 text-muted-foreground'>{startup.summary}</p><div className='grid grid-cols-3 gap-2 text-center'><MiniMetric label='Readiness' value={`${startup.score}%`} /><MiniMetric label='Team' value={String(startup.team.length)} /><MiniMetric label='Open roles' value={String(startup.openRoles.length)} /></div>{current && <div className='rounded-xl border bg-muted/25 p-3'><div className='text-[10px] font-semibold uppercase tracking-wide text-muted-foreground'>Current milestone</div><b className='mt-1 block text-sm'>{current.title}</b><p className='mt-1 text-xs text-muted-foreground'>{current.desc}</p></div>}<div className='grid grid-cols-2 gap-2 sm:grid-cols-3'>{Object.entries(result.explanation.scoreBreakdown).map(([label, value]) => <MiniMetric key={label} label={label} value={String(Math.round(value))} />)}</div><div className='rounded-xl border p-3 text-xs'><b>Why it matches</b><ul className='mt-2 space-y-1 text-muted-foreground'>{result.explanation.matchedSignals.slice(0, 4).map((signal) => <li key={signal}>✓ {signal}</li>)}{result.explanation.missingSignals.slice(0, 3).map((signal) => <li key={signal} className='text-amber-600'>△ {signal}</li>)}</ul></div></CardContent>
         <CardFooter className='flex-wrap gap-2 border-t'><Button size='sm' variant={watched.has(startup.slug) ? 'default' : 'outline'} onClick={() => onWatch(startup)}><Bookmark className={watched.has(startup.slug) ? 'fill-current' : ''} />{watched.has(startup.slug) ? 'Watching' : 'Watch'}</Button><Button size='sm' variant={compared.has(startup.slug) ? 'default' : 'outline'} onClick={() => onCompare(startup)}><Columns3 />{compared.has(startup.slug) ? 'Compared' : 'Compare'}</Button><Button size='sm' variant='outline' onClick={() => recordIntro(startup.slug, startup.name)}><MessagesSquare />Request intro</Button><Button size='sm' className='ml-auto' onClick={() => onOpen(startup.slug)}>Evidence<ChevronRight /></Button></CardFooter>
       </Card>
     })}{ranked.length === 0 && <Card className='border-dashed lg:col-span-2'><CardContent className='py-16 text-center'><Search className='mx-auto mb-3 size-10 text-muted-foreground' /><p className='font-semibold'>No ventures meet every active constraint</p><p className='mt-1 text-sm text-muted-foreground'>Lower minimum readiness or remove a stage or sector filter.</p></CardContent></Card>}</div>
   </>
+}
+
+function InvestorPipeline({
+  startups, ranked, pipeline, notes, verifiedStartupEvidence, onStage, onNote, onOpen,
+}: {
+  startups: StartupData[]
+  ranked: AssistantResult[]
+  pipeline: Record<string, PipelineStage>
+  notes: Record<string, string>
+  verifiedStartupEvidence: Set<string>
+  onStage: (slug: string, value: PipelineStage) => void
+  onNote: (slug: string, value: string) => void
+  onOpen: (slug: string) => void
+}) {
+  const counts = Object.fromEntries(pipelineStages.map((stage) => [
+    stage,
+    startups.filter((startup) => (pipeline[startup.slug] ?? 'sourced') === stage).length,
+  ])) as Record<PipelineStage, number>
+  return <section>
+    <div className='mb-5'>
+      <h2 className='text-2xl font-bold'>Investment review pipeline</h2>
+      <p className='mt-1 text-sm text-muted-foreground'>Move ventures through a browser-persisted review workflow, keep concise notes, and inspect missing evidence before requesting an introduction.</p>
+    </div>
+    <div className='mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-5'>{pipelineStages.map((stage) => <Card key={stage} className='glass-card'><CardContent className='p-4'><div className='text-[10px] font-semibold uppercase tracking-wide text-muted-foreground'>{stage}</div><div className='mt-1 text-3xl font-extrabold'>{counts[stage]}</div></CardContent></Card>)}</div>
+    <div className='overflow-x-auto rounded-xl border bg-card/60'>
+      <table className='w-full min-w-[1100px] text-sm'>
+        <thead><tr className='border-b bg-muted/30 text-left text-xs text-muted-foreground'><th className='p-4'>Venture</th><th className='p-4'>Thesis match</th><th className='p-4'>Readiness</th><th className='p-4'>Evidence</th><th className='p-4'>Review stage</th><th className='p-4'>Investor note</th><th className='p-4'>Action</th></tr></thead>
+        <tbody>{startups.map((startup) => {
+          const match = ranked.find((result) => result.entityId === startup.slug)
+          const risks = [
+            ...(!verifiedStartupEvidence.has(startup.slug) ? ['Evidence unverified'] : []),
+            ...(startup.openRoles.length ? [`${startup.openRoles.length} team gap${startup.openRoles.length === 1 ? '' : 's'}`] : []),
+            ...(startup.score < 70 ? ['Early readiness'] : []),
+          ]
+          return <tr key={startup.slug} className='border-b last:border-0 align-top'>
+            <td className='p-4'><button type='button' onClick={() => onOpen(startup.slug)} className='font-semibold hover:text-primary'>{startup.name}</button><p className='mt-1 text-xs text-muted-foreground'>{startup.sector} · {startup.stage}</p><div className='mt-2 flex flex-wrap gap-1'>{risks.length ? risks.map((risk) => <Badge key={risk} variant='outline' className='border-amber-500/30 text-[9px] text-amber-600'>{risk}</Badge>) : <Badge className='bg-emerald-500/10 text-[9px] text-emerald-600'>No flagged gaps</Badge>}</div></td>
+            <td className='p-4 font-bold text-primary'>{match?.explanation.totalScore ?? 0}%</td>
+            <td className='p-4'><b>{startup.score}%</b><div className='mt-2 h-1.5 w-24 overflow-hidden rounded-full bg-muted'><div className='h-full bg-primary' style={{ width: `${startup.score}%` }} /></div></td>
+            <td className='p-4'>{verifiedStartupEvidence.has(startup.slug) ? <Badge className='gap-1 bg-emerald-500/10 text-emerald-600'><FileCheck2 className='size-3' />Verified</Badge> : <Badge variant='outline'>Needs review</Badge>}</td>
+            <td className='p-4'><select value={pipeline[startup.slug] ?? 'sourced'} onChange={(event) => onStage(startup.slug, event.target.value as PipelineStage)} className='h-9 rounded-lg border bg-background px-2 capitalize text-foreground'>{pipelineStages.map((stage) => <option key={stage} value={stage}>{stage}</option>)}</select></td>
+            <td className='p-4'><div className='relative'><StickyNote className='absolute left-2.5 top-2.5 size-3.5 text-muted-foreground' /><Input value={notes[startup.slug] ?? ''} onChange={(event) => onNote(startup.slug, event.target.value)} className='min-w-64 pl-8' placeholder='Decision note or next question' /></div></td>
+            <td className='p-4'><div className='flex gap-2'><Button size='sm' variant='outline' onClick={() => recordIntro(startup.slug, startup.name)}><MessagesSquare className='size-3.5' />Intro</Button><Button size='sm' onClick={() => onOpen(startup.slug)}>Review</Button></div></td>
+          </tr>
+        })}</tbody>
+      </table>
+    </div>
+    <Card className='mt-5'><CardContent className='flex gap-3 p-4 text-sm text-muted-foreground'><AlertTriangle className='size-5 shrink-0 text-amber-500' /><p>Pipeline state and notes are illustrative browser data. Match and readiness scores prioritize review; they do not estimate funding probability or investment return.</p></CardContent></Card>
+  </section>
 }
 
 function InvestorCompare({ startups: selected, response, onRemove, onDiscover }: { startups: StartupData[]; response: ReturnType<typeof runAssistant>; onRemove: (startup: StartupData) => void; onDiscover: () => void }) {

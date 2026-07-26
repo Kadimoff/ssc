@@ -33,7 +33,11 @@ export function VerificationPage() {
 
 export function GoalsPage() {
   const { data } = useSnapshot()
-  const initial = JSON.parse(localStorage.getItem('ssc.goals.v1') ?? '[]') as Array<{ title: string; evidence: string; done: boolean }>
+  const initial = JSON.parse(localStorage.getItem('ssc.goals.v1') ?? JSON.stringify([
+    { title: 'Validate the highest-risk customer assumption', evidence: 'Five structured interviews and a written decision summary', done: true },
+    { title: 'Close the most important team gap', evidence: 'Role brief, three AI matches reviewed, and one founder conversation', done: false },
+    { title: 'Prepare the next pilot milestone', evidence: 'Named partner, success metric, owner, and target date', done: false },
+  ])) as Array<{ title: string; evidence: string; done: boolean }>
   const [goals, setGoals] = useState(initial), [title, setTitle] = useState(''), [evidence, setEvidence] = useState('')
   if (!data) return <PageLoading />
   if (!data.currentUser) return <AuthRequired title='Sign in to manage goals' />

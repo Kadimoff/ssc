@@ -15,6 +15,7 @@ export default defineConfig({
             { name: 'animation-vendor', test: /node_modules[\\/](?:@gsap|gsap)[\\/]/, priority: 4 },
             { name: 'react-vendor', test: /node_modules[\\/](?:react|react-dom|scheduler)[\\/]/, priority: 3 },
             { name: 'tanstack-vendor', test: /node_modules[\\/]@tanstack[\\/]/, priority: 3 },
+            { name: 'assistant-feature', test: /src[\\/]features[\\/]assistant[\\/]/, priority: 2 },
             { name: 'radix-vendor', test: /node_modules[\\/]@radix-ui[\\/]/, priority: 2 },
             { name: 'ui-vendor', test: /node_modules[\\/](?:lucide-react|sonner|zustand|zod)[\\/]/, priority: 1 },
           ],

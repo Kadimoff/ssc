@@ -5,6 +5,7 @@ import { PageContainer, PageHeading, PageLoading } from '@/app/app-shared'
 import { articles, communityEvents } from '@/data/editorial-content'
 import { startups as staticStartups } from '@/data/platform-content'
 import { Card, CardContent } from '@/components/ui/card'
+import { MatchWorkbench } from '@/features/assistant/match-workbench'
 
 export function SearchPage() {
   const { data } = useSnapshot()
@@ -22,6 +23,7 @@ export function SearchPage() {
     ...communityEvents.filter((item) => match(`${item.title} ${item.description}`)).map((item) => ({ key: item.slug, title: item.title, detail: `${item.date} · ${item.location}`, to: `/events/${item.slug}`, icon: CalendarDays })),
   ]
   return <PageContainer><PageHeading eyebrow='Workspace search' title={query ? `Results for “${query}”` : 'Search the SSC workspace'} description='Find people, ventures, organizations, opportunities, articles, and events from one place.' />
+    <MatchWorkbench snapshot={data} mode='workspace' />
     {!query ? <Empty text='Enter a search term in the header.' /> : results.length ? <div className='grid gap-3'>{results.map((result) => <Link key={`${result.to}-${result.key}`} to={result.to} className='block'><Card className='transition-colors hover:border-primary/30'><CardContent className='flex items-center gap-4 p-4'><span className='grid size-11 place-items-center rounded-xl bg-primary/10 text-primary'><result.icon /></span><div><b>{result.title}</b><p className='text-sm text-muted-foreground'>{result.detail}</p></div></CardContent></Card></Link>)}</div> : <Empty text='No matching workspace records were found.' />}
   </PageContainer>
 }

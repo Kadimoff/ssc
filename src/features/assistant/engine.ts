@@ -26,6 +26,11 @@ const sectorAliases: Record<string, string[]> = {
   ClimateTech: ['climate', 'climatetech', 'carbon', 'energy', 'iklim', 'iqlim'],
   HealthTech: ['health', 'healthtech', 'medical', 'clinic', 'saglik', 'sehiyye'],
   EdTech: ['edtech', 'education', 'learning', 'university', 'egitim', 'tehsil'],
+  AgriTech: ['agritech', 'agriculture', 'agronomy', 'farm', 'kənd təsərrüfatı', 'kend teserrufati'],
+  Marketplace: ['marketplace', 'market place', 'bazar yeri', 'pazaryeri'],
+  LegalTech: ['legaltech', 'legal', 'contract', 'law', 'hüquq', 'huquq'],
+  Wellbeing: ['wellbeing', 'wellness', 'mental health', 'student support', 'rifah'],
+  Mobility: ['mobility', 'transport', 'route', 'accessibility', 'nəqliyyat', 'neqliyyat'],
   AI: ['ai', 'artificial intelligence', 'llm', 'machine learning', 'yapay zeka', 'suni intellekt'],
   SaaS: ['saas', 'b2b software', 'b2b'],
 }
@@ -78,10 +83,10 @@ export function extractAssistantCriteria(prompt: string): AssistantCriteria {
   const skills = Object.entries(skillAliases).filter(([, aliases]) => includesAny(text, aliases)).map(([name]) => name)
   const sectors = Object.entries(sectorAliases).filter(([, aliases]) => includesAny(text, aliases)).map(([name]) => name)
   const stages = Object.entries(stageAliases).filter(([, aliases]) => includesAny(text, aliases)).map(([name]) => name)
-  const location = ['remote', 'baku', 'seattle', 'boston', 'san francisco', 'azerbaijan'].find((item) => text.includes(item))
+  const location = ['remote', 'baku', 'ganja', 'seattle', 'boston', 'san francisco', 'azerbaijan'].find((item) => text.includes(item))
   const readinessMatch = text.match(/(?:above|over|minimum|min|at least|uzeri|ustu|yuxari|cox)\s*(\d{2,3})\s*%?/) ?? text.match(/(\d{2,3})\s*%\s*(?:readiness|ready|hazir)/)
   const minReadiness = readinessMatch ? Math.min(100, Number(readinessMatch[1])) : undefined
-  const completeTeam = includesAny(text, ['complete team', 'full team', 'team complete', 'takim tam', 'eksiksiz ekip', 'komanda tam'])
+  const completeTeam = includesAny(text, ['complete team', 'full team', 'team complete', 'takim tam', 'eksiksiz ekip', 'komanda tam', 'tam komanda'])
   const keywords = Array.from(new Set(text.split(/\s+/).filter((token: string) => token.length > 2 && !stopWords.has(token) && !/^\d+%?$/.test(token))))
   return { skills, sectors, stages, location, minReadiness, completeTeam, keywords }
 }

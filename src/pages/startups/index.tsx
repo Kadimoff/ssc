@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils'
 import { PageContainer, PageHeading, UserAvatar } from '@/app/app-shared'
 import { startups as staticStartups } from '@/data/platform-content'
 import { useSnapshot } from '@/app/app-data'
+import { MatchWorkbench } from '@/features/assistant/match-workbench'
 
 interface CreatedStartupDraft {
   name: string
@@ -43,6 +44,7 @@ export function StartupsPage() {
   }
   return <PageContainer>
     <PageHeading eyebrow='Startup workspace' title='Discover teams and turn visible progress into trust.' description='Explore verified student startups, open roles, milestones and mentor-backed execution signals.' />
+    {data && <MatchWorkbench snapshot={data} mode='teammate' />}
     <div className='mb-6 flex flex-wrap gap-3'><Button asChild><Link to='/startups/new'><Plus />Create startup</Link></Button><Button variant='outline' asChild><Link to='/jobs'><Search />Browse open roles</Link></Button><Button variant={savedOnly ? 'default' : 'outline'} onClick={() => setSavedOnly((value) => !value)}><Bookmark className={savedOnly ? 'fill-current' : ''} />Saved startups ({savedSlugs.length})</Button></div>
     {drafts.length > 0 && !savedOnly && <section className='mb-8'><div className='mb-3'><h2 className='text-xl font-bold'>Your local drafts</h2><p className='text-sm text-muted-foreground'>Saved in this browser until backend venture creation is connected.</p></div><div className='grid gap-4 md:grid-cols-2'>{drafts.map((draft) => <Card key={`${draft.name}-${draft.createdAt}`} className='border-dashed'><CardHeader><div className='flex items-center justify-between gap-3'><Badge variant='secondary'>Local draft</Badge><span className='text-xs text-muted-foreground'>{new Date(draft.createdAt).toLocaleDateString()}</span></div><CardTitle>{draft.name}</CardTitle><CardDescription>{draft.sector} · {draft.stage}</CardDescription></CardHeader><CardContent><p className='line-clamp-3 text-sm leading-6 text-muted-foreground'>{draft.problem}</p></CardContent><CardFooter><Button variant='outline' size='sm' asChild><Link to='/goals'>Add evidence goals</Link></Button></CardFooter></Card>)}</div></section>}
     {visibleStartups.length === 0 ? <Card className='border-dashed py-14 text-center'><CardContent><Bookmark className='mx-auto mb-3 size-9 text-muted-foreground' /><p className='font-semibold'>No saved startups yet</p><p className='mt-1 text-sm text-muted-foreground'>Switch back to all startups and save the teams you want to revisit.</p></CardContent></Card> : <div className='grid gap-5 lg:grid-cols-3'>{visibleStartups.map((startup) => <Card key={startup.name} className='overflow-hidden'>
@@ -90,6 +92,8 @@ export function StartupDetailPage() {
           <Button variant={followed ? 'outline' : 'default'} className='gap-2 shadow-xs' onClick={() => { const stored = readLocalArray<string>('ssc.savedStartups.v1'); const next = followed ? stored.filter((item) => item !== slug) : [...new Set([...stored, slug])]; localStorage.setItem('ssc.savedStartups.v1', JSON.stringify(next)); setFollowed(!followed) }}><Bookmark className={followed ? 'fill-current' : ''} />{followed ? 'Following' : 'Follow'}</Button>
         </div>
       </section>
+
+      {data && <MatchWorkbench snapshot={data} mode='teammate' initialStartupSlug={startup.slug} />}
 
       {/* Bento Grid */}
       <div className='relative z-10 mt-8 grid gap-6 lg:grid-cols-12'>

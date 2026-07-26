@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { PageContainer, PageHeading, PageLoading, UserAvatar } from '@/app/app-shared'
 import { useAction, useSnapshot } from '@/app/app-data'
+import { MatchWorkbench } from '@/features/assistant/match-workbench'
 
 export function NetworkPage() {
   const { data } = useSnapshot(); const [query, setQuery] = useState('')
@@ -20,6 +21,7 @@ export function NetworkPage() {
   const users = data.users.filter((user) => user.id !== data.currentUser?.id && `${user.name} ${user.title} ${user.skills}`.toLowerCase().includes(query.toLowerCase()))
   return <PageContainer>
     <PageHeading eyebrow='Network' title='Meet people with aligned goals.' description='Discover collaborators by craft, context and what they want to build next.' />
+    <MatchWorkbench snapshot={data} mode='teammate' />
     <div className='mb-8 max-w-xl'>
       <div className='relative'>
         <Search className='absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground' />

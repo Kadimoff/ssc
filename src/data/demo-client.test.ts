@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
   BACKUP_KEY, DATA_KEY, DemoApiClient, SESSION_KEY, V1_BACKUP_KEY, V1_KEY,
-  V2_KEY, V2_SESSION_KEY, loadState,
+  V2_KEY, V2_SESSION_KEY, hydrateDemoState, loadState, seedState,
 } from './demo-client'
 
 class MemoryStorage implements Storage {
@@ -81,5 +81,31 @@ describe('DemoApiClient', () => {
     const snapshot = await client.snapshot()
     expect(snapshot.organizations.find((item) => item.id === organizationId)?.verificationStatus).toBe('verified')
     expect(snapshot.auditLogs.some((item) => item.targetId === organizationId && item.action === 'organization.verification_changed')).toBe(true)
+  })
+
+  it('seeds a complete illustrative ecosystem with valid cross-record references', () => {
+    const state = seedState()
+    expect(state.users.length).toBeGreaterThanOrEqual(16)
+    expect(state.startups.length).toBeGreaterThanOrEqual(8)
+    expect(state.jobs.length).toBeGreaterThanOrEqual(8)
+    expect(state.communities.length).toBeGreaterThanOrEqual(6)
+    expect(state.conversations.length).toBeGreaterThanOrEqual(5)
+    expect(state.programs.length).toBeGreaterThanOrEqual(3)
+    expect(state.evidenceArtifacts.length).toBeGreaterThanOrEqual(6)
+    expect(state.outcomes.length).toBeGreaterThanOrEqual(4)
+    expect(state.messages.every((message) => state.conversations.some((conversation) => conversation.id === message.conversationId))).toBe(true)
+    expect(state.outcomes.every((outcome) => state.programs.some((program) => program.id === outcome.programId))).toBe(true)
+  })
+
+  it('additively hydrates existing demo state without replacing user mutations', () => {
+    const legacyDemo = seedState()
+    legacyDemo.users = legacyDemo.users.slice(0, 8)
+    legacyDemo.startups = legacyDemo.startups.slice(0, 3)
+    legacyDemo.posts[0].content = 'Preserve my local mutation'
+    const hydrated = hydrateDemoState(legacyDemo)
+    expect(hydrated.users.length).toBeGreaterThanOrEqual(16)
+    expect(hydrated.startups.length).toBeGreaterThanOrEqual(8)
+    expect(hydrated.posts[0].content).toBe('Preserve my local mutation')
+    expect(hydrated.passwords.usr_16).toBe('demo123')
   })
 })

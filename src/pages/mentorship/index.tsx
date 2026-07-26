@@ -15,6 +15,7 @@ import type { EntityId } from '@/data/types'
 import { PageContainer, PageHeading } from '@/app/app-shared'
 import { apiClient } from '@/data/client'
 import { useSnapshot } from '@/app/app-data'
+import { MatchWorkbench } from '@/features/assistant/match-workbench'
 
 export function MentorshipPage() {
   const { data } = useSnapshot()
@@ -48,6 +49,7 @@ export function MentorshipPage() {
 
   return <PageContainer>
     <PageHeading eyebrow='Mentorship' title='Mentors who shorten your path.' description='Discover operators by expertise, book goal-led sessions, and keep structured feedback tied to your startup — not vague impressions.' />
+    {data && <MatchWorkbench snapshot={data} mode='mentor' />}
 
     {bookedMentors.length > 0 && (
       <Card className='glass-card mb-6 overflow-hidden p-0'><CardHeader className='pb-2'><CardTitle className='flex items-center gap-2 text-base'><CalendarDays className='size-4 text-primary' /> Your sessions</CardTitle><CardDescription>{bookedMentors.length} booked</CardDescription></CardHeader>

@@ -12,9 +12,9 @@ describe('investor analytics', () => {
     }]
     const analytics = computeInvestorAnalytics(startups, evidence, new Set([startups[0].slug]))
     expect(analytics.totalVentures).toBe(startups.length)
-    expect(analytics.averageReadiness).toBe(84)
-    expect(analytics.investorReady).toBe(2)
-    expect(analytics.evidenceCoverage).toBe(33)
+    expect(analytics.averageReadiness).toBe(Math.round(startups.reduce((sum, startup) => sum + startup.score, 0) / startups.length))
+    expect(analytics.investorReady).toBe(startups.filter((startup) => startup.score >= 85).length)
+    expect(analytics.evidenceCoverage).toBe(Math.round(100 / startups.length))
     expect(analytics.watchedCount).toBe(1)
     expect(analytics.openRoles).toBe(startups.reduce((sum, startup) => sum + startup.openRoles.length, 0))
   })

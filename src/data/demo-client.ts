@@ -29,8 +29,21 @@ export function seedState(): DemoState {
       { id: 'usr_6', username: 'nargiz', name: 'Nargiz Rahim', email: 'nargiz@studentstartupcommunity.local', title: 'Founder · MediMatch', company: 'MediMatch', industry: 'Health', location: 'Baku, Azerbaijan', skills: 'Operations, Health, Strategy', about: 'Connecting students with affordable verified medical professionals.', availability: 'Open to collaborate', website: '', role: 'member', roles: ['student'], activeRole: 'student', verificationStatus: 'verified' },
       { id: 'usr_7', username: 'elvin', name: 'Elvin Safar', email: 'elvin@studentstartupcommunity.local', title: 'Founder · EduFlow', company: 'EduFlow', industry: 'EdTech', location: 'Remote', skills: 'ML, Product, Pedagogy', about: 'Turning lecture recordings into adaptive practice questions.', availability: 'Looking for a designer', website: '', role: 'member', roles: ['student'], activeRole: 'student', verificationStatus: 'verified' },
       { id: 'usr_8', username: 'investor', name: 'Leyla Aslan', email: 'investor@studentstartupcommunity.local', title: 'Investor · Frontier Ventures', company: 'Frontier Ventures', industry: 'Venture', location: 'Baku, Azerbaijan', skills: 'Seed investing, Marketplaces, Climate, B2B SaaS', about: 'Backing mission-driven student founders at pre-seed and seed.', availability: 'Reviewing ventures', website: 'https://frontier.vc', role: 'member', roles: ['investor'], activeRole: 'investor', verificationStatus: 'verified' },
+      { id: 'usr_9', username: 'aysel', name: 'Aysel Mammadova', email: 'aysel@studentstartupcommunity.local', title: 'Founder & CEO · CampusCart', company: 'CampusCart', industry: 'Marketplace', location: 'Baku, Azerbaijan', skills: 'Product, Marketplaces, Community, Sales', about: 'Building a trusted marketplace for student essentials and campus services.', availability: 'Looking for a backend co-founder', website: '', role: 'member', roles: ['student', 'founder'], activeRole: 'founder', verificationStatus: 'verified' },
+      { id: 'usr_10', username: 'murad', name: 'Murad Hasanli', email: 'murad@studentstartupcommunity.local', title: 'Mobile Engineer', company: 'CampusCart', industry: 'Technology', location: 'Baku, Azerbaijan', skills: 'React Native, TypeScript, Firebase, Mobile UX', about: 'Mobile engineer who enjoys early product teams and measurable user feedback.', availability: 'Open to startup projects', website: '', role: 'member', roles: ['student'], activeRole: 'student', verificationStatus: 'verified' },
+      { id: 'usr_11', username: 'sabina', name: 'Sabina Karimova', email: 'sabina@studentstartupcommunity.local', title: 'Data Scientist · AgriVision', company: 'AgriVision', industry: 'AgriTech', location: 'Ganja, Azerbaijan', skills: 'Python, Computer Vision, Data Engineering, Agriculture', about: 'Applying practical machine learning to regional agriculture.', availability: 'Open to technical collaboration', website: '', role: 'member', roles: ['student', 'founder'], activeRole: 'founder', verificationStatus: 'verified' },
+      { id: 'usr_12', username: 'fidan', name: 'Fidan Ahmadli', email: 'fidan@studentstartupcommunity.local', title: 'Founder · LegalLens', company: 'LegalLens', industry: 'LegalTech', location: 'Baku, Azerbaijan', skills: 'Legal Research, Product Discovery, Contracts, Content', about: 'Making everyday contract obligations easier to understand without replacing legal counsel.', availability: 'Looking for an NLP co-founder', website: '', role: 'member', roles: ['student', 'founder'], activeRole: 'founder', verificationStatus: 'verified' },
+      { id: 'usr_13', username: 'orkhan', name: 'Orkhan Nabiyev', email: 'orkhan@studentstartupcommunity.local', title: 'Full-stack Engineer · MindHarbor', company: 'MindHarbor', industry: 'Wellbeing', location: 'Remote', skills: 'Node.js, TypeScript, PostgreSQL, React, Privacy', about: 'Building careful, accessible products for sensitive user journeys.', availability: 'Available 8 hours weekly', website: '', role: 'member', roles: ['student', 'founder'], activeRole: 'founder', verificationStatus: 'verified' },
+      { id: 'usr_14', username: 'rauf', name: 'Rauf Hajiyev', email: 'rauf@studentstartupcommunity.local', title: 'Founder & Agronomy Lead · AgriVision', company: 'AgriVision', industry: 'AgriTech', location: 'Ganja, Azerbaijan', skills: 'Agronomy, Field Research, Partnerships, Operations', about: 'Turning field observations into useful farm decisions.', availability: 'Looking for an IoT engineer', website: '', role: 'member', roles: ['student', 'founder'], activeRole: 'founder', verificationStatus: 'verified' },
+      { id: 'usr_15', username: 'emil', name: 'Emil Safarov', email: 'emil@studentstartupcommunity.local', title: 'Founder · RouteWise', company: 'RouteWise', industry: 'Mobility', location: 'Baku, Azerbaijan', skills: 'Urban Research, Accessibility, Community Mapping, Product', about: 'Mapping the everyday accessibility details ordinary route planners miss.', availability: 'Forming the founding team', website: '', role: 'member', roles: ['student', 'founder'], activeRole: 'founder', verificationStatus: 'pending' },
+      { id: 'usr_16', username: 'samir', name: 'Samir Rustamli', email: 'samir@studentstartupcommunity.local', title: 'Mentor · Engineering Leadership', company: 'Caspian Cloud', industry: 'Technology', location: 'Baku, Azerbaijan', skills: 'Backend, Architecture, Node.js, PostgreSQL, Hiring', about: 'Helping early teams make pragmatic architecture and hiring decisions.', availability: 'Bi-weekly office hours', website: '', role: 'member', roles: ['mentor'], activeRole: 'mentor', verificationStatus: 'verified' },
     ],
-    passwords: { usr_1: 'demo123', usr_2: 'demo123', usr_3: 'demo123', usr_4: 'demo123', usr_5: 'demo123', usr_6: 'demo123', usr_7: 'demo123', usr_8: 'demo123' },
+    passwords: {
+      usr_1: 'demo123', usr_2: 'demo123', usr_3: 'demo123', usr_4: 'demo123',
+      usr_5: 'demo123', usr_6: 'demo123', usr_7: 'demo123', usr_8: 'demo123',
+      usr_9: 'demo123', usr_10: 'demo123', usr_11: 'demo123', usr_12: 'demo123',
+      usr_13: 'demo123', usr_14: 'demo123', usr_15: 'demo123', usr_16: 'demo123',
+    },
     posts: [
       { id: 'pst_1', authorId: 'usr_2', content: 'GreenStack crossed 1,000 active users on our campus energy tracker this week. Two faculties piloting, 18% energy reduction on average. On to the next milestone.', type: 'Milestone', kind: 'milestone', tags: ['climate', 'growth', 'mvp'], link: { title: 'GreenStack — Q2 campus impact report', subtitle: '1,000+ active users · 18% avg energy reduction · 2 faculties', url: 'greenstack.io/impact' }, commentsList: [{ id: 'cmt_1', authorId: 'usr_5', text: 'Strong traction. Let’s talk raise-readiness — book office hours.', createdAt: ago(40) }], createdAt: ago(60), reactions: 312, comments: 18, reposts: 24, liked: true, saved: false },
       { id: 'pst_2', authorId: 'usr_6', content: 'MediMatch closed a $120k pre-seed from regional angels to expand provider onboarding. Hiring two ops leads — referrals welcome.', type: 'Raise', kind: 'raise', tags: ['healthtech', 'fundraising'], link: { title: 'MediMatch raises $120k pre-seed', subtitle: 'Regional angels · provider expansion · hiring', url: 'medimatch.app/news' }, commentsList: [{ id: 'cmt_2', authorId: 'usr_1', text: 'Congratulations Nargiz! Posted the roles to the jobs board.', createdAt: ago(180) }, { id: 'cmt_3', authorId: 'usr_2', text: 'Happy to intro climate-clinic partners.', createdAt: ago(150) }], createdAt: ago(200), reactions: 540, comments: 33, reposts: 41, liked: false, saved: true },
@@ -47,17 +60,43 @@ export function seedState(): DemoState {
       { id: 'com_1', name: 'Applied AI Builders', category: 'AI', description: 'Practical AI products, evaluations and production lessons.', members: 22100, activity: '34 new discussions', joined: true },
       { id: 'com_2', name: 'Founders & Early Teams', category: 'Startups', description: 'A focused space for founders and early operators.', members: 18400, activity: '12 events this month', joined: false },
       { id: 'com_3', name: 'Product Design Leaders', category: 'Design', description: 'Design systems, research and product leadership.', members: 9700, activity: '8 featured critiques', joined: false },
+      { id: 'com_4', name: 'Climate & AgriTech Lab', category: 'Impact', description: 'Field pilots, climate measurement, agriculture and operational evidence.', members: 6800, activity: '5 pilot reviews this week', joined: false },
+      { id: 'com_5', name: 'Student Marketplace Operators', category: 'Marketplaces', description: 'Liquidity, campus launches, trust and safety for marketplace builders.', members: 4200, activity: '19 operator notes', joined: true },
+      { id: 'com_6', name: 'Backend & Data Guild', category: 'Engineering', description: 'Architecture reviews, API design, data systems and practical pairing.', members: 11500, activity: '7 open collaboration requests', joined: true },
     ],
     jobs: [
       { id: 'job_1', role: 'Senior Product Engineer', company: 'GreenStack', location: 'Remote', type: 'Full-time', skills: 'Python, APIs, PostgreSQL', description: 'Build climate data products used by operational teams.', featured: true, applied: false, saved: false },
       { id: 'job_2', role: 'Product Designer', company: 'Orbit Labs', location: 'Baku', type: 'Contract', skills: 'UX, Research, Design Systems', description: 'Shape a new professional community experience.', featured: false, applied: false, saved: true },
       { id: 'job_3', role: 'ML Engineer', company: 'ModelWorks', location: 'Remote', type: 'Full-time', skills: 'Python, LLM Apps, MLOps', description: 'Own evaluations and inference cost for production LLM apps.', featured: true, applied: false, saved: false },
+      { id: 'job_4', role: 'Backend Co-founder', company: 'CampusCart', location: 'Baku / Remote', type: 'Co-founder', skills: 'Node.js, PostgreSQL, Payments, APIs', description: 'Own marketplace services, transaction trust and the first payment integrations.', featured: true, applied: false, saved: false },
+      { id: 'job_5', role: 'IoT Engineer', company: 'AgriVision', location: 'Hybrid · Ganja', type: 'Project', skills: 'IoT, Python, LoRaWAN, Sensors', description: 'Prototype reliable low-cost field sensor ingestion for an active farm pilot.', featured: true, applied: false, saved: false },
+      { id: 'job_6', role: 'NLP Technical Co-founder', company: 'LegalLens', location: 'Remote', type: 'Co-founder', skills: 'Python, NLP, LLM Evaluations, Retrieval', description: 'Build a supervised contract explanation system with rigorous evaluation boundaries.', featured: true, applied: false, saved: false },
+      { id: 'job_7', role: 'Accessibility Researcher', company: 'RouteWise', location: 'Baku', type: 'Part-time', skills: 'Accessibility, Field Research, Community', description: 'Design and validate structured urban accessibility observations.', featured: false, applied: false, saved: false },
+      { id: 'job_8', role: 'Privacy & Compliance Fellow', company: 'MindHarbor', location: 'Baku', type: 'Fellowship', skills: 'Privacy, Policy, Health, Research', description: 'Review consent, referral, and data-minimization workflows for a student wellbeing pilot.', featured: false, applied: false, saved: true },
     ],
     startups: structuredClone(startups),
     mentors: structuredClone(mentors),
-    conversations: [{ id: 'cnv_1', participantIds: ['usr_1', 'usr_3'] }],
-    messages: [{ id: 'msg_1', conversationId: 'cnv_1', senderId: 'usr_3', text: 'Hi Aylin, would you like to review our onboarding study?', createdAt: now }],
-    connections: [['usr_1', 'usr_2'], ['usr_1', 'usr_3']],
+    conversations: [
+      { id: 'cnv_1', participantIds: ['usr_1', 'usr_3'] },
+      { id: 'cnv_2', participantIds: ['usr_1', 'usr_9'] },
+      { id: 'cnv_3', participantIds: ['usr_1', 'usr_16'] },
+      { id: 'cnv_4', participantIds: ['usr_1', 'usr_14'] },
+      { id: 'cnv_5', participantIds: ['usr_1', 'usr_8'] },
+    ],
+    messages: [
+      { id: 'msg_1', conversationId: 'cnv_1', senderId: 'usr_3', text: 'Hi Aylin, would you like to review our onboarding study?', createdAt: ago(15) },
+      { id: 'msg_2', conversationId: 'cnv_1', senderId: 'usr_1', text: 'Yes—please send the three strongest findings and the evidence behind them.', createdAt: ago(12) },
+      { id: 'msg_3', conversationId: 'cnv_2', senderId: 'usr_9', text: 'CampusCart needs a backend co-founder. Can SSC help us rank candidates against our marketplace needs?', createdAt: ago(80) },
+      { id: 'msg_4', conversationId: 'cnv_2', senderId: 'usr_1', text: 'I added your startup context and three criteria to the matching workspace.', createdAt: ago(72) },
+      { id: 'msg_5', conversationId: 'cnv_3', senderId: 'usr_16', text: 'I can host an architecture review for teams preparing an MVP pilot.', createdAt: ago(190) },
+      { id: 'msg_6', conversationId: 'cnv_4', senderId: 'usr_14', text: 'We have field evidence now and need an IoT engineer for the next pilot cycle.', createdAt: ago(340) },
+      { id: 'msg_7', conversationId: 'cnv_5', senderId: 'usr_8', text: 'Please add the new evidence-quality filters to my ClimateTech thesis view.', createdAt: ago(510) },
+      { id: 'msg_8', conversationId: 'cnv_5', senderId: 'usr_1', text: 'Done. The dashboard now separates match relevance from verified evidence coverage.', createdAt: ago(500) },
+    ],
+    connections: [
+      ['usr_1', 'usr_2'], ['usr_1', 'usr_3'], ['usr_1', 'usr_9'], ['usr_1', 'usr_16'],
+      ['usr_9', 'usr_10'], ['usr_11', 'usr_14'], ['usr_12', 'usr_13'],
+    ],
     organizations: [
       {
         id: 'org_1', type: 'student_community', legalName: 'Student Startup Community', displayName: 'SSC',
@@ -87,6 +126,18 @@ export function seedState(): DemoState {
         websiteUrl: '', verificationStatus: 'pending', partnershipStatus: 'prospect',
         contributionAreas: ['Mentor network', 'Demo day', 'Investor readiness'], contacts: [], createdAt: now,
       },
+      {
+        id: 'org_5', type: 'investor_network', legalName: 'Caspian Seed Network', displayName: 'Caspian Seed Network',
+        slug: 'caspian-seed-network', summary: 'Illustrative investor network for thesis discovery and founder-introduction workflows.', countryCode: 'AZ',
+        websiteUrl: '', verificationStatus: 'verified', partnershipStatus: 'active',
+        contributionAreas: ['Investor office hours', 'Thesis feedback', 'Demo day'], contacts: [], createdAt: now,
+      },
+      {
+        id: 'org_6', type: 'ngo', legalName: 'Inclusive City Lab', displayName: 'Inclusive City Lab',
+        slug: 'inclusive-city-lab', summary: 'Illustrative accessibility research partner supporting community mapping pilots.', countryCode: 'AZ',
+        websiteUrl: '', verificationStatus: 'verified', partnershipStatus: 'active',
+        contributionAreas: ['Accessibility research', 'Community validation', 'Pilot access'], contacts: [], createdAt: now,
+      },
     ],
     orgMemberships: [
       { id: 'mem_1', organizationId: 'org_1', userId: 'usr_1', title: 'Platform administrator', roles: ['platform_admin', 'program_manager'], status: 'active', createdAt: now },
@@ -101,10 +152,21 @@ export function seedState(): DemoState {
         brandingTerms: 'Partner marks require written approval.', programScope: 'Illustrative ten-week founder sprint.',
         documentName: '', documentUrl: '', createdBy: 'usr_1', createdAt: now,
       },
+      {
+        id: 'agr_2', type: 'mentor_network', title: 'Evidence-led Mentor Network', status: 'active',
+        startsAt: '2026-05-01', endsAt: '2027-05-01', reviewAt: '2026-11-01',
+        intendedOutcomes: ['Structured mentor sessions', 'Verified milestone reviews', 'Relevant investor introductions'],
+        resourceCommitments: ['36 mentor hours', 'Monthly architecture clinic', 'Quarterly investor office hours'],
+        dataTerms: 'Session goals and outcome evidence only; private working notes remain participant-controlled.',
+        brandingTerms: 'Demo labels required on every illustrative record.', programScope: 'Mentor and investor-readiness support for active student ventures.',
+        documentName: 'Illustrative mentor network agreement', documentUrl: '', createdBy: 'usr_1', createdAt: now,
+      },
     ],
     agreementParties: [
       { id: 'agp_1', agreementId: 'agr_1', organizationId: 'org_1', role: 'program operator', responsibilitySummary: 'Operate the platform and evidence workflow.' },
       { id: 'agp_2', agreementId: 'agr_1', organizationId: 'org_2', role: 'university partner', responsibilitySummary: 'Recruit eligible students and provide scoped program support.' },
+      { id: 'agp_3', agreementId: 'agr_2', organizationId: 'org_1', role: 'community operator', responsibilitySummary: 'Coordinate session goals, matching, and evidence capture.' },
+      { id: 'agp_4', agreementId: 'agr_2', organizationId: 'org_5', role: 'investor network', responsibilitySummary: 'Provide scoped thesis feedback and introduction windows.' },
     ],
     programs: [
       {
@@ -116,36 +178,95 @@ export function seedState(): DemoState {
         outcomesFramework: ['team_formed', 'mentor_session_completed', 'mvp_completed', 'demo_day_completion'],
         createdAt: now,
       },
+      {
+        id: 'prg_2', name: 'MVP Evidence Accelerator', type: 'accelerator', status: 'active',
+        hostOrganizationId: 'org_4', description: 'Illustrative six-week accelerator focused on team gaps, pilot evidence, and decision-ready venture profiles.',
+        startsAt: '2026-06-15', endsAt: '2026-08-01',
+        eligibilityRules: ['Working prototype', 'Named evidence owner', 'Weekly founder check-in'],
+        milestoneLabels: ['Baseline reviewed', 'Team gap addressed', 'Pilot evidence verified', 'Investor brief ready'],
+        outcomesFramework: ['team_formed', 'mentor_session_completed', 'mvp_completed', 'investment_meeting'],
+        createdAt: now,
+      },
+      {
+        id: 'prg_3', name: 'Inclusive City Challenge', type: 'challenge', status: 'open',
+        hostOrganizationId: 'org_6', description: 'Illustrative civic challenge for accessible mobility research and responsible community data collection.',
+        startsAt: '2026-08-20', endsAt: '2026-11-20',
+        eligibilityRules: ['Student-led team', 'Accessibility research commitment', 'Open evidence review'],
+        milestoneLabels: ['Research protocol', 'Community mapping', 'Prototype validation', 'Public demo'],
+        outcomesFramework: ['team_formed', 'mvp_completed', 'pilot_introduction', 'demo_day_completion'],
+        createdAt: now,
+      },
     ],
     programPartners: [
       { id: 'ppn_1', programId: 'prg_1', organizationId: 'org_1', role: 'host', commitmentSummary: 'Program operations and evidence infrastructure.' },
       { id: 'ppn_2', programId: 'prg_1', organizationId: 'org_2', role: 'community', commitmentSummary: 'Student recruitment and campus support.' },
+      { id: 'ppn_3', programId: 'prg_2', organizationId: 'org_4', role: 'host', commitmentSummary: 'Accelerator delivery and milestone review.' },
+      { id: 'ppn_4', programId: 'prg_2', organizationId: 'org_5', role: 'investor_access', commitmentSummary: 'Office hours and scoped introduction review.' },
+      { id: 'ppn_5', programId: 'prg_2', organizationId: 'org_1', role: 'community', commitmentSummary: 'Founder sourcing and evidence workflow.' },
+      { id: 'ppn_6', programId: 'prg_3', organizationId: 'org_6', role: 'host', commitmentSummary: 'Research governance and accessibility review.' },
     ],
     cohorts: [
       { id: 'coh_1', programId: 'prg_1', name: 'Pilot Cohort', status: 'draft', startsAt: '2026-09-01', endsAt: '2026-11-10', capacity: 120 },
+      { id: 'coh_2', programId: 'prg_2', name: 'Summer MVP Cohort', status: 'active', startsAt: '2026-06-15', endsAt: '2026-08-01', capacity: 24 },
+      { id: 'coh_3', programId: 'prg_3', name: 'Accessible Mobility Cohort', status: 'recruiting', startsAt: '2026-08-20', endsAt: '2026-11-20', capacity: 18 },
     ],
-    cohortParticipants: [],
+    cohortParticipants: [
+      { id: 'cpt_1', cohortId: 'coh_2', userId: 'usr_9', startupSlug: 'campus-cart', status: 'active', joinedAt: ago(40000) },
+      { id: 'cpt_2', cohortId: 'coh_2', userId: 'usr_14', startupSlug: 'agrivision', status: 'active', joinedAt: ago(38000) },
+      { id: 'cpt_3', cohortId: 'coh_2', userId: 'usr_12', startupSlug: 'legal-lens', status: 'accepted', joinedAt: ago(36000) },
+      { id: 'cpt_4', cohortId: 'coh_3', userId: 'usr_15', startupSlug: 'routewise', status: 'applied', joinedAt: ago(1200) },
+    ],
     contributions: [
       {
         id: 'ctr_1', programId: 'prg_1', organizationId: 'org_2', type: 'students', quantity: 40,
         unit: 'eligible seats', description: 'Illustrative commitment pending partner verification.',
         evidenceIds: [], verificationStatus: 'pending', createdAt: now,
       },
+      {
+        id: 'ctr_2', programId: 'prg_2', organizationId: 'org_4', type: 'mentors', quantity: 36,
+        unit: 'mentor hours', description: 'Illustrative accelerator mentor capacity delivered across the active cohort.',
+        evidenceIds: ['evd_3'], verificationStatus: 'verified', verifiedBy: 'usr_1', verifiedAt: ago(300), createdAt: ago(22000),
+      },
+      {
+        id: 'ctr_3', programId: 'prg_2', organizationId: 'org_5', type: 'funding', quantity: 8,
+        unit: 'investor office-hour slots', description: 'Illustrative thesis review and introduction capacity.',
+        evidenceIds: ['evd_4'], verificationStatus: 'verified', verifiedBy: 'usr_1', verifiedAt: ago(200), createdAt: ago(18000),
+      },
+      {
+        id: 'ctr_4', programId: 'prg_3', organizationId: 'org_6', type: 'pilot_access', quantity: 4,
+        unit: 'mapped districts', description: 'Illustrative community research access for accessibility validation.',
+        evidenceIds: [], verificationStatus: 'pending', createdAt: ago(900),
+      },
     ],
-    evidenceArtifacts: [],
-    outcomes: [],
+    evidenceArtifacts: [
+      { id: 'evd_1', type: 'milestone', title: 'GreenStack pilot performance review', description: 'Illustrative review of pilot adoption and operational energy signals.', ownerType: 'startup', ownerId: 'greenstack', url: '', contentHash: 'demo-greenstack-pilot', verificationStatus: 'verified', submittedBy: 'usr_2', verifiedBy: 'usr_1', createdAt: ago(7200) },
+      { id: 'evd_2', type: 'review', title: 'CampusCart trust workflow review', description: 'Illustrative review of seller verification and transaction safety assumptions.', ownerType: 'startup', ownerId: 'campus-cart', url: '', contentHash: 'demo-campuscart-trust', verificationStatus: 'verified', submittedBy: 'usr_9', verifiedBy: 'usr_16', createdAt: ago(4800) },
+      { id: 'evd_3', type: 'mentor_note', title: 'MVP accelerator mentor delivery log', description: 'Illustrative aggregate mentor-session delivery record.', ownerType: 'program', ownerId: 'prg_2', url: '', contentHash: 'demo-mentor-delivery', verificationStatus: 'verified', submittedBy: 'usr_1', verifiedBy: 'usr_1', createdAt: ago(3000) },
+      { id: 'evd_4', type: 'introduction', title: 'Investor office hours delivery record', description: 'Illustrative record of completed thesis-review sessions.', ownerType: 'program', ownerId: 'prg_2', url: '', contentHash: 'demo-investor-office-hours', verificationStatus: 'verified', submittedBy: 'usr_8', verifiedBy: 'usr_1', createdAt: ago(2500) },
+      { id: 'evd_5', type: 'submission', title: 'AgriVision field pilot dataset summary', description: 'Illustrative summary of field collection coverage and decision logs.', ownerType: 'startup', ownerId: 'agrivision', url: '', contentHash: 'demo-agrivision-field', verificationStatus: 'pending', submittedBy: 'usr_14', createdAt: ago(1500) },
+      { id: 'evd_6', type: 'review', title: 'MindHarbor safety and privacy workflow', description: 'Illustrative privacy, consent, and escalation workflow review.', ownerType: 'startup', ownerId: 'mindharbor', url: '', contentHash: 'demo-mindharbor-safety', verificationStatus: 'verified', submittedBy: 'usr_13', verifiedBy: 'usr_1', createdAt: ago(1100) },
+    ],
+    outcomes: [
+      { id: 'out_1', programId: 'prg_2', startupSlug: 'campus-cart', type: 'team_formed', attributionMode: 'shared', primaryPartnerId: 'org_1', supportingPartnerIds: ['org_4'], confidenceScore: 82, evidenceIds: ['evd_2'], verificationStatus: 'verified', achievedAt: ago(4200), createdAt: ago(4100) },
+      { id: 'out_2', programId: 'prg_2', startupSlug: 'greenstack', type: 'investment_meeting', attributionMode: 'influenced', primaryPartnerId: 'org_5', supportingPartnerIds: ['org_1'], confidenceScore: 68, evidenceIds: ['evd_1', 'evd_4'], verificationStatus: 'verified', achievedAt: ago(2300), createdAt: ago(2200) },
+      { id: 'out_3', programId: 'prg_2', startupSlug: 'agrivision', type: 'mentor_session_completed', attributionMode: 'direct', primaryPartnerId: 'org_4', supportingPartnerIds: [], confidenceScore: 90, evidenceIds: ['evd_3'], verificationStatus: 'verified', achievedAt: ago(1600), createdAt: ago(1550) },
+      { id: 'out_4', programId: 'prg_3', startupSlug: 'routewise', type: 'pilot_introduction', attributionMode: 'shared', primaryPartnerId: 'org_6', supportingPartnerIds: ['org_1'], confidenceScore: 74, evidenceIds: [], verificationStatus: 'pending', achievedAt: ago(800), createdAt: ago(780) },
+    ],
     consents: [
       { id: 'cns_1', userId: 'usr_1', purpose: 'analytics', policyVersion: 'v1', grantedAt: now },
       { id: 'cns_2', userId: 'usr_1', purpose: 'evidence_visibility', policyVersion: 'v1', grantedAt: now },
     ],
     auditLogs: [
       { id: 'aud_1', actorId: 'usr_1', organizationId: 'org_1', action: 'demo.seeded', targetType: 'system', targetId: 'org_1', summary: 'Illustrative partnership demo data created.', createdAt: now },
+      { id: 'aud_2', actorId: 'usr_1', organizationId: 'org_4', action: 'program.activated', targetType: 'program', targetId: 'prg_2', summary: 'Illustrative MVP Evidence Accelerator moved to active delivery.', createdAt: ago(22000) },
+      { id: 'aud_3', actorId: 'usr_1', organizationId: 'org_5', action: 'contribution.verified', targetType: 'contribution', targetId: 'ctr_3', summary: 'Illustrative investor office-hour contribution verified.', createdAt: ago(200) },
+      { id: 'aud_4', actorId: 'usr_16', organizationId: 'org_1', action: 'evidence.reviewed', targetType: 'evidence', targetId: 'evd_2', summary: 'Illustrative CampusCart trust workflow evidence reviewed.', createdAt: ago(180) },
     ],
     nextIds: {
-      user: 9, post: 11, comment: 6, job: 4, conversation: 2, message: 2,
-      organization: 5, membership: 2, agreement: 2, agreementParty: 3, program: 2,
-      programPartner: 3, cohort: 2, participant: 1, contribution: 2, evidence: 1,
-      outcome: 1, consent: 3, audit: 2,
+      user: 17, post: 11, comment: 6, job: 9, conversation: 6, message: 9,
+      organization: 7, membership: 2, agreement: 3, agreementParty: 5, program: 4,
+      programPartner: 7, cohort: 4, participant: 5, contribution: 5, evidence: 7,
+      outcome: 5, consent: 3, audit: 5,
     },
   }
 }
@@ -295,15 +416,56 @@ function migrateSession(storage: Storage) {
   if (legacySession) storage.setItem(SESSION_KEY, entityId('usr', legacySession))
 }
 
+function mergeSeedRecords<T>(current: T[] | undefined, seeded: T[], key: (item: T) => string) {
+  const existing = current ?? []
+  const keys = new Set(existing.map(key))
+  return [...existing, ...structuredClone(seeded.filter((item) => !keys.has(key(item))))]
+}
+
+export function hydrateDemoState(state: DemoState): DemoState {
+  const seeded = seedState()
+  const hydrated: DemoState = {
+    ...state,
+    users: mergeSeedRecords(state.users, seeded.users, (item) => item.id),
+    passwords: { ...seeded.passwords, ...state.passwords },
+    posts: mergeSeedRecords(state.posts, seeded.posts, (item) => item.id),
+    communities: mergeSeedRecords(state.communities, seeded.communities, (item) => item.id),
+    jobs: mergeSeedRecords(state.jobs, seeded.jobs, (item) => item.id),
+    startups: mergeSeedRecords(state.startups, seeded.startups, (item) => item.slug),
+    mentors: mergeSeedRecords(state.mentors, seeded.mentors, (item) => item.id),
+    conversations: mergeSeedRecords(state.conversations, seeded.conversations, (item) => item.id),
+    messages: mergeSeedRecords(state.messages, seeded.messages, (item) => item.id),
+    connections: mergeSeedRecords(state.connections, seeded.connections, (item) => [...item].sort().join(':')),
+    organizations: mergeSeedRecords(state.organizations, seeded.organizations, (item) => item.id),
+    orgMemberships: mergeSeedRecords(state.orgMemberships, seeded.orgMemberships, (item) => item.id),
+    agreements: mergeSeedRecords(state.agreements, seeded.agreements, (item) => item.id),
+    agreementParties: mergeSeedRecords(state.agreementParties, seeded.agreementParties, (item) => item.id),
+    programs: mergeSeedRecords(state.programs, seeded.programs, (item) => item.id),
+    programPartners: mergeSeedRecords(state.programPartners, seeded.programPartners, (item) => item.id),
+    cohorts: mergeSeedRecords(state.cohorts, seeded.cohorts, (item) => item.id),
+    cohortParticipants: mergeSeedRecords(state.cohortParticipants, seeded.cohortParticipants, (item) => item.id),
+    contributions: mergeSeedRecords(state.contributions, seeded.contributions, (item) => item.id),
+    evidenceArtifacts: mergeSeedRecords(state.evidenceArtifacts, seeded.evidenceArtifacts, (item) => item.id),
+    outcomes: mergeSeedRecords(state.outcomes, seeded.outcomes, (item) => item.id),
+    consents: mergeSeedRecords(state.consents, seeded.consents, (item) => item.id),
+    auditLogs: mergeSeedRecords(state.auditLogs, seeded.auditLogs, (item) => item.id),
+    nextIds: Object.fromEntries(Object.entries(seeded.nextIds).map(([key, value]) => [
+      key,
+      Math.max(value, state.nextIds?.[key as keyof DemoState['nextIds']] ?? 1),
+    ])) as DemoState['nextIds'],
+  }
+  return hydrated
+}
+
 export function loadState(storage: Storage): DemoState {
   const current = storage.getItem(DATA_KEY)
   if (current) {
     try {
       const parsed = JSON.parse(current) as DemoState
       if (parsed.version === 3) {
-        parsed.startups ??= structuredClone(startups)
-        parsed.mentors ??= structuredClone(mentors)
-        return parsed
+        const hydrated = hydrateDemoState(parsed)
+        storage.setItem(DATA_KEY, JSON.stringify(hydrated))
+        return hydrated
       }
       storage.setItem(`${DATA_KEY}.invalid`, current)
     } catch {
