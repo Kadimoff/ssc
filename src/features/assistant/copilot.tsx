@@ -3,15 +3,18 @@ import { createPortal } from 'react-dom'
 import { Link } from '@tanstack/react-router'
 import { gsap } from 'gsap'
 import {
-  Bot, ExternalLink, MessageCircle, RotateCcw, Send, ShieldCheck, Sparkles, Trash2, X,
+  Bot, ExternalLink, RotateCcw, Send, ShieldCheck, Sparkles, Trash2, X,
 } from 'lucide-react'
 import type { Snapshot } from '@/data/types'
+import { mentors, startups } from '@/data/platform-content'
 import {
   clearCopilotConversation, type CopilotTurn, readAssistantHistory, readCopilotConversation,
   saveAssistantPrompt, saveCopilotConversation,
 } from './storage'
+import { runAssistant } from './engine'
 import { AssistantCriteriaChips, AssistantResults } from './result-cards'
 import { roleQuickPrompts } from './prompts'
+import { assistantContextFromSnapshot } from './types'
 import { apiClient, runtimeMode } from '@/data/client'
 import { useReducedMotion } from '@/hooks/use-animations'
 import { Button } from '@/components/ui/button'
@@ -36,7 +39,6 @@ export function Copilot({ snapshot }: { snapshot: Snapshot }) {
   const [recent, setRecent] = useState(() => readAssistantHistory())
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const panelRef = useRef<HTMLElement>(null)
-  const launcherRef = useRef<HTMLButtonElement>(null)
   const timelineRef = useRef<HTMLDivElement>(null)
   const closingRef = useRef(false)
   const animatedTurnCount = useRef(turns.length)
@@ -100,16 +102,7 @@ export function Copilot({ snapshot }: { snapshot: Snapshot }) {
   }, [reducedMotion, turns])
 
   useEffect(() => {
-    if (!open) {
-      if (!launcherRef.current || reducedMotion) return
-      gsap.fromTo(launcherRef.current, {
-        opacity: 0, scale: 0.35, rotate: -16, filter: 'blur(6px)',
-      }, {
-        opacity: 1, scale: 1, rotate: 0, filter: 'blur(0px)', duration: 0.52,
-        ease: 'back.out(2.2)', clearProps: 'all',
-      })
-      return
-    }
+    if (!open) return
 
     const panel = panelRef.current
     if (panel && !reducedMotion) {
@@ -152,12 +145,12 @@ export function Copilot({ snapshot }: { snapshot: Snapshot }) {
     }
   }, [closePanel, open, reducedMotion])
 
-  if (!user) return null
-
   async function runTurn(turnId: string, visiblePrompt: string, previousTurns: CopilotTurn[]) {
     const query = contextualPrompt(visiblePrompt, previousTurns)
     try {
-      const response = await apiClient.assistantQuery(query)
+      const response = user
+        ? await apiClient.assistantQuery(query)
+        : runAssistant(query, assistantContextFromSnapshot(snapshot, startups, mentors, false))
       setTurns((current) => current.map((turn) =>
         turn.id === turnId ? { ...turn, response, status: 'complete', error: undefined } : turn
       ))
@@ -220,22 +213,6 @@ export function Copilot({ snapshot }: { snapshot: Snapshot }) {
     </Button>
 
     {createPortal(<>
-      {!open && <button
-        ref={launcherRef}
-        type='button'
-        onClick={openPanel}
-        aria-label='Open AI assistant'
-        aria-controls={panelId}
-        aria-expanded='false'
-        className='group fixed bottom-20 right-4 z-50 flex items-center gap-2 rounded-full border border-primary/25 bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-[0_18px_55px_-20px_color-mix(in_oklch,var(--primary)_75%,transparent)] transition hover:-translate-y-0.5 hover:brightness-110 xl:bottom-6 xl:right-6'
-      >
-        <span className='relative grid size-7 place-items-center rounded-full bg-primary-foreground/15'>
-          <MessageCircle className='size-4' />
-          <span className='absolute -right-0.5 -top-0.5 size-2 rounded-full bg-emerald-400 ring-2 ring-primary' />
-        </span>
-        <span className='hidden sm:inline'>Ask SSC AI</span>
-      </button>}
-
       {open && <aside
         ref={panelRef}
         id={panelId}

@@ -27,7 +27,6 @@ const navItems = [
 ] as const
 
 const workspaceItems = [
-  { to: '/assistant', label: 'Copilot', description: 'Explainable platform matching', icon: Sparkles },
   { to: '/search', label: 'Search', description: 'Search the full workspace', icon: Search },
   { to: '/profile', label: 'My Profile', description: 'Founder identity and readiness', icon: Users },
   { to: '/notifications', label: 'Notifications', description: 'Requests, feedback and alerts', icon: Bell },
@@ -70,7 +69,7 @@ export function AppShell() {
         <div className='ml-auto flex items-center gap-1 md:ml-0'>
           <Badge variant='outline' className='hidden text-[10px] uppercase sm:flex'>{runtimeMode}</Badge>
           <ThemeToggle />
-          {data?.currentUser && <Copilot snapshot={data} />}
+          {data && <Copilot snapshot={data} />}
           <LetsStart />
           <Button variant='ghost' size='icon' aria-label='Notifications' asChild><Link to='/notifications'><Bell /></Link></Button>
           {me ? <>
