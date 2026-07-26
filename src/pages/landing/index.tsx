@@ -12,9 +12,12 @@ import { cn } from '@/lib/utils'
 import { FounderCardsSection } from '@/components/landing/founder-cards'
 import { HeroStats } from '@/components/landing/hero-stats'
 import { ProfileInfo, ThemeToggle } from '@/app/app-shared'
+import { useSnapshot } from '@/app/app-data'
+import { Copilot } from '@/features/assistant/copilot'
 
 export function LandingPage() {
   const heroRef = useRef<HTMLDivElement>(null)
+  const { data } = useSnapshot()
 
   useHeroEntrance(heroRef)
 
@@ -31,6 +34,7 @@ export function LandingPage() {
         <div className='ml-auto flex items-center gap-2 lg:ml-6'>
           <ThemeToggle />
           <Button variant='ghost' size='sm' asChild><Link to='/sign-in'>Sign in</Link></Button>
+          {data && <Copilot snapshot={data} />}
           <Button size='sm' asChild><Link to='/sign-up'>Get started</Link></Button>
         </div>
       </div>

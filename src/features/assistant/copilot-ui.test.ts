@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 
 const source = readFileSync(new URL('./copilot.tsx', import.meta.url), 'utf8')
 const appShellSource = readFileSync(new URL('../../app/app-shell.tsx', import.meta.url), 'utf8')
+const landingSource = readFileSync(new URL('../../pages/landing/index.tsx', import.meta.url), 'utf8')
 
 describe('SSC Copilot interaction shell', () => {
   it('renders outside the blurred header and keeps an accessible viewport-fixed panel', () => {
@@ -39,5 +40,10 @@ describe('SSC Copilot interaction shell', () => {
     expect(appShellSource).toContain('{data && <Copilot snapshot={data} />}\n          <LetsStart />')
     expect(appShellSource).not.toContain("{ to: '/assistant', label: 'Copilot'")
     expect(source).not.toContain("className='group fixed bottom-20 right-4")
+  })
+
+  it('mounts the guest Copilot in the public landing header', () => {
+    expect(landingSource).toContain('const { data } = useSnapshot()')
+    expect(landingSource).toContain("{data && <Copilot snapshot={data} />}\n          <Button size='sm' asChild><Link to='/sign-up'>Get started")
   })
 })
