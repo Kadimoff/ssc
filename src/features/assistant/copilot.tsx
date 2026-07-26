@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { Link } from '@tanstack/react-router'
 import { gsap } from 'gsap'
 import {
-  Bot, ExternalLink, RotateCcw, Send, ShieldCheck, Sparkles, Trash2, X,
+  Bot, ExternalLink, MessageCircle, RotateCcw, Send, ShieldCheck, Trash2, X,
 } from 'lucide-react'
 import type { Snapshot } from '@/data/types'
 import { mentors, startups } from '@/data/platform-content'
@@ -39,6 +39,7 @@ export function Copilot({ snapshot }: { snapshot: Snapshot }) {
   const [recent, setRecent] = useState(() => readAssistantHistory())
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const panelRef = useRef<HTMLElement>(null)
+  const launcherRef = useRef<HTMLButtonElement>(null)
   const timelineRef = useRef<HTMLDivElement>(null)
   const closingRef = useRef(false)
   const animatedTurnCount = useRef(turns.length)
@@ -102,7 +103,16 @@ export function Copilot({ snapshot }: { snapshot: Snapshot }) {
   }, [reducedMotion, turns])
 
   useEffect(() => {
-    if (!open) return
+    if (!open) {
+      if (!launcherRef.current || reducedMotion) return
+      gsap.fromTo(launcherRef.current, {
+        opacity: 0, scale: 0.35, rotate: -16, filter: 'blur(6px)',
+      }, {
+        opacity: 1, scale: 1, rotate: 0, filter: 'blur(0px)', duration: 0.52,
+        ease: 'back.out(2.2)', clearProps: 'all',
+      })
+      return
+    }
 
     const panel = panelRef.current
     if (panel && !reducedMotion) {
@@ -198,21 +208,21 @@ export function Copilot({ snapshot }: { snapshot: Snapshot }) {
     setOpen(true)
   }
 
-  return <>
-    <Button
-      variant='ghost'
-      size='sm'
-      className='gap-1.5'
-      aria-label={open ? 'Close SSC Copilot' : 'Open SSC Copilot'}
-      aria-controls={panelId}
-      aria-expanded={open}
-      onClick={() => open ? closePanel() : openPanel()}
-    >
-      <Sparkles className='size-4 text-primary' />
-      <span className='hidden lg:inline'>Copilot</span>
-    </Button>
+  return createPortal(<>
+      {!open && <button
+        ref={launcherRef}
+        type='button'
+        onClick={openPanel}
+        aria-label='Open SSC Copilot'
+        aria-controls={panelId}
+        aria-expanded='false'
+        title='Ask SSC AI'
+        className='group fixed bottom-20 right-4 z-50 grid size-14 place-items-center rounded-full border border-primary/25 bg-primary text-primary-foreground shadow-[0_18px_55px_-16px_color-mix(in_oklch,var(--primary)_80%,transparent)] transition hover:-translate-y-1 hover:scale-105 hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 xl:bottom-6 xl:right-6'
+      >
+        <MessageCircle className='size-6 transition-transform group-hover:scale-110' />
+        <span className='absolute right-1.5 top-1.5 size-2.5 rounded-full bg-emerald-400 ring-2 ring-primary' />
+      </button>}
 
-    {createPortal(<>
       {open && <aside
         ref={panelRef}
         id={panelId}
@@ -334,6 +344,5 @@ export function Copilot({ snapshot }: { snapshot: Snapshot }) {
           </form>
         </div>
       </aside>}
-    </>, document.body)}
-  </>
+    </>, document.body)
 }

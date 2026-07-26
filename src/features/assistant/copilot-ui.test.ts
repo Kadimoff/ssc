@@ -36,14 +36,17 @@ describe('SSC Copilot interaction shell', () => {
     expect(source).toContain(': runAssistant(query, assistantContextFromSnapshot(snapshot, startups, mentors, false))')
   })
 
-  it('uses a single Copilot trigger beside Lets Start', () => {
-    expect(appShellSource).toContain('{data && <Copilot snapshot={data} />}\n          <LetsStart />')
+  it('uses a single bottom-right Copilot launcher outside the app header', () => {
+    expect(appShellSource).toContain("<main ref={mainRef} className='relative z-10 pb-20 xl:pb-0'><Outlet /></main>\n    {data && <Copilot snapshot={data} />}")
     expect(appShellSource).not.toContain("{ to: '/assistant', label: 'Copilot'")
-    expect(source).not.toContain("className='group fixed bottom-20 right-4")
+    expect(source).toContain("className='group fixed bottom-20 right-4")
+    expect(source).toContain("aria-label='Open SSC Copilot'")
+    expect(source).not.toContain("<span className='hidden lg:inline'>Copilot</span>")
   })
 
-  it('mounts the guest Copilot in the public landing header', () => {
+  it('mounts the guest Copilot once on the public landing page', () => {
     expect(landingSource).toContain('const { data } = useSnapshot()')
-    expect(landingSource).toContain("{data && <Copilot snapshot={data} />}\n          <Button size='sm' asChild><Link to='/sign-up'>Get started")
+    expect(landingSource).toContain('<LandingFooter />\n    {data && <Copilot snapshot={data} />}')
+    expect(landingSource.match(/<Copilot snapshot=/g)).toHaveLength(1)
   })
 })

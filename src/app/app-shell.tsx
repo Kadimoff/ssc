@@ -69,7 +69,6 @@ export function AppShell() {
         <div className='ml-auto flex items-center gap-1 md:ml-0'>
           <Badge variant='outline' className='hidden text-[10px] uppercase sm:flex'>{runtimeMode}</Badge>
           <ThemeToggle />
-          {data && <Copilot snapshot={data} />}
           <LetsStart />
           <Button variant='ghost' size='icon' aria-label='Notifications' asChild><Link to='/notifications'><Bell /></Link></Button>
           {me ? <>
@@ -86,6 +85,7 @@ export function AppShell() {
       {mobileOpen && <nav ref={mobileMenuRef} className='app-container grid max-h-[75svh] gap-1 overflow-y-auto border-t py-3 xl:hidden'>{visibleNavItems.map(({ to, label, icon: Icon }) => <Link key={to} to={to} onClick={() => setMobileOpen(false)} className={cn('nav-link', location === to && 'nav-link-active')}><Icon />{label}</Link>)}<p className='mt-2 border-t px-3 pt-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground'>Quick access</p>{visibleWorkspaceItems.map(({ to, label, icon: Icon }) => <Link key={to} to={to} onClick={() => setMobileOpen(false)} className={cn('nav-link', location === to && 'nav-link-active')}><Icon />{label}</Link>)}{isAdmin && <Link to='/admin' onClick={() => setMobileOpen(false)} className={cn('nav-link', location === '/admin' && 'nav-link-active')}><ShieldCheck />Admin</Link>}</nav>}
     </header>
     <main ref={mainRef} className='relative z-10 pb-20 xl:pb-0'><Outlet /></main>
+    {data && <Copilot snapshot={data} />}
     <nav className='glass-header fixed inset-x-0 bottom-0 z-40 grid border-t px-1 py-1 xl:hidden' style={{ gridTemplateColumns: `repeat(${visibleNavItems.length}, minmax(0, 1fr))` }}>{visibleNavItems.map(({ to, label, icon: Icon }) => <Link key={to} to={to} className={cn('nav-mobile-link', location === to && 'nav-mobile-active')}><Icon className='size-5' />{label}</Link>)}</nav>
   </div>
 }

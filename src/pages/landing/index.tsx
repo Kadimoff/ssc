@@ -34,7 +34,6 @@ export function LandingPage() {
         <div className='ml-auto flex items-center gap-2 lg:ml-6'>
           <ThemeToggle />
           <Button variant='ghost' size='sm' asChild><Link to='/sign-in'>Sign in</Link></Button>
-          {data && <Copilot snapshot={data} />}
           <Button size='sm' asChild><Link to='/sign-up'>Get started</Link></Button>
         </div>
       </div>
@@ -88,6 +87,7 @@ export function LandingPage() {
     <UniversitySection />
     <LandingCallToAction />
     <LandingFooter />
+    {data && <Copilot snapshot={data} />}
   </div>
 }
 
