@@ -1,5 +1,9 @@
 # Dependencies
 node_modules/
+.venv/
+__pycache__/
+.pytest_cache/
+.coverage
 
 # Build output
 dist/
@@ -26,3 +30,6 @@ brainfix/.obsidian/
 
 # Local downloaded assistant/tooling references
 downloaded-skills/
+
+# Local AI Council state and transcripts
+.ai-council/

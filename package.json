@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "test": "vitest run",
+    "test": "vitest run --exclude 'server/**'",
+    "smoke:api": "node scripts/smoke-api.mjs",
+    "stack:up": "docker compose up --build -d",
+    "stack:down": "docker compose down",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -1,0 +1,433 @@
+import { useEffect, useRef, useState } from 'react'
+import { Link } from '@tanstack/react-router'
+import { useScrollReveal, useHeroEntrance, useCounterAnimation, useMagneticHover, useRevealCards, useMarquee, useTiltCards } from '@/hooks/use-animations'
+import { ArrowRight, CalendarDays, ChevronRight, GraduationCap, HandCoins, Lightbulb, MapPin, Network, Newspaper, Rocket, School, Sparkles, type Users } from 'lucide-react'
+import { ecosystemMetrics, ecosystemPillars, eventItems, featuredMembers, newsItems, universityWordmarks, type EcosystemIcon } from '@/data/landing-content'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { cn } from '@/lib/utils'
+import { FounderCardsSection } from '@/components/landing/founder-cards'
+import { HeroStats } from '@/components/landing/hero-stats'
+import { ProfileInfo, ThemeToggle } from '@/app/app-shared'
+
+export function LandingPage() {
+  const heroRef = useRef<HTMLDivElement>(null)
+
+  useHeroEntrance(heroRef)
+
+  return <div className='relative isolate min-h-svh overflow-hidden'>
+    {/* ---- NAV ---- */}
+    <header className='glass-header fixed inset-x-0 top-0 z-50'>
+      <div className='app-container flex h-[72px] items-center gap-2'>
+        <nav aria-label='Landing page sections' className='ml-auto hidden items-center gap-1 lg:flex'>
+          <a className='nav-link' href='#ecosystem'>Ecosystem</a>
+          <a className='nav-link' href='#members'>Members</a>
+          <a className='nav-link' href='#founder-cards'>Founders</a>
+          <a className='nav-link' href='#updates'>Updates</a>
+        </nav>
+        <div className='ml-auto flex items-center gap-2 lg:ml-6'>
+          <ThemeToggle />
+          <Button variant='ghost' size='sm' asChild><Link to='/sign-in'>Sign in</Link></Button>
+          <Button size='sm' asChild><Link to='/sign-up'>Get started</Link></Button>
+        </div>
+      </div>
+    </header>
+
+    {/* ---- HERO ---- */}
+    <section ref={heroRef} data-landing-section='hero' className='relative z-10 min-h-svh'>
+      <div className='app-container grid min-h-svh items-center gap-16 pt-24 pb-16 lg:grid-cols-[1.08fr_.92fr]'>
+        <div className='relative'>
+          <div data-hero-badge className='mb-8 inline-flex items-center gap-2 rounded-full border bg-background/60 px-4 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur shadow-xs'>
+            <span className='size-2 rounded-full bg-primary animate-pulse' />
+            Professional momentum, without the noise
+          </div>
+          <h1 className='text-5xl font-extrabold leading-[1.05] tracking-[-.04em] sm:text-6xl lg:text-7xl xl:text-8xl'>
+            <span data-hero-line className='block'>The network for</span>
+            <span data-hero-line className='animated-gradient-text block'>student builders</span>
+          </h1>
+          <p data-hero-subtitle className='mt-6 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl'>
+            Share meaningful work, meet aligned collaborators, and discover opportunities — all in one focused professional community.
+          </p>
+          <div data-hero-buttons className='mt-10 flex flex-wrap gap-3'>
+            <span className='hero-button-float'>
+              <Button size='lg' className='premium-explore-cta group gap-2 overflow-hidden text-[15px]' asChild>
+                <Link to='/feed'>Explore the community <ArrowRight className='transition-transform group-hover:translate-x-0.5' /></Link>
+              </Button>
+            </span>
+            <span className='hero-button-float hero-button-float-delayed'>
+              <Button size='lg' variant='outline' className='text-[15px]' asChild>
+                <Link to='/sign-up'>Create your profile <Sparkles /></Link>
+              </Button>
+            </span>
+          </div>
+          <div data-hero-metrics className='mt-14 grid max-w-xl grid-cols-3 gap-6 border-t pt-7'>
+            <Metric value='1,200+' label='Student builders' />
+            <Metric value='18' label='Universities' />
+            <Metric value='45+' label='Active mentors' />
+          </div>
+        </div>
+
+        <div data-hero-card className='relative hidden items-center justify-center md:flex'>
+          <div className='absolute -inset-16 -z-10 rounded-full bg-primary/8 blur-[120px]' />
+          <HeroStats />
+        </div>
+      </div>
+    </section>
+
+    <EcosystemSection />
+    <FounderCardsSection />
+    <MembersSection />
+    <UpdatesSection />
+    <UniversitySection />
+    <LandingCallToAction />
+    <LandingFooter />
+  </div>
+}
+
+/* ---- Helpers ---- */
+function Metric({ value, label }: { value: string; label: string }) {
+  return <div><strong className='text-2xl font-extrabold tracking-tight'>{value}</strong><p className='mt-1 text-sm text-muted-foreground'>{label}</p></div>
+}
+
+/* ---- Ecosystem Icons Map ---- */
+const ecosystemIcons = {
+  investors: HandCoins,
+  incubation: Rocket,
+  mentors: GraduationCap,
+  ecosystem: Network,
+  students: Lightbulb,
+  universities: School,
+} satisfies Record<EcosystemIcon, typeof Users>
+
+/* ---- Section Heading ---- */
+function SectionHeading({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
+  return <div className='mx-auto max-w-3xl text-center'>
+    <Badge variant='secondary' className='px-4 py-1.5 text-[11px] font-semibold tracking-wider uppercase'>{eyebrow}</Badge>
+    <h2 className='mt-6 text-3xl font-bold tracking-[-.025em] text-balance sm:text-4xl lg:text-5xl'>{title}</h2>
+    <p className='mt-5 max-w-2xl mx-auto text-lg leading-8 text-muted-foreground'>{description}</p>
+  </div>
+}
+
+/* ---- Ecosystem ---- */
+function EcosystemSection() {
+  const sectionRef = useRef<HTMLElement>(null)
+  useScrollReveal(sectionRef, { targets: '> .app-container > [data-animate]', stagger: 0.05 })
+  useCounterAnimation(sectionRef, '[data-counter]')
+  useTiltCards(sectionRef, '[data-tilt]', { maxTilt: 5 })
+
+  return <section ref={sectionRef} id='ecosystem' data-landing-section='ecosystem' className='relative z-10 scroll-mt-20 py-24 sm:py-32'>
+    <div className='app-container'>
+      <SectionHeading
+        eyebrow='The SSC ecosystem'
+        title='One community, an entire startup ecosystem.'
+        description='SSC connects the relationships, knowledge and environments student founders need to move from curiosity to real progress.'
+      />
+      <div data-animate className='mt-14 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border bg-border shadow-sm sm:grid-cols-3 lg:grid-cols-5'>
+        {ecosystemMetrics.map((metric, index) => (
+          <div key={metric.label} className='ecosystem-metric-float relative bg-card p-6 text-center sm:p-8' style={{ animationDelay: `${index * -0.45}s` }}>
+            <div className='absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-primary/30 to-transparent' />
+            <strong data-counter className='text-2xl font-extrabold text-primary sm:text-3xl'>{metric.value}</strong>
+            <p className='mt-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground'>{metric.label}</p>
+          </div>
+        ))}
+      </div>
+      <div data-animate className='mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3'>
+        {ecosystemPillars.map((pillar, index) => {
+          const Icon = ecosystemIcons[pillar.icon]
+          return (
+            <div key={pillar.title} className='ecosystem-card-float' style={{ animationDelay: `${index * -0.55}s` }}>
+              <Card data-tilt className='group relative h-full overflow-hidden border-primary/5 transition-all duration-300 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 [transform-style:preserve-3d]'>
+                <div className='pointer-events-none absolute -inset-px rounded-xl bg-gradient-to-br from-primary/[0.03] to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
+                <CardHeader>
+                  <span className='mb-3 grid size-11 place-items-center rounded-xl bg-primary/10 text-primary transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-lg group-hover:shadow-primary/25'>
+                    <Icon size={20} />
+                  </span>
+                  <CardTitle className='text-lg'>{pillar.title}</CardTitle>
+                  <CardDescription className='leading-6'>{pillar.description}</CardDescription>
+                </CardHeader>
+              </Card>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  </section>
+}
+
+/* data-landing-section='founder-cards' is implemented in components/landing/founder-cards. */
+/* ---- Members ---- */
+function MembersSection() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const rail = useRef<HTMLDivElement>(null)
+  const [paused, setPaused] = useState(false)
+  const [selectedMember, setSelectedMember] = useState<(typeof featuredMembers)[number] | null>(null)
+  const drag = useRef({ active: false, startX: 0, startScroll: 0, moved: false })
+  useScrollReveal(sectionRef, { targets: '> .app-container > [data-animate]' })
+
+  useEffect(() => {
+    const element = rail.current
+    if (!element || paused || selectedMember || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    let frame = 0
+    let previousTime = performance.now()
+    const loopPoint = element.scrollWidth / 2
+    if (element.scrollLeft < 1 && loopPoint > 0) element.scrollLeft = loopPoint
+
+    const move = (time: number) => {
+      const elapsed = Math.min(time - previousTime, 50)
+      previousTime = time
+      element.scrollLeft -= elapsed * 0.05
+      if (element.scrollLeft <= 0.5) element.scrollLeft += loopPoint
+      if (element.scrollLeft > loopPoint + 1) element.scrollLeft -= loopPoint
+      frame = window.requestAnimationFrame(move)
+    }
+
+    frame = window.requestAnimationFrame(move)
+    return () => window.cancelAnimationFrame(frame)
+  }, [paused, selectedMember])
+
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    setPaused(true)
+    drag.current.moved = false
+    if (event.pointerType !== 'mouse' || event.button !== 0) return
+    drag.current = { active: true, startX: event.clientX, startScroll: event.currentTarget.scrollLeft, moved: false }
+    event.currentTarget.setPointerCapture(event.pointerId)
+  }
+
+  const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!drag.current.active) return
+    const distance = event.clientX - drag.current.startX
+    if (Math.abs(distance) > 5) drag.current.moved = true
+    event.currentTarget.scrollLeft = drag.current.startScroll - distance
+  }
+
+  const handlePointerEnd = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (drag.current.active && event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
+    drag.current.active = false
+    window.setTimeout(() => setPaused(false), 700)
+  }
+
+  return <section ref={sectionRef} id='members' data-landing-section='members' className='relative z-10 scroll-mt-20 py-24 sm:py-32'>
+    <div className='app-container'>
+      <div data-animate className='max-w-2xl'>
+        <div className='max-w-2xl'>
+          <Badge variant='secondary' className='px-4 py-1.5 text-[11px] font-semibold tracking-wider uppercase'>People of SSC</Badge>
+          <h2 className='mt-5 text-3xl font-bold tracking-[-.025em] sm:text-5xl'>Meet the builders behind the momentum.</h2>
+          <p className='mt-5 text-lg leading-8 text-muted-foreground'>Students from different universities and disciplines, connected by the ambition to build something useful.</p>
+        </div>
+      </div>
+    </div>
+    <div ref={rail} tabIndex={0} aria-label='Featured SSC members'
+      onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerEnd} onPointerCancel={handlePointerEnd}
+      className='landing-carousel mt-12 flex w-full gap-6 overflow-x-auto py-2 focus-visible:ring-2 focus-visible:ring-ring'
+    >
+      {[...featuredMembers, ...featuredMembers].map((member, index) => <MemberCard key={`${member.name}-${index}`} member={member} onView={() => { if (!drag.current.moved) setSelectedMember(member) }} />)}
+    </div>
+    <Dialog open={Boolean(selectedMember)} onOpenChange={(open) => { if (!open) setSelectedMember(null) }}>
+      <DialogContent className='sm:max-w-xl'>
+        <DialogHeader>
+          <DialogTitle className='text-2xl'>Member profile</DialogTitle>
+          <DialogDescription>Meet a builder from the SSC community.</DialogDescription>
+        </DialogHeader>
+        {selectedMember && <MemberProfile member={selectedMember} />}
+      </DialogContent>
+    </Dialog>
+  </section>
+}
+
+function MemberCard({ member, onView }: { member: (typeof featuredMembers)[number]; onView: () => void }) {
+  return <article className='w-[190px] shrink-0 px-2 py-3 text-center'>
+    <Avatar className='mx-auto size-16 border-2 border-background/80 shadow-md transition-transform duration-300 hover:scale-105'>
+      <AvatarImage src={member.avatarUrl} alt={`${member.name} profile`} loading='lazy' />
+      <AvatarFallback className='bg-primary/10 text-base font-bold text-primary'>{member.name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2)}</AvatarFallback>
+    </Avatar>
+    <h3 className='mt-3 truncate text-sm font-semibold'>{member.name}</h3>
+    <p className='mt-0.5 truncate text-xs text-muted-foreground'>{member.role}</p>
+    <div className='mt-2 flex h-5 justify-center gap-1 overflow-hidden'>{member.skills.slice(0, 2).map((skill) => <Badge key={skill} variant='secondary' className='px-1.5 py-0 text-[9px]'>{skill}</Badge>)}</div>
+    <Button type='button' variant='link' size='sm' className='mt-1 h-7 px-1 text-xs' onClick={onView}>View profile <ChevronRight className='size-3' /></Button>
+  </article>
+}
+
+function MemberProfile({ member }: { member: (typeof featuredMembers)[number] }) {
+  return <div className='pt-2 text-center'>
+    <Avatar className='mx-auto size-28 border-4 border-background shadow-xl'>
+      <AvatarImage src={member.avatarUrl} alt={`${member.name} profile`} />
+      <AvatarFallback className='bg-primary/10 text-2xl font-bold text-primary'>{member.name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2)}</AvatarFallback>
+    </Avatar>
+    <h3 className='mt-4 text-2xl font-bold'>{member.name}</h3>
+    <p className='mt-1 text-muted-foreground'>{member.role}</p>
+    <p className='mx-auto mt-5 flex max-w-md items-start justify-center gap-2 text-sm'><School className='mt-0.5 size-4 shrink-0 text-primary' />{member.university}</p>
+    <div className='mt-5 flex flex-wrap justify-center gap-2'>{member.skills.map((skill) => <Badge key={skill} variant='secondary'>{skill}</Badge>)}</div>
+    <div className='mt-6 grid grid-cols-2 gap-3 text-left'><ProfileInfo label='Startup focus' value={member.focus} /><ProfileInfo label='Current stage' value={member.stage} /></div>
+  </div>
+}
+
+/* ---- Updates ---- */
+function UpdatesSection() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const [newsStart, setNewsStart] = useState(0)
+  const [newsFading, setNewsFading] = useState(false)
+  useRevealCards(sectionRef, '> .app-container [data-reveal]', { stagger: 0.12 })
+
+  useEffect(() => {
+    let fadeTimer = 0
+    let swapTimer = 0
+    const rotate = () => {
+      fadeTimer = window.setTimeout(() => {
+        setNewsFading(true)
+        swapTimer = window.setTimeout(() => {
+          setNewsStart((current) => (current + 1) % newsItems.length)
+          setNewsFading(false)
+          rotate()
+        }, 400)
+      }, 4_600)
+    }
+    rotate()
+    return () => { window.clearTimeout(fadeTimer); window.clearTimeout(swapTimer) }
+  }, [])
+
+  const visibleNews = [newsItems[newsStart], newsItems[(newsStart + 1) % newsItems.length]]
+
+  return <section ref={sectionRef} id='updates' data-landing-section='updates' className='relative z-10 scroll-mt-20 py-24 sm:py-32'>
+    <div className='app-container'>
+      <div className='updates-heading-float'>
+        <SectionHeading
+          eyebrow='What is happening'
+          title='Ideas, opportunities and moments that move the community.'
+          description='Follow the progress of student teams and find the next room worth being in.'
+        />
+      </div>
+      <div className='mt-14 grid items-stretch gap-10 lg:grid-cols-2'>
+        <div className='flex h-full flex-col'>
+          <div className='updates-column-heading mb-6 flex items-center gap-2'>
+            <span className='grid size-8 place-items-center rounded-lg bg-primary/10 text-primary'><Newspaper size={16} /></span>
+            <h3 className='text-xl font-semibold'>Latest news</h3>
+          </div>
+          <div className={cn('news-rotation-grid grid flex-1 auto-rows-fr gap-4', newsFading && 'is-fading')}>
+            {visibleNews.map((item) => (
+              <Card key={`${newsStart}-${item.title}`} data-reveal className='news-rotate-card group relative h-full overflow-hidden transition-all duration-300 hover:shadow-md'>
+                <div className='absolute top-0 left-0 h-full w-0.5 bg-primary/20 transition-all duration-300 group-hover:bg-primary' />
+                <CardHeader>
+                  <div className='flex items-center gap-2 text-xs text-muted-foreground'>
+                    <Badge variant='outline' className='text-[10px]'>{item.category}</Badge>
+                    <span>{item.date}</span>
+                  </div>
+                  <CardTitle className='pt-2 text-xl'>{item.title}</CardTitle>
+                  <CardDescription className='leading-6'>{item.summary}</CardDescription>
+                </CardHeader>
+                <CardFooter>
+                  <Button variant='link' className='gap-1 px-0 text-[13px]' asChild><Link to='/news'>Read update <ChevronRight size={14} /></Link></Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        </div>
+        <div className='flex h-full flex-col'>
+          <div className='updates-column-heading mb-6 flex items-center gap-2'>
+            <span className='grid size-8 place-items-center rounded-lg bg-primary/10 text-primary'><CalendarDays size={16} /></span>
+            <h3 className='text-xl font-semibold'>Upcoming events</h3>
+          </div>
+          <div className='grid flex-1 auto-rows-fr gap-4'>
+            {eventItems.map((event, i) => (
+              <Card key={event.title} data-reveal className='group relative flex h-full flex-row items-stretch gap-0 overflow-hidden p-0 transition-all duration-300 hover:shadow-md' style={{ transitionDelay: `${i * 80}ms` }}>
+                <div className='grid w-28 shrink-0 place-items-center rounded-l-xl bg-gradient-to-b from-primary/15 to-primary/5 p-4 text-center text-primary'>
+                  <div>
+                    <b className='block text-3xl font-extrabold tracking-tight'>{event.day}</b>
+                    <span className='text-[10px] font-bold tracking-[.2em] uppercase'>{event.month}</span>
+                  </div>
+                </div>
+                <CardContent className='flex flex-1 flex-col justify-center p-5'>
+                  <div className='mb-2 flex flex-wrap gap-3 text-xs text-muted-foreground'>
+                    <span className='flex items-center gap-1'><CalendarDays size={12} />{event.time}</span>
+                    <span className='flex items-center gap-1'><MapPin size={12} />{event.location}</span>
+                  </div>
+                  <h4 className='font-semibold'>{event.title}</h4>
+                  <p className='mt-1 text-sm text-muted-foreground'>{event.format}</p>
+                </CardContent>
+                <Button variant='ghost' size='icon' className='my-auto mr-4 shrink-0' aria-label={`View ${event.title}`} asChild><Link to='/events'><ChevronRight /></Link></Button>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+}
+
+/* ---- Universities ---- */
+function UniversitySection() {
+  const sectionRef = useRef<HTMLElement>(null)
+  useScrollReveal(sectionRef, { targets: '> .app-container > [data-animate]' })
+  useMarquee(sectionRef, '[data-marquee]', { speed: 25 })
+
+  return <section ref={sectionRef} data-landing-section='universities' className='relative z-10 py-24 sm:py-28'>
+    <div className='app-container text-center'>
+      <p data-animate className='text-sm font-semibold uppercase tracking-[.2em] text-muted-foreground'>A growing student network across universities</p>
+      <div data-animate className='relative mt-10 overflow-hidden'>
+        <div data-marquee className='flex gap-4'>
+          {[...universityWordmarks, ...universityWordmarks].map((name, i) => (
+            <span key={`${name}-${i}`} className='shrink-0 rounded-xl border bg-card px-6 py-3.5 text-sm font-semibold text-muted-foreground shadow-xs transition-colors hover:border-primary/20 hover:text-foreground'>
+              {name}
+            </span>
+          ))}
+        </div>
+      </div>
+      <p data-animate className='mx-auto mt-8 max-w-2xl text-xs text-muted-foreground'>Demo ecosystem representation. Institution names do not imply a formal partnership.</p>
+    </div>
+  </section>
+}
+
+/* ---- CTA ---- */
+function LandingCallToAction() {
+  const sectionRef = useRef<HTMLElement>(null)
+  useScrollReveal(sectionRef, { targets: '> [data-animate] > [data-animate]' })
+  useMagneticHover(sectionRef, '[data-magnetic]')
+
+  return <section ref={sectionRef} data-landing-section='cta' className='app-container relative z-10 pb-24 pt-8'>
+    <div data-animate className='relative overflow-hidden rounded-3xl bg-linear-to-br from-primary via-[oklch(.53_.17_165)] to-[oklch(.48_.16_135)] px-8 py-20 text-center text-primary-foreground sm:px-16 sm:py-24'>
+      <div className='pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,.2),transparent_50%)]' />
+      <div className='pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,oklch(1_0_0/.08),transparent_40%)]' />
+      <div className='pointer-events-none absolute -top-32 -right-32 size-80 rounded-full bg-white/[0.06] blur-[80px]' />
+      <div className='pointer-events-none absolute -bottom-32 -left-32 size-64 rounded-full bg-white/[0.04] blur-[70px]' />
+
+      <div className='relative mx-auto max-w-2xl'>
+        <Badge data-animate className='bg-white/15 text-white text-[11px] font-semibold uppercase tracking-wider hover:bg-white/15 px-4 py-1.5'>
+          Your next step
+        </Badge>
+        <h2 data-animate className='mt-7 text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl text-balance'>
+          Build your place in the startup ecosystem.
+        </h2>
+        <p data-animate className='mt-5 text-lg leading-8 text-white/75'>
+          Meet teammates, learn from mentors and turn your first evidence into real momentum.
+        </p>
+        <div data-animate className='mt-10 flex flex-wrap justify-center gap-4'>
+          <Button size='lg' variant='secondary' className='gap-2 shadow-xl' asChild>
+            <Link data-magnetic to='/sign-up'>Join SSC <ArrowRight /></Link>
+          </Button>
+          <Button size='lg' className='border border-white/25 bg-transparent text-white shadow-xs backdrop-blur hover:bg-white/10' asChild>
+            <Link data-magnetic to='/feed'>Explore the community</Link>
+          </Button>
+        </div>
+      </div>
+    </div>
+  </section>
+}
+
+/* ---- Footer ---- */
+function LandingFooter() {
+  return <footer data-landing-section='footer' className='relative z-10'>
+    <div className='app-container flex flex-col gap-6 py-12 text-sm text-muted-foreground sm:flex-row sm:items-center'>
+      <p className='sm:ml-auto'>A demo platform for the next generation of student builders.</p>
+      <div className='flex gap-4'>
+        <a href='#ecosystem' className='transition-colors hover:text-foreground'>Ecosystem</a>
+        <a href='#members' className='transition-colors hover:text-foreground'>Members</a>
+        <a href='#updates' className='transition-colors hover:text-foreground'>Updates</a>
+        <Link to='/privacy' className='transition-colors hover:text-foreground'>Privacy</Link>
+        <Link to='/terms' className='transition-colors hover:text-foreground'>Terms</Link>
+      </div>
+    </div>
+  </footer>
+}

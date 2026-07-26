@@ -7,7 +7,7 @@ import {
 
 describe('landing page content', () => {
   it('keeps the planned scroll sections in order', () => {
-    const source = readFileSync(new URL('./app.tsx', import.meta.url), 'utf8')
+    const source = readFileSync(new URL('./pages/landing/index.tsx', import.meta.url), 'utf8')
     const sections = ['hero', 'ecosystem', 'founder-cards', 'members', 'updates', 'universities', 'cta', 'footer']
     const positions = sections.map((section) => source.indexOf(`data-landing-section='${section}'`))
     expect(positions.every((position) => position >= 0)).toBe(true)
@@ -41,7 +41,7 @@ describe('landing page content', () => {
   })
 
   it('includes draggable member discovery and individual member profiles', () => {
-    const source = readFileSync(new URL('./app.tsx', import.meta.url), 'utf8')
+    const source = readFileSync(new URL('./pages/landing/index.tsx', import.meta.url), 'utf8')
     expect(source).not.toContain("window.setInterval")
     expect(source).not.toContain("View all members")
     expect(source).toContain("[...featuredMembers, ...featuredMembers]")
@@ -54,7 +54,7 @@ describe('landing page content', () => {
   })
 
   it('rotates two latest news cards every five seconds', () => {
-    const source = readFileSync(new URL('./app.tsx', import.meta.url), 'utf8')
+    const source = readFileSync(new URL('./pages/landing/index.tsx', import.meta.url), 'utf8')
     expect(source).toContain("const visibleNews = [newsItems[newsStart], newsItems[(newsStart + 1) % newsItems.length]]")
     expect(source).toContain("window.setTimeout")
     expect(source).toContain("4_600")
@@ -62,7 +62,7 @@ describe('landing page content', () => {
   })
 
   it('includes the accessible animated hero treatment', () => {
-    const appSource = readFileSync(new URL('./app.tsx', import.meta.url), 'utf8')
+    const appSource = readFileSync(new URL('./pages/landing/index.tsx', import.meta.url), 'utf8')
     const styleSource = readFileSync(new URL('./styles.css', import.meta.url), 'utf8')
     expect(appSource).toContain("className='animated-gradient-text block'>student builders")
     expect(styleSource).toContain('@keyframes gradient-text-flow')
@@ -72,7 +72,7 @@ describe('landing page content', () => {
   })
 
   it('keeps one continuous background across landing sections', () => {
-    const source = readFileSync(new URL('./app.tsx', import.meta.url), 'utf8')
+    const source = readFileSync(new URL('./pages/landing/index.tsx', import.meta.url), 'utf8')
     expect(source).not.toContain("scroll-mt-20 border-y bg-muted/55")
     expect(source).not.toContain("data-landing-section='footer' className='relative z-10 border-t")
     expect(source).not.toContain("ref={bgRef}")

@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { BACKUP_KEY, DATA_KEY, DemoApiClient, SESSION_KEY, V1_KEY, loadState } from './demo-client'
+import {
+  BACKUP_KEY, DATA_KEY, DemoApiClient, SESSION_KEY, V1_BACKUP_KEY, V1_KEY,
+  V2_KEY, V2_SESSION_KEY, loadState,
+} from './demo-client'
 
 class MemoryStorage implements Storage {
   private values = new Map<string, string>()
@@ -19,8 +22,8 @@ describe('DemoApiClient', () => {
     const client = new DemoApiClient(storage)
     const user = await client.login({ username: 'demo', password: 'demo123' })
     expect(user.role).toBe('admin')
-    expect(storage.getItem(SESSION_KEY)).toBe('1')
-    expect(JSON.parse(storage.getItem(DATA_KEY)!).version).toBe(2)
+    expect(storage.getItem(SESSION_KEY)).toBe('usr_1')
+    expect(JSON.parse(storage.getItem(DATA_KEY)!).version).toBe(3)
   })
 
   it('persists post mutations across client instances', async () => {
@@ -42,10 +45,41 @@ describe('DemoApiClient', () => {
       posts: [{ id: 8, author_id: 9, content: 'Legacy post', reaction_count: 2 }],
     }))
     const migrated = loadState(storage)
-    expect(migrated.version).toBe(2)
+    expect(migrated.version).toBe(3)
     expect(migrated.users[0].username).toBe('legacy')
-    expect(migrated.posts[0].authorId).toBe(9)
-    expect(storage.getItem(BACKUP_KEY)).not.toBeNull()
+    expect(migrated.posts[0].authorId).toBe('usr_9')
+    expect(storage.getItem(V1_BACKUP_KEY)).not.toBeNull()
     expect(storage.getItem(DATA_KEY)).not.toBeNull()
+  })
+
+  it('migrates v2 stringlessly without losing the active session', () => {
+    storage.setItem(V2_KEY, JSON.stringify({
+      version: 2,
+      users: [{ id: 4, username: 'founder', name: 'Founder', title: 'Founder · Demo', role: 'member' }],
+      passwords: { 4: 'secret' },
+      posts: [{ id: 3, authorId: 4, content: 'v2 post', type: 'Update', createdAt: '2026-01-01', reactions: 0, comments: 0, reposts: 0, liked: false, saved: false }],
+      communities: [], jobs: [], conversations: [], messages: [], connections: [], nextIds: { user: 5, post: 4 },
+    }))
+    storage.setItem(V2_SESSION_KEY, '4')
+    const migrated = loadState(storage)
+    expect(migrated.users[0].id).toBe('usr_4')
+    expect(migrated.posts[0].id).toBe('pst_3')
+    expect(migrated.users[0].roles).toContain('founder')
+    expect(storage.getItem(SESSION_KEY)).toBe('usr_4')
+    expect(storage.getItem(BACKUP_KEY)).not.toBeNull()
+  })
+
+  it('records auditable partnership actions', async () => {
+    const client = new DemoApiClient(storage)
+    await client.login({ username: 'demo', password: 'demo123' })
+    const organizationId = await client.createOrganization({
+      type: 'company', legalName: 'Illustrative Partner', displayName: 'Illustrative Partner',
+      slug: 'illustrative-partner', summary: 'Demo only', countryCode: 'AZ', websiteUrl: '',
+      verificationStatus: 'pending', partnershipStatus: 'prospect', contributionAreas: ['Mentors'], contacts: [],
+    })
+    await client.verifyOrganization(organizationId, 'verified')
+    const snapshot = await client.snapshot()
+    expect(snapshot.organizations.find((item) => item.id === organizationId)?.verificationStatus).toBe('verified')
+    expect(snapshot.auditLogs.some((item) => item.targetId === organizationId && item.action === 'organization.verification_changed')).toBe(true)
   })
 })

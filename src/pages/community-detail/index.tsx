@@ -1,5 +1,5 @@
-import { useParams } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
+import { Link, useParams } from '@tanstack/react-router'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
   CalendarDays, Check, Globe, Plus, Share2, Shield, Sparkles, UserPlus, Users,
@@ -27,13 +27,21 @@ function UserAvatar({ name, className }: { name: string; className?: string }) {
 export function CommunityDetailPage() {
   const { communityId } = useParams({ from: '/app/communities/$communityId' })
   const { data } = useSnapshot()
-  const id = Number(communityId)
-  const detail = communityDetails.find((c) => c.id === id)
+  const queryClient = useQueryClient()
+  const detail = communityDetails.find((c) => c.id === communityId)
+  const toggle = useMutation({
+    mutationFn: () => apiClient.toggleCommunity(communityId),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: snapshotKey })
+      toast.success('Community membership updated')
+    },
+  })
 
   if (!detail) return <PageContainer><div className='py-20 text-center text-muted-foreground'>Community not found</div></PageContainer>
 
   const orgUsers = detail.organizers.map((oid) => data?.users.find((u) => u.id === oid)).filter(Boolean)
   const memberCount = detail.members.toLocaleString()
+  const joined = data?.communities.find((community) => community.id === communityId)?.joined ?? detail.joined
 
   return (
     <PageContainer>
@@ -54,9 +62,9 @@ export function CommunityDetailPage() {
               <span>{detail.activity}</span>
             </div>
           </div>
-          <Button size='lg' variant={detail.joined ? 'outline' : 'default'} className='shrink-0'>
-            {detail.joined && <Check size={16} />}
-            {detail.joined ? 'Joined' : 'Join community'}
+          <Button size='lg' variant={joined ? 'outline' : 'default'} className='shrink-0' disabled={toggle.isPending} onClick={() => toggle.mutate()}>
+            {joined && <Check size={16} />}
+            {joined ? 'Joined' : 'Join community'}
           </Button>
         </div>
       </Card>
@@ -71,10 +79,7 @@ export function CommunityDetailPage() {
           </TabsList>
 
           <TabsContent value='posts' className='mt-6'>
-            <Card><CardContent className='py-12 text-center text-muted-foreground'>
-              <Sparkles className='mx-auto mb-3 size-8' />
-              <p>Community posts will appear here once members start sharing.</p>
-            </CardContent></Card>
+            <div className='space-y-3'>{data?.posts.slice(0, 4).map((post) => { const author = data.users.find((user) => user.id === post.authorId); return <Card key={post.id}><CardContent className='p-4'><div className='flex items-center gap-2'><UserAvatar name={author?.name ?? 'Member'} /><div><b className='text-sm'>{author?.name}</b><p className='text-xs text-muted-foreground'>{post.type}</p></div></div><p className='mt-3 text-sm leading-6'>{post.content}</p></CardContent></Card> })}</div>
           </TabsContent>
 
           <TabsContent value='members' className='mt-6'>
@@ -90,7 +95,7 @@ export function CommunityDetailPage() {
                         <p className='text-sm text-muted-foreground'>{user.title}</p>
                       </div>
                       {isOrg && <Badge variant='secondary'><Shield size={12} />Organizer</Badge>}
-                      <Button variant='ghost' size='icon'><UserPlus size={16} /></Button>
+                      <Button variant='ghost' size='icon' aria-label={`View ${user.name}'s profile`} asChild><Link to='/people/$username' params={{ username: user.username }}><UserPlus size={16} /></Link></Button>
                     </CardContent>
                   </Card>
                 )
@@ -101,8 +106,8 @@ export function CommunityDetailPage() {
           <TabsContent value='events' className='mt-6'>
             <Card><CardContent className='py-12 text-center text-muted-foreground'>
               <CalendarDays className='mx-auto mb-3 size-8' />
-              <p>No upcoming events scheduled yet.</p>
-              <Button variant='outline' size='sm' className='mt-4'><Plus size={14} />Create event</Button>
+              <p>Browse community workshops and showcases.</p>
+              <Button variant='outline' size='sm' className='mt-4' asChild><Link to='/events'><Plus size={14} />View events</Link></Button>
             </CardContent></Card>
           </TabsContent>
 
@@ -135,11 +140,11 @@ export function CommunityDetailPage() {
           )}
           <Card><CardHeader><CardTitle className='text-base'>Stats</CardTitle></CardHeader><CardContent className='grid grid-cols-2 gap-3 text-sm'>
             <div className='rounded-lg bg-muted/50 p-3 text-center'><b className='block text-lg font-bold'>{memberCount}</b><span className='text-xs text-muted-foreground'>Members</span></div>
-            <div className='rounded-lg bg-muted/50 p-3 text-center'><b className='block text-lg font-bold'>--</b><span className='text-xs text-muted-foreground'>Posts</span></div>
-            <div className='rounded-lg bg-muted/50 p-3 text-center'><b className='block text-lg font-bold'>--</b><span className='text-xs text-muted-foreground'>Events</span></div>
+            <div className='rounded-lg bg-muted/50 p-3 text-center'><b className='block text-lg font-bold'>{data?.posts.length ?? 0}</b><span className='text-xs text-muted-foreground'>Posts</span></div>
+            <div className='rounded-lg bg-muted/50 p-3 text-center'><b className='block text-lg font-bold'>2</b><span className='text-xs text-muted-foreground'>Events</span></div>
             <div className='rounded-lg bg-muted/50 p-3 text-center'><b className='block text-lg font-bold'>{orgUsers.length}</b><span className='text-xs text-muted-foreground'>Organizers</span></div>
           </CardContent></Card>
-          <Button variant='outline' className='w-full' onClick={() => toast.info('Share feature coming soon.')}>
+          <Button variant='outline' className='w-full' onClick={async () => { await navigator.clipboard.writeText(window.location.href); toast.success('Community link copied') }}>
             <Share2 size={14} /> Share community
           </Button>
         </aside>

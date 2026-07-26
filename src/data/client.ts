@@ -5,6 +5,8 @@ const params = new URLSearchParams(window.location.search)
 const requested = params.get('mode')
 if (requested === 'demo' || requested === 'api') localStorage.setItem('studentStartupCommunityMode', requested)
 if (params.get('resetDemo') === '1') {
+  localStorage.removeItem('studentStartupCommunityDemoData.v3')
+  localStorage.removeItem('studentStartupCommunitySession.v3')
   localStorage.removeItem('studentStartupCommunityDemoData.v2')
   localStorage.removeItem('studentStartupCommunitySession.v2')
 }

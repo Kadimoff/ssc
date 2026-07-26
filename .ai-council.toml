@@ -1,0 +1,28 @@
+[limits]
+max_review_rounds = 2
+agent_timeout_seconds = 900
+max_output_chars = 40000
+
+[verification]
+commands = ["npm test", "npm run lint", "npm run build"]
+
+[codex]
+executable = "codex"
+planning_sandbox = "read-only"
+writing_sandbox = "workspace-write"
+
+[claude]
+executable = "claude"
+permission_mode = "plan"
+max_turns = 4
+
+[crew]
+enabled = true
+process = "sequential"
+max_iter_per_agent = 2
+
+[runtime]
+directory = ".ai-council"
+database = "checkpoints.sqlite3"
+audit_log = "audit.jsonl"
+

@@ -78,7 +78,7 @@ export const universityWordmarks = ['ADA University', 'BEU', 'BHOS', 'UNEC', 'Kh
 
 export const communityDetails: CommunityDetail[] = [
   {
-    id: 1,
+    id: 'com_1',
     name: 'Applied AI Builders',
     category: 'AI',
     description: 'Practical AI products, evaluations and production lessons.',
@@ -88,15 +88,15 @@ export const communityDetails: CommunityDetail[] = [
     activity: '34 new discussions',
     joined: true,
     rules: ['Be constructive', 'No self-promotion without context', 'Cite sources for claims', 'Respect confidentiality'],
-    organizers: [1, 2],
+    organizers: ['usr_1', 'usr_2'],
     memberList: [
-      { userId: 1, role: 'admin', joinedAt: '2025-09-01' },
-      { userId: 2, role: 'moderator', joinedAt: '2025-09-15' },
+      { userId: 'usr_1', role: 'admin', joinedAt: '2025-09-01' },
+      { userId: 'usr_2', role: 'moderator', joinedAt: '2025-09-15' },
     ],
     createdAt: '2025-09-01',
   },
   {
-    id: 2,
+    id: 'com_2',
     name: 'Founders & Early Teams',
     category: 'Startups',
     description: 'A focused space for founders and early operators.',
@@ -106,14 +106,14 @@ export const communityDetails: CommunityDetail[] = [
     activity: '12 events this month',
     joined: false,
     rules: ['Founders only', 'No generic pitch decks', 'Give more than you take'],
-    organizers: [1],
+    organizers: ['usr_1'],
     memberList: [
-      { userId: 1, role: 'admin', joinedAt: '2025-10-01' },
+      { userId: 'usr_1', role: 'admin', joinedAt: '2025-10-01' },
     ],
     createdAt: '2025-10-01',
   },
   {
-    id: 3,
+    id: 'com_3',
     name: 'Product Design Leaders',
     category: 'Design',
     description: 'Design systems, research and product leadership.',
@@ -123,9 +123,9 @@ export const communityDetails: CommunityDetail[] = [
     activity: '8 featured critiques',
     joined: false,
     rules: ['Portfolio critiques welcome', 'Credit other designers', 'No spec work requests'],
-    organizers: [3],
+    organizers: ['usr_3'],
     memberList: [
-      { userId: 3, role: 'admin', joinedAt: '2025-11-01' },
+      { userId: 'usr_3', role: 'admin', joinedAt: '2025-11-01' },
     ],
     createdAt: '2025-11-01',
   },

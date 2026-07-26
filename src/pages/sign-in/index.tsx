@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { canAccess, defaultRouteFor } from '@/app/access-policy'
 
 const snapshotKey = ['snapshot'] as const
 
@@ -52,9 +53,13 @@ export function SignInPage() {
               e.preventDefault(); setLoading(true); setError('')
               const form = new FormData(e.currentTarget)
               try {
-                await apiClient.login({ username: String(form.get('username')), password: String(form.get('password')) })
+                const user = await apiClient.login({ username: String(form.get('username')), password: String(form.get('password')) })
                 await queryClient.invalidateQueries({ queryKey: snapshotKey })
-                navigate({ to: '/feed' })
+                const intended = sessionStorage.getItem('ssc.intendedPath')
+                sessionStorage.removeItem('ssc.intendedPath')
+                const allowedIntended = intended && (!intended.startsWith('/investors') || canAccess(user, 'investor')) && (!intended.startsWith('/partnerships') || canAccess(user, 'partnerships')) && (!intended.startsWith('/admin') || canAccess(user, 'admin'))
+                if (allowedIntended) window.location.assign(`/ssc${intended}`)
+                else navigate({ to: defaultRouteFor(user) })
               } catch (cause) { setError(cause instanceof Error ? cause.message : 'Unable to continue') }
               finally { setLoading(false) }
             }}>
@@ -81,8 +86,8 @@ export function SignInPage() {
               <div className='relative flex justify-center text-xs uppercase'><span className='bg-card px-2 text-muted-foreground'>or continue with</span></div>
             </div>
             <div data-auth-el className='grid grid-cols-2 gap-3'>
-              <Button variant='outline' className='gap-2' onClick={() => setError('Demo mode — use the form above')}><Rocket size={14} /> Google</Button>
-              <Button variant='outline' className='gap-2' onClick={() => setError('Demo mode — use the form above')}><Sparkles size={14} /> GitHub</Button>
+              <Button variant='outline' className='gap-2' disabled title='OAuth is not configured in this local environment'><Rocket size={14} /> Google</Button>
+              <Button variant='outline' className='gap-2' disabled title='OAuth is not configured in this local environment'><Sparkles size={14} /> GitHub</Button>
             </div>
           </CardContent>
           <CardFooter className='justify-center'>

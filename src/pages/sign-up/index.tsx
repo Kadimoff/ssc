@@ -83,7 +83,7 @@ export function SignUpPage() {
               <div data-auth-el className='grid gap-2'>
                 <Label htmlFor='su-password'>Password</Label>
                 <div className='relative'>
-                  <Input id='su-password' name='password' type={showPw ? 'text' : 'password'} required minLength={6} />
+                <Input id='su-password' name='password' type={showPw ? 'text' : 'password'} required minLength={8} />
                   <Button type='button' variant='ghost' size='icon' className='absolute right-0 top-0' onClick={() => setShowPw(!showPw)}>
                     {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
                   </Button>
@@ -99,8 +99,8 @@ export function SignUpPage() {
               <div className='relative flex justify-center text-xs uppercase'><span className='bg-card px-2 text-muted-foreground'>or continue with</span></div>
             </div>
             <div data-auth-el className='grid grid-cols-2 gap-3'>
-              <Button variant='outline' className='gap-2' onClick={() => setError('Sign up via Google coming soon. Use the form above.')}><Rocket size={14} /> Google</Button>
-              <Button variant='outline' className='gap-2' onClick={() => setError('Sign up via GitHub coming soon. Use the form above.')}><Sparkles size={14} /> GitHub</Button>
+              <Button variant='outline' className='gap-2' disabled title='OAuth is not configured in this local environment'><Rocket size={14} /> Google</Button>
+              <Button variant='outline' className='gap-2' disabled title='OAuth is not configured in this local environment'><Sparkles size={14} /> GitHub</Button>
             </div>
           </CardContent>
           <CardFooter className='justify-center'>

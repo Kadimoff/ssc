@@ -15,4 +15,15 @@ export interface FounderProfile {
   lookingFor: string
   /** Optional real traction signal (users, MRR, raised) — empty string hides it. */
   traction?: string
+  portrait: {
+    src: string
+    alt: string
+    position?: string
+  }
+  accent: 'emerald' | 'blue' | 'gold'
+  founderStory: string
+  mission: string
+  currentFocus: string
+  progress: string
+  profileHref: string
 }
