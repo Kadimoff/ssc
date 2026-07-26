@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { Moon, Sun } from 'lucide-react'
 import type { User } from '@/data/types'
@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
+import { readTheme, THEME_CHANGE_EVENT, toggleTheme, type Theme } from '@/lib/theme'
 
 export function UserAvatar({ user, className }: { user?: User | null; className?: string }) {
   const name = user?.name || 'Student Startup Community'
@@ -14,9 +15,23 @@ export function UserAvatar({ user, className }: { user?: User | null; className?
   return <Avatar className={cn('size-10 border border-primary/15', className)}><AvatarFallback className='bg-primary/10 font-semibold text-primary'>{initials}</AvatarFallback></Avatar>
 }
 
-export function ThemeToggle() {
-  const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'))
-  return <Button variant='ghost' size='icon' aria-label='Toggle theme' onClick={() => { document.documentElement.classList.toggle('dark'); setDark(!dark) }}>{dark ? <Sun /> : <Moon />}</Button>
+export function ThemeToggle({ label = false, className }: { label?: boolean; className?: string }) {
+  const [theme, setThemeState] = useState<Theme>(() => readTheme())
+  useEffect(() => {
+    const syncTheme = (event: Event) => setThemeState((event as CustomEvent<Theme>).detail)
+    window.addEventListener(THEME_CHANGE_EVENT, syncTheme)
+    return () => window.removeEventListener(THEME_CHANGE_EVENT, syncTheme)
+  }, [])
+  const dark = theme === 'dark'
+  return <Button
+    variant='ghost'
+    size={label ? 'sm' : 'icon'}
+    className={cn(label && 'w-full justify-start', className)}
+    aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+    onClick={() => setThemeState(toggleTheme(theme))}
+  >
+    {dark ? <Sun /> : <Moon />}{label && <span>Theme</span>}
+  </Button>
 }
 
 export function PageContainer({ children, className }: { children: React.ReactNode; className?: string }) { return <div className={cn('app-container py-8 lg:py-10', className)}>{children}</div> }
