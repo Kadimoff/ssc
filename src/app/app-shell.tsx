@@ -139,11 +139,12 @@ export function AppShell() {
   const me = data?.currentUser
   const unreadCount = executionState.notifications.filter((item) => !item.read && (item.userId === 'all' || item.userId === me?.id)).length
   const mainRef = useRef<HTMLDivElement>(null)
+  const lastMoreTriggerRef = useRef<HTMLButtonElement | null>(null)
   usePageTransition(mainRef, location)
   const mobileMoreActive = moreItems.some((item) => item.to !== '/discover' && routeActive(location, item.to))
 
-  return <div className='relative isolate min-h-svh'>
-    <header className='glass-header sticky top-0 z-40 border-b'>
+  return <div className='app-shell relative isolate min-h-svh' data-overlay-open={moreOpen || undefined}>
+    <header className='app-header glass-header sticky top-0 z-30 border-b'>
       <div className='app-container flex h-16 items-center gap-2 sm:gap-3'>
         <Link to='/feed' aria-label='SSC home' className='flex h-11 w-9 shrink-0 items-center overflow-hidden rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-primary xl:w-[116px]'>
           <img src={sscLogo} alt='SSC — Student Startup Community' className='ssc-brand-logo h-10 w-[116px] max-w-none object-left' />
@@ -151,7 +152,7 @@ export function AppShell() {
         <p className='min-w-0 max-w-[76px] truncate text-sm font-bold sm:max-w-[150px] xl:hidden'>{pageTitle(location)}</p>
         <nav aria-label='Primary navigation' className='nav-bar !hidden xl:!flex'>
           {desktopNav.map(({ to, label, icon: Icon }) => <Link key={to} to={to} className={cn('nav-link', routeActive(location, to) && 'nav-link-active')}><Icon />{label}</Link>)}
-          <button type='button' className={cn('nav-link', moreItems.some((item) => routeActive(location, item.to)) && 'nav-link-active')} onClick={() => setMoreOpen(true)}><Menu />More</button>
+          <button type='button' className={cn('nav-link', moreItems.some((item) => routeActive(location, item.to)) && 'nav-link-active')} onClick={(event) => { lastMoreTriggerRef.current = event.currentTarget; setMoreOpen(true) }}><Menu />More</button>
         </nav>
         <div className='ml-auto flex items-center gap-0.5 sm:gap-1'>
           {runtimeMode === 'demo' && <span className='hidden lg:inline-flex'><DemoDataBadge label='Demo data' /></span>}
@@ -161,42 +162,51 @@ export function AppShell() {
           <Button variant='ghost' size='icon' className='relative' aria-label={`Notifications, ${unreadCount} unread`} asChild><Link to='/notifications'><Bell />{unreadCount > 0 && <span className='absolute right-2 top-2 size-2 rounded-full border-2 border-card bg-emerald-500'><span className='sr-only'>{unreadCount} unread notifications</span></span>}</Link></Button>
           <Button size='sm' className='hidden min-[1380px]:inline-flex' asChild><Link to='/startups/new'><Plus />Create</Link></Button>
           {me ? <Button variant='ghost' size='icon' aria-label={`Open ${me.name} profile`} onClick={() => navigate({ to: '/profile' })}><UserAvatar user={me} className='size-8' /></Button> : <Button size='sm' asChild><Link to='/sign-in'>Sign in</Link></Button>}
-          <Button variant='ghost' size='icon' className='xl:hidden' aria-label='Open more navigation' onClick={() => setMoreOpen(true)}><Menu /></Button>
+          <Button variant='ghost' size='icon' className='xl:hidden' aria-label='Open more navigation' onClick={(event) => { lastMoreTriggerRef.current = event.currentTarget; setMoreOpen(true) }}><Menu /></Button>
         </div>
       </div>
     </header>
 
-    <main ref={mainRef} className='relative z-10 pb-[calc(5rem+env(safe-area-inset-bottom))] xl:pb-0'><Outlet /></main>
-    {data && <Copilot snapshot={data} />}
+    <main ref={mainRef} className='relative z-10 pb-[var(--mobile-content-clearance)] xl:pb-0'><Outlet /></main>
+    {data && <Copilot snapshot={data} suppressed={moreOpen || location.startsWith('/messages')} />}
 
-    <nav aria-label='Mobile navigation' className='glass-header fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t px-1 pb-[env(safe-area-inset-bottom)] pt-1 xl:hidden'>
+    <nav
+      aria-label='Mobile navigation'
+      aria-hidden={moreOpen || undefined}
+      inert={moreOpen || undefined}
+      className={cn('mobile-bottom-nav glass-header fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t px-1 pb-[env(safe-area-inset-bottom)] pt-1 xl:hidden', moreOpen && 'invisible pointer-events-none')}
+    >
       {mobileNav.map(({ to, label, icon: Icon }) => <Link key={to} to={to} className={cn('nav-mobile-link min-h-12 justify-center', routeActive(location, to) && 'nav-mobile-active')}><Icon className='size-5' />{label}</Link>)}
-      <button type='button' className={cn('nav-mobile-link min-h-12 justify-center', mobileMoreActive && 'nav-mobile-active')} onClick={() => setMoreOpen(true)}><Menu className='size-5' />More</button>
+      <button type='button' className={cn('nav-mobile-link min-h-12 justify-center', mobileMoreActive && 'nav-mobile-active')} onClick={(event) => { lastMoreTriggerRef.current = event.currentTarget; setMoreOpen(true) }}><Menu className='size-5' />More</button>
     </nav>
 
     <ResponsiveDialog
       open={moreOpen}
-      onOpenChange={setMoreOpen}
+      onOpenChange={(open) => {
+        setMoreOpen(open)
+        if (!open) window.requestAnimationFrame(() => lastMoreTriggerRef.current?.focus())
+      }}
       title='More from SSC'
       description='Build, explore and operate from one role-aware workspace.'
-      className='sm:max-w-3xl'
+      variant='drawer'
+      className='more-navigation-drawer sm:max-w-3xl'
       footer={<div className='flex w-full flex-col gap-3 sm:flex-row sm:items-center'>
         {runtimeMode === 'demo' && <div className='min-w-0 flex-1'><PersonaSwitcher /></div>}
         <div className='flex items-center justify-end gap-2'><ThemeToggle />{me && <Button variant='ghost' onClick={() => { setMoreOpen(false); logout.mutate() }}><LogOut />Sign out</Button>}<Button variant='outline' onClick={() => setMoreOpen(false)}>Close</Button></div>
       </div>}
     >
-      <div className='space-y-6'>
+      <div className='more-navigation-content space-y-6'>
         {moreGroups.map((group) => {
           const visibleItems = group.items.filter((item) => !item.access || canAccess(me, item.access))
           if (!visibleItems.length) return null
           return <section key={group.label} aria-labelledby={`more-${group.label.toLowerCase()}`}>
             <h3 id={`more-${group.label.toLowerCase()}`} className='mb-2 text-xs font-bold uppercase tracking-[.14em] text-muted-foreground'>{group.label}</h3>
-            <div className='grid gap-2 sm:grid-cols-2'>
+            <div className='grid min-w-0 gap-2 sm:grid-cols-2'>
               {visibleItems.map(({ to, label, description, icon: Icon }) => <Link
                 key={to}
                 to={to}
                 onClick={() => setMoreOpen(false)}
-                className={cn('flex min-h-16 items-center gap-3 rounded-xl border p-3 outline-none transition-colors hover:border-primary/30 hover:bg-primary/[0.04] focus-visible:ring-2 focus-visible:ring-primary', routeActive(location, to) && 'border-primary/30 bg-primary/[0.06]')}
+                className={cn('flex min-h-14 min-w-0 items-center gap-3 rounded-xl border p-3 text-foreground outline-none transition-colors hover:border-primary/30 hover:bg-primary/[0.04] focus-visible:ring-2 focus-visible:ring-primary', routeActive(location, to) && 'border-primary/30 bg-primary/[0.06]')}
               >
                 <span className='grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary'><Icon className='size-5' /></span>
                 <span className='min-w-0'><b className='block text-sm'>{label}</b><span className='mt-0.5 block text-xs leading-5 text-muted-foreground'>{description}</span></span>

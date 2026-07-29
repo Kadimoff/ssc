@@ -30,7 +30,7 @@ function contextualPrompt(prompt: string, previousTurns: CopilotTurn[]) {
   return looksLikeFollowUp ? `${previous.prompt}. Follow-up filter: ${prompt}` : prompt
 }
 
-export function Copilot({ snapshot }: { snapshot: Snapshot }) {
+export function Copilot({ snapshot, suppressed = false }: { snapshot: Snapshot; suppressed?: boolean }) {
   const user = snapshot.currentUser
   const reducedMotion = useReducedMotion()
   const [open, setOpen] = useState(false)
@@ -208,6 +208,8 @@ export function Copilot({ snapshot }: { snapshot: Snapshot }) {
     setOpen(true)
   }
 
+  if (suppressed) return null
+
   return createPortal(<>
       {!open && <button
         ref={launcherRef}
@@ -217,7 +219,7 @@ export function Copilot({ snapshot }: { snapshot: Snapshot }) {
         aria-controls={panelId}
         aria-expanded='false'
         title='Ask SSC AI'
-        className='group fixed bottom-20 right-4 z-50 grid size-14 place-items-center rounded-full border border-primary/25 bg-primary text-primary-foreground shadow-[0_18px_55px_-16px_color-mix(in_oklch,var(--primary)_80%,transparent)] transition hover:-translate-y-1 hover:scale-105 hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 xl:bottom-6 xl:right-6'
+        className='ssc-copilot-surface ssc-copilot-launcher group fixed grid size-14 place-items-center rounded-full border border-primary/25 bg-primary text-primary-foreground shadow-[0_18px_55px_-16px_color-mix(in_oklch,var(--primary)_80%,transparent)] transition hover:-translate-y-1 hover:scale-105 hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
       >
         <MessageCircle className='size-6 transition-transform group-hover:scale-110' />
         <span className='absolute right-1.5 top-1.5 size-2.5 rounded-full bg-emerald-400 ring-2 ring-primary' />
@@ -229,7 +231,7 @@ export function Copilot({ snapshot }: { snapshot: Snapshot }) {
         role='dialog'
         aria-modal='false'
         aria-labelledby='ssc-copilot-title'
-        className={`fixed inset-x-3 bottom-20 z-50 flex h-[min(700px,calc(100svh-6rem))] flex-col overflow-hidden rounded-2xl border border-primary/20 bg-background/98 shadow-2xl backdrop-blur-xl sm:inset-x-auto sm:right-5 sm:w-[390px] xl:bottom-5 ${reducedMotion ? '' : 'opacity-0'}`}
+        className={`ssc-copilot-surface ssc-copilot-panel fixed inset-x-3 flex h-[min(700px,calc(100svh-6rem))] flex-col overflow-hidden rounded-2xl border border-primary/20 bg-background/98 shadow-2xl backdrop-blur-xl sm:inset-x-auto sm:w-[390px] ${reducedMotion ? '' : 'opacity-0'}`}
       >
         <header data-copilot-reveal className='flex items-center gap-3 border-b bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4'>
           <span className='grid size-10 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm'>

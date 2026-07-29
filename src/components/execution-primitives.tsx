@@ -21,6 +21,7 @@ export function ResponsiveDialog({
   children,
   footer,
   className,
+  variant = 'dialog',
 }: {
   open?: boolean
   onOpenChange?: (open: boolean) => void
@@ -30,10 +31,11 @@ export function ResponsiveDialog({
   children: React.ReactNode
   footer?: React.ReactNode
   className?: string
+  variant?: 'dialog' | 'drawer'
 }) {
   return <Dialog open={open} onOpenChange={onOpenChange}>
     {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-    <DialogContent className={cn('responsive-dialog max-h-[92svh] gap-0 overflow-hidden p-0 sm:max-w-xl', className)}>
+    <DialogContent className={cn('responsive-dialog max-h-[92svh] gap-0 overflow-hidden p-0 sm:max-w-xl', variant === 'drawer' && 'responsive-navigation-drawer', className)}>
       <DialogHeader className='border-b px-5 py-5 text-left'>
         <DialogTitle>{title}</DialogTitle>
         {description && <DialogDescription>{description}</DialogDescription>}

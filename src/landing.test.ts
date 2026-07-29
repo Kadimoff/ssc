@@ -65,4 +65,27 @@ describe('execution-first landing page', () => {
     expect(styles).toContain('@media (prefers-reduced-motion: reduce)')
     expect(styles).toContain('.responsive-dialog')
   })
+
+  it('selectively restores the premium visual system without restoring community-first copy', () => {
+    const source = readFileSync(new URL('./pages/landing/index.tsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('<HeroStats />')
+    expect(source).toContain('useHeroEntrance')
+    expect(source).toContain('useScrollReveal')
+    expect(source).toContain('useTiltCards')
+    expect(source).toContain('useMarquee')
+    expect(source).toContain('<MembersRail />')
+    expect(source).toContain('<EcosystemPills />')
+    expect(source).toContain('landing-final-cta')
+    expect(source).not.toContain('The network for student builders')
+    expect(source).not.toContain('Explore the community')
+  })
+
+  it('keeps member-loop clones hidden from assistive technology and keyboard focus', () => {
+    const source = readFileSync(new URL('./pages/landing/index.tsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('aria-hidden={clone || undefined}')
+    expect(source).toContain('tabIndex={clone ? -1 : 0}')
+    expect(new Set(featuredMembers.map((member) => member.name)).size).toBe(featuredMembers.length)
+  })
 })

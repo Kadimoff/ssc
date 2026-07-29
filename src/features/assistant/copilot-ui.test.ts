@@ -38,11 +38,12 @@ describe('SSC Copilot interaction shell', () => {
 
   it('uses a single bottom-right Copilot launcher outside the app header', () => {
     expect(appShellSource).toContain("<main ref={mainRef}")
-    expect(appShellSource).toContain("<Outlet /></main>\n    {data && <Copilot snapshot={data} />}")
+    expect(appShellSource).toContain("<Outlet /></main>\n    {data && <Copilot snapshot={data} suppressed=")
     expect(appShellSource).not.toContain("{ to: '/assistant', label: 'Copilot'")
-    expect(source).toContain("className='group fixed bottom-20 right-4")
+    expect(source).toContain('ssc-copilot-surface ssc-copilot-launcher')
     expect(source).toContain("aria-label='Open SSC Copilot'")
     expect(source).not.toContain("<span className='hidden lg:inline'>Copilot</span>")
+    expect(appShellSource).toContain("suppressed={moreOpen || location.startsWith('/messages')}")
   })
 
   it('mounts the guest Copilot once on the public landing page', () => {

@@ -7,7 +7,6 @@ import type { PostKind, PostLink, Snapshot, User } from '@/data/types'
 import {
   dashboardActivity,
   dashboardEvents,
-  dashboardMetrics,
   dashboardNextSteps,
   dashboardPeopleToMeet,
   mediaForPost,
@@ -22,7 +21,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { PageContainer, PageLoading, UserAvatar } from '@/app/app-shared'
 import { useAction, useSnapshot } from '@/app/app-data'
-import { DemoDataBadge, StatusBadge } from '@/components/execution-primitives'
+import { DemoDataBadge, FormField, ResponsiveDialog, StatusBadge } from '@/components/execution-primitives'
 import { useExecutionStore } from '@/features/execution/store'
 import type { ExecutionDemoState } from '@/features/execution/types'
 
@@ -96,62 +95,54 @@ export function FeedPage() {
 
   return (
     <div className='feed-workspace-surface'>
-      <PageContainer className='relative z-10 grid items-start gap-5 xl:grid-cols-[250px_minmax(0,680px)_300px] 2xl:gap-6'>
+      <PageContainer className='relative z-10 grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[240px_minmax(0,1fr)_300px] 2xl:gap-6'>
         <FeedLeftRail data={data} state={state} onFilter={selectFilter} />
         <section ref={feedRef} className='min-w-0 space-y-4'>
-          <ExecutionHome state={state} data={data} />
-          <HomeOperations state={state} />
-      <div className='flex items-end justify-between gap-4 px-1'>
-        <div>
-          <div className='mb-1 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-primary'>
-            <span className='relative flex size-2'>
-              <span className='absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-55' />
-              <span className='relative inline-flex size-2 rounded-full bg-emerald-500' />
-            </span>
-            Sample ecosystem activity
+          <FeedComposer me={me} />
+          <div className='no-scrollbar flex gap-2 overflow-x-auto px-0.5 pb-1' aria-label='Filter community updates'>
+            {chips.map((chip) => (
+              <button
+                key={chip.key}
+                onClick={() => selectFilter(chip.key)}
+                className={cn(
+                  'inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                  filter === chip.key
+                    ? 'border-primary/40 bg-primary/15 text-primary'
+                    : 'border-border bg-card/60 text-muted-foreground hover:border-primary/25 hover:text-foreground',
+                )}
+              >
+                {chip.label}
+                <span className={cn('rounded-full px-1.5 text-[10px]', filter === chip.key ? 'bg-primary/20' : 'bg-muted')}>{chip.count}</span>
+              </button>
+            ))}
+            <DemoDataBadge label='Illustrative feed' />
           </div>
-          <h1 className='text-2xl font-bold tracking-tight sm:text-[28px]'>Founder activity</h1>
-          <p className='mt-1 text-sm text-muted-foreground'>Launches, traction and useful asks from the ecosystem.</p>
-        </div>
-        <DemoDataBadge label='Illustrative feed' />
-      </div>
-      <FeedComposer me={me} />
-      <div className='flex flex-wrap gap-2'>
-        {chips.map((chip) => (
-          <button
-            key={chip.key}
-            onClick={() => selectFilter(chip.key)}
-            className={cn(
-              'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all',
-              filter === chip.key
-                ? 'border-primary/40 bg-primary/15 text-primary'
-                : 'border-border bg-card/60 text-muted-foreground hover:text-foreground hover:border-primary/25',
-            )}
-          >
-            {chip.label}
-            <span className={cn('rounded-full px-1.5 text-[10px]', filter === chip.key ? 'bg-primary/20' : 'bg-muted')}>{chip.count}</span>
-          </button>
-        ))}
-      </div>
-      {filtered.length === 0 ? (
-        <Card className='border-dashed border-muted-foreground/25 py-16 text-center'>
-          <CardContent><MessagesSquare className='mx-auto mb-3 size-10 text-muted-foreground' /><p className='text-lg font-medium'>No posts in this view</p><p className='mt-1 text-sm text-muted-foreground'>Try another filter or publish an update.</p></CardContent>
-        </Card>
-      ) : visiblePosts.map((post) => <div key={post.id} data-card><PostCard post={post} data={data} /></div>)}
-      {visibleCount < filtered.length && (
-        <Button variant='outline' className='h-11 w-full gap-2 border-primary/15 bg-card/70' onClick={() => setVisibleCount((count) => count + 4)}>
-          Load more ecosystem updates <ArrowRight className='size-4' />
-        </Button>
-      )}
-      <MobileDiscovery data={data} />
+          {filtered.length === 0 ? (
+            <>
+              <Card className='border-dashed border-muted-foreground/25 py-16 text-center'>
+                <CardContent><MessagesSquare className='mx-auto mb-3 size-10 text-muted-foreground' /><p className='text-lg font-medium'>No posts in this view</p><p className='mt-1 text-sm text-muted-foreground'>Try another filter or publish an update.</p></CardContent>
+              </Card>
+              <MobileFeedContext data={data} state={state} />
+            </>
+          ) : visiblePosts.map((post, index) => <div key={post.id} data-card className='space-y-4'>
+            <PostCard post={post} data={data} />
+            {index === Math.min(1, visiblePosts.length - 1) && <MobileFeedContext data={data} state={state} />}
+          </div>)}
+          {visibleCount < filtered.length && (
+            <Button variant='outline' className='h-11 w-full gap-2 border-primary/15 bg-card/70' onClick={() => setVisibleCount((count) => count + 4)}>
+              Load more ecosystem updates <ArrowRight className='size-4' />
+            </Button>
+          )}
         </section>
+        <TabletFeedRail data={data} state={state} onFilter={selectFilter} />
         <FeedRightRail data={data} />
       </PageContainer>
     </div>
   )
 }
 
-function ExecutionHome({ state, data }: { state: ExecutionDemoState; data: Snapshot }) {
+/** Kept as a composable legacy execution surface for Workspace; Home now uses compact rail cards. */
+export function ExecutionHome({ state, data }: { state: ExecutionDemoState; data: Snapshot }) {
   const next = state.milestones.find((item) => item.status !== 'complete')
   const name = data.currentUser?.name ?? 'Builder'
   const context = homeContext(state, next)
@@ -280,7 +271,8 @@ function homeContext(state: ExecutionDemoState, next: ExecutionDemoState['milest
   }
 }
 
-function HomeOperations({ state }: { state: ExecutionDemoState }) {
+/** Full execution detail belongs in Workspace and is no longer mounted above the feed. */
+export function HomeOperations({ state }: { state: ExecutionDemoState }) {
   if (['mentor', 'investor', 'program_admin', 'partner', 'platform_admin'].includes(state.selectedPersona)) {
     return <StakeholderHomeOperations state={state} />
   }
@@ -472,7 +464,6 @@ function FeedComposer({ me }: { me: Snapshot['currentUser'] }) {
   const link: PostLink | undefined = linkTitle.trim() && /^https?:\/\//i.test(linkUrl.trim()) ? { title: linkTitle.trim(), subtitle: 'External link', url: linkUrl.trim() } : undefined
   const create = useAction(() => apiClient.createPost(content, { kind, tags: parsedTags, link }), 'Update published')
   const reset = () => { setContent(''); setTags(''); setLinkTitle(''); setLinkUrl(''); setKind('update'); setExpanded(false) }
-  const Icon = KIND_META[kind].icon
   const quickActions: Array<{ kind: PostKind; label: string }> = [
     { kind: 'update', label: 'Update' },
     { kind: 'milestone', label: 'Milestone' },
@@ -482,76 +473,72 @@ function FeedComposer({ me }: { me: Snapshot['currentUser'] }) {
   ]
   return (
     <Card id='feed-composer' className='glass-card scroll-mt-32 overflow-hidden border-primary/10 p-0 shadow-sm'>
-      <div className={cn('h-1 bg-gradient-to-r', KIND_META[kind].grad)} />
-      <CardContent className='p-4 sm:p-5'>
-        <div className='mb-3 flex items-center justify-between gap-3'>
-          <div>
-            <p className='text-sm font-semibold tracking-tight'>Share what moved forward</p>
-            <p className='mt-0.5 text-xs text-muted-foreground'>Updates are visible to verified SSC members.</p>
-          </div>
-          <Badge variant='secondary' className='hidden gap-1 text-[10px] sm:inline-flex'><Users className='size-3' /> Community</Badge>
-        </div>
-        <div className='flex items-start gap-3'>
+      <div className='h-1 bg-gradient-to-r from-primary/30 via-emerald-400/25 to-amber-400/15' />
+      <CardContent className='p-3.5 sm:p-4'>
+        <div className='flex items-center gap-3'>
           <UserAvatar user={me} className='size-11 ring-2 ring-primary/10' />
-          <div className='min-w-0 flex-1'>
-            <Textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              onFocus={() => setExpanded(true)}
-              placeholder={me ? 'Share a launch, hiring need, milestone, pilot result or ask the community for feedback…' : 'Sign in to share with the community'}
-              disabled={!me}
-              className='min-h-[76px] resize-none rounded-xl border-border/70 bg-background/55 px-3 py-2.5 text-[15px] leading-relaxed shadow-none focus-visible:border-primary/30 focus-visible:ring-primary/10'
-            />
-            <div className='mt-2 flex flex-wrap gap-1.5' aria-label='Post type quick actions'>
-              {quickActions.map((action) => {
-                const M = KIND_META[action.kind]
-                const active = kind === action.kind
-                return (
-                  <button
-                    key={action.kind}
-                    type='button'
-                    onClick={() => { setKind(action.kind); setExpanded(true) }}
-                    className={cn(
-                      'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
-                      active ? M.badge : 'border-border/80 bg-card/70 text-muted-foreground hover:border-primary/20 hover:text-foreground',
-                    )}
-                  >
-                    <M.icon className='size-3.5' /> {action.label}
-                  </button>
-                )
-              })}
-            </div>
-            {expanded && (
-              <div className='mt-3 space-y-2 rounded-xl border border-border/70 bg-muted/20 p-3'>
-                <p className='text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground'>Post details</p>
-                <div className='flex flex-wrap gap-1.5'>
-                  {(Object.keys(KIND_META) as PostKind[]).map((k) => {
-                    const M = KIND_META[k]
-                    const active = kind === k
-                    return (
-                      <button key={k} type='button' onClick={() => setKind(k)} className={cn('inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-all', active ? M.badge : 'border-border text-muted-foreground hover:text-foreground')}>
-                        <M.icon className='size-3.5' /> {M.label}
-                      </button>
-                    )
-                  })}
-                </div>
-                <div className='grid gap-2 sm:grid-cols-2'>
-                  <Input value={tags} onChange={(e) => setTags(e.target.value)} placeholder='Tags: climate, mvp' className='h-9 bg-background/80 text-sm' />
-                  <Input value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder='Link URL (optional)' className='h-9 bg-background/80 text-sm' />
-                </div>
-                <Input value={linkTitle} onChange={(e) => setLinkTitle(e.target.value)} placeholder='Link preview title (optional)' className='h-9 bg-background/80 text-sm' />
-              </div>
-            )}
-          </div>
+          <button
+            type='button'
+            disabled={!me}
+            onClick={() => setExpanded(true)}
+            className='min-h-12 min-w-0 flex-1 rounded-full border border-border/80 bg-background/60 px-4 text-left text-sm text-muted-foreground transition-colors hover:border-primary/25 hover:bg-primary/[0.025] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60'
+          >
+            <span className='line-clamp-1'>{me ? 'Share a milestone, launch, hiring need, result, or ask…' : 'Sign in to share with the community'}</span>
+          </button>
         </div>
-        <div className='mt-3 flex items-center gap-2 border-t pt-3'>
-          <Badge variant='outline' className={cn('gap-1', KIND_META[kind].badge)}><Icon className='size-3.5' /> {KIND_META[kind].label}</Badge>
-          {parsedTags.length > 0 && parsedTags.slice(0, 3).map((t) => <Badge key={t} variant='secondary' className='gap-1 text-[10px]'><Hash className='size-3' />{t}</Badge>)}
-          <Button className='ml-auto gap-1.5 px-4 shadow-sm' size='sm' disabled={!me || !content.trim() || create.isPending} onClick={() => create.mutate(undefined, { onSuccess: reset })}>
-            <Send className='size-4' /> Publish
-          </Button>
+        <div className='mt-3 grid grid-cols-4 gap-1 border-t pt-3 sm:grid-cols-5' aria-label='Choose a post type'>
+          {quickActions.map((action, index) => {
+            const Meta = KIND_META[action.kind]
+            return <button
+              key={action.kind}
+              type='button'
+              disabled={!me}
+              onClick={() => { setKind(action.kind); setExpanded(true) }}
+              className={cn('flex min-h-10 items-center justify-center gap-1 rounded-lg px-1 text-[10px] font-semibold text-muted-foreground transition-colors hover:bg-primary/[0.05] hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 sm:text-xs', (index === 2 || index === 4) && 'hidden sm:flex')}
+            >
+              <Meta.icon className='size-4 shrink-0' />{action.label}
+            </button>
+          })}
+          <button type='button' disabled={!me} onClick={() => setExpanded(true)} className='flex min-h-10 items-center justify-center gap-1 rounded-lg px-1 text-[10px] font-semibold text-muted-foreground hover:bg-primary/[0.05] hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 sm:hidden'><MoreHorizontal className='size-4' />More</button>
         </div>
       </CardContent>
+      <ResponsiveDialog
+        open={expanded}
+        onOpenChange={setExpanded}
+        title='Share with SSC'
+        description='Connect the update to useful execution context. Sample posts remain local in demo mode.'
+        className='sm:max-w-2xl'
+        footer={<div className='flex w-full items-center justify-end gap-2'>
+          <Button variant='outline' onClick={() => setExpanded(false)}>Cancel</Button>
+          <Button disabled={!me || !content.trim() || create.isPending} onClick={() => create.mutate(undefined, { onSuccess: reset })}><Send />{create.isPending ? 'Publishing…' : 'Publish update'}</Button>
+        </div>}
+      >
+        <div className='space-y-5'>
+          <div>
+            <p className='mb-2 text-sm font-semibold'>Post type</p>
+            <div className='flex flex-wrap gap-2'>
+              {(Object.keys(KIND_META) as PostKind[]).map((postType) => {
+                const Meta = KIND_META[postType]
+                return <button key={postType} type='button' onClick={() => setKind(postType)} className={cn('inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary', kind === postType ? Meta.badge : 'border-border text-muted-foreground hover:text-foreground')}><Meta.icon className='size-4' />{Meta.label}</button>
+              })}
+            </div>
+          </div>
+          <FormField label='Update' htmlFor='composer-content' required helper='Share the result, evidence, role, program, or specific ask.' count={{ current: content.length, max: 1_200 }}>
+            <Textarea id='composer-content' autoFocus value={content} onChange={(event) => setContent(event.target.value.slice(0, 1_200))} placeholder='What moved forward, what did you learn, and what do you need next?' className='min-h-36 resize-y' />
+          </FormField>
+          <div className='grid gap-4 sm:grid-cols-2'>
+            <FormField label='Tags' htmlFor='composer-tags' helper='Comma-separated, for example: marketplace, validation.'>
+              <Input id='composer-tags' value={tags} onChange={(event) => setTags(event.target.value)} placeholder='marketplace, validation' />
+            </FormField>
+            <FormField label='Context URL' htmlFor='composer-url' helper='Use a complete http:// or https:// URL.'>
+              <Input id='composer-url' inputMode='url' value={linkUrl} onChange={(event) => setLinkUrl(event.target.value)} placeholder='https://…' />
+            </FormField>
+          </div>
+          <FormField label='Context title' htmlFor='composer-link-title' helper='Shown only when a valid URL is provided.'>
+            <Input id='composer-link-title' value={linkTitle} onChange={(event) => setLinkTitle(event.target.value)} placeholder='Milestone, program, role, or evidence bundle' />
+          </FormField>
+        </div>
+      </ResponsiveDialog>
     </Card>
   )
 }
@@ -706,70 +693,96 @@ function nextStepsForPersona(state: ExecutionDemoState) {
   return dashboardNextSteps
 }
 
-function FeedLeftRail({ data, state, onFilter }: { data: Snapshot; state: ExecutionDemoState; onFilter: (filter: FeedFilter) => void }) {
+function ProfileSummaryCard({ data, compact = false }: { data: Snapshot; compact?: boolean }) {
   const me = data.currentUser
   const completion = me ? Math.min(100, 45 + (me.skills ? 15 : 0) + (me.about ? 15 : 0) + (me.website ? 10 : 0) + (me.company ? 15 : 0)) : 0
-  const nextSteps = nextStepsForPersona(state)
-  const [done, setDone] = useState<Record<string, boolean>>({})
-  const stepDone = (id: string, initial: boolean) => done[id] ?? initial
-  const completedSteps = nextSteps.filter((step) => stepDone(step.id, step.completed)).length
-  return (
-    <aside className='hidden space-y-4 xl:block'>
-      <Card className='glass-card overflow-hidden border-primary/10 p-0 shadow-sm'>
-        <div className='relative h-20 overflow-hidden bg-gradient-to-br from-[#064e3b] via-primary/75 to-[#0f766e]'>
-          <div className='absolute -right-6 -top-10 size-28 rounded-full border border-white/10' />
-          <div className='absolute left-5 top-5 h-px w-28 bg-gradient-to-r from-white/35 to-transparent' />
-        </div>
-        <CardContent className='px-5 pb-5 text-center'>
-          <UserAvatar user={me} className='mx-auto -mt-10 size-20 border-4 border-card shadow-md' />
-          <div className='mt-3 flex items-center justify-center gap-1.5'>
-            <h3 className='font-semibold tracking-tight'>{me?.name ?? 'Join SSC'}</h3>
-            {me?.verificationStatus === 'verified' && <BadgeCheck className='size-4 text-primary' aria-label='Verified member' />}
-          </div>
-          <p className='mt-1 text-xs font-medium text-muted-foreground'>{me?.title ?? 'Build your founder identity'}</p>
-          {me?.company && <Badge variant='secondary' className='mt-2 text-[10px]'>{me.company} · {me.location.split(',')[0]}</Badge>}
-          <div className='mt-4 rounded-xl border border-border/70 bg-muted/25 p-3'>
-            <div className='flex items-center justify-between text-[11px] text-muted-foreground'><span>Profile completion</span><span className='font-bold text-primary'>{completion}%</span></div>
-            <div className='mt-2 h-2 overflow-hidden rounded-full bg-muted'><div className='h-full rounded-full bg-gradient-to-r from-primary to-emerald-400 transition-[width] duration-500' style={{ width: `${completion}%` }} /></div>
-          </div>
-          {me && <Button variant='outline' size='sm' className='mt-3 w-full border-primary/15' asChild><Link to='/profile'>View profile <ArrowRight className='size-3.5' /></Link></Button>}
-        </CardContent>
-      </Card>
-      <Card className='glass-card overflow-hidden border-primary/10 p-0 shadow-sm'>
-        <CardContent className='p-4'>
-          <div className='mb-3 flex items-start justify-between gap-2'>
-            <div><div className='flex items-center gap-2 text-sm font-semibold'><ClipboardCheck className='size-4 text-primary' /> Next steps</div><p className='mt-1 text-[11px] text-muted-foreground'>Move the active workflow forward.</p></div>
-            <Badge variant='secondary' className='text-[10px]'>{completedSteps}/{nextSteps.length}</Badge>
-          </div>
-          <div className='mb-3 h-1.5 overflow-hidden rounded-full bg-muted'><div className='h-full rounded-full bg-primary transition-[width] duration-300' style={{ width: `${nextSteps.length ? (completedSteps / nextSteps.length) * 100 : 0}%` }} /></div>
-          <ul className='space-y-1'>
-            {nextSteps.map((step) => {
-              const complete = stepDone(step.id, step.completed)
-              return (
-              <li key={step.id}>
-                <button
-                  onClick={() => setDone((previous) => ({ ...previous, [step.id]: !complete }))}
-                  className='group flex w-full items-start gap-2.5 rounded-xl px-2 py-2 text-left transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50'
-                >
-                  <span className={cn('mt-0.5 grid size-4 shrink-0 place-items-center rounded-full border transition-colors', complete ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground/40 group-hover:border-primary/50')}>
-                    {complete && <Check className='size-3' />}
-                  </span>
-                  <span className='min-w-0'><span className={cn('block text-[12px] font-medium leading-4', complete && 'text-muted-foreground line-through')}>{step.title}</span><span className='mt-0.5 block text-[10px] leading-4 text-muted-foreground'>{step.description}</span></span>
-                </button>
-              </li>
-            )})}
-          </ul>
-        </CardContent>
-      </Card>
-      <Card className='overflow-hidden border-primary/10 bg-card/80 p-0 shadow-sm'>
-        <CardContent className='grid gap-1 p-3'>
-          <Button variant='ghost' className='justify-start' onClick={() => onFilter('saved')}><Bookmark />Saved posts <Badge variant='secondary' className='ml-auto'>{data.posts.filter((post) => post.saved).length}</Badge></Button>
-          <Button variant='ghost' className='justify-start' asChild><Link to='/communities'><Users />My communities <Badge variant='secondary' className='ml-auto'>{data.communities.filter((community) => community.joined).length}</Badge></Link></Button>
-          <Button variant='ghost' className='justify-start' asChild><Link to='/events'><CalendarDays />Events <span className='ml-auto size-2 rounded-full bg-emerald-500' aria-label='New events available' /></Link></Button>
-        </CardContent>
-      </Card>
-    </aside>
-  )
+  return <Card className='glass-card overflow-hidden border-primary/10 p-0 shadow-sm'>
+    <div className={cn('relative overflow-hidden bg-gradient-to-br from-[#064e3b] via-primary/75 to-[#0f766e]', compact ? 'h-14' : 'h-16')}>
+      <div className='absolute -right-6 -top-10 size-28 rounded-full border border-white/10' />
+      <div className='absolute left-5 top-5 h-px w-28 bg-gradient-to-r from-white/35 to-transparent' />
+    </div>
+    <CardContent className='px-4 pb-4 text-center'>
+      <UserAvatar user={me} className={cn('mx-auto border-4 border-card shadow-md', compact ? '-mt-7 size-14' : '-mt-8 size-16')} />
+      <div className='mt-2 flex min-w-0 items-center justify-center gap-1.5'>
+        <h3 className='truncate text-sm font-semibold tracking-tight'>{me?.name ?? 'Join SSC'}</h3>
+        {me?.verificationStatus === 'verified' && <BadgeCheck className='size-4 shrink-0 text-primary' aria-label='Verified member' />}
+      </div>
+      <p className='mt-1 truncate text-xs font-medium text-muted-foreground'>{me?.title ?? 'Build your founder identity'}</p>
+      {me?.company && <p className='mt-1 truncate text-[10px] text-muted-foreground'>{me.company}</p>}
+      <div className='mt-3'>
+        <div className='flex items-center justify-between text-[10px] text-muted-foreground'><span>Profile completion</span><span className='font-bold text-primary'>{completion}%</span></div>
+        <div className='mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted'><div className='h-full rounded-full bg-gradient-to-r from-primary to-emerald-400 transition-[width] duration-500' style={{ width: `${completion}%` }} /></div>
+      </div>
+      {me && <Button variant='ghost' size='sm' className='mt-2 w-full' asChild><Link to='/profile'>View profile <ArrowRight className='size-3.5' /></Link></Button>}
+    </CardContent>
+  </Card>
+}
+
+function ContinueWorkingCard({ state }: { state: ExecutionDemoState }) {
+  const next = state.milestones.find((item) => item.status !== 'complete')
+  const context = homeContext(state, next)
+  const openItems = nextStepsForPersona(state).filter((step) => !step.completed).length
+  const secondary = context.actions.find((action) => action.to !== context.primary.to) ?? context.actions[0]
+  return <Card className='border-primary/15 bg-card/85 p-0 shadow-sm'>
+    <CardContent className='p-4'>
+      <div className='flex items-start justify-between gap-2'><p className='text-[10px] font-bold uppercase tracking-[.13em] text-primary'>Continue working</p><Badge variant='secondary' className='text-[9px]'>{openItems} open</Badge></div>
+      <h3 className='mt-2 line-clamp-2 text-sm font-semibold leading-5'>{context.title}</h3>
+      <p className='mt-1 line-clamp-2 text-[11px] leading-4 text-muted-foreground'>{context.detail}</p>
+      <div className='mt-3 flex gap-2'>
+        <Button size='sm' className='min-w-0 flex-1 px-2 text-[11px]' asChild><Link to={context.primary.to}>{context.primary.label}</Link></Button>
+        {secondary && <Button size='sm' variant='outline' className='min-w-0 flex-1 px-2 text-[11px]' asChild><Link to={secondary.to}>{secondary.label}</Link></Button>}
+      </div>
+    </CardContent>
+  </Card>
+}
+
+function CurrentMilestoneCard({ state }: { state: ExecutionDemoState }) {
+  const milestone = state.milestones.find((item) => item.status !== 'complete')
+  return <Card className='border-primary/10 p-0 shadow-sm'>
+    <CardContent className='p-4'>
+      <div className='flex items-center justify-between gap-2'><p className='text-xs font-semibold'>Current milestone</p>{milestone && <StatusBadge status={milestone.status} className='text-[9px]' />}</div>
+      {milestone ? <>
+        <p className='mt-2 line-clamp-2 text-sm font-semibold leading-5'>{milestone.title}</p>
+        <div className='mt-2 flex items-center justify-between text-[10px] text-muted-foreground'><span>Progress</span><b className='text-primary'>{milestone.progress}%</b></div>
+        <div className='mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted'><div className='h-full rounded-full bg-primary' style={{ width: `${Math.min(100, Math.max(0, milestone.progress))}%` }} /></div>
+        <Button variant='ghost' size='sm' className='mt-2 h-8 px-0 text-xs' asChild><Link to='/workspace'>Update milestone <ArrowRight /></Link></Button>
+      </> : <div className='mt-2'><p className='text-xs leading-5 text-muted-foreground'>No active milestone yet.</p><Button variant='ghost' size='sm' className='mt-1 h-8 px-0 text-xs' asChild><Link to='/workspace'>Add milestone <ArrowRight /></Link></Button></div>}
+    </CardContent>
+  </Card>
+}
+
+function EvidenceStatusCard({ state }: { state: ExecutionDemoState }) {
+  const records = state.evidence
+  const verified = records.filter((item) => item.status === 'verified').length
+  const priority = records.find((item) => item.status === 'needs_changes') ?? records.find((item) => item.status === 'pending') ?? records[0]
+  return <Card className='border-primary/10 p-0 shadow-sm'>
+    <CardContent className='p-4'>
+      <div className='flex items-center justify-between gap-2'><p className='text-xs font-semibold'>Evidence status</p>{priority && <StatusBadge status={priority.status} className='text-[9px]' />}</div>
+      <p className='mt-2 text-sm font-semibold'>{records.length} record{records.length === 1 ? '' : 's'} · {verified} verified</p>
+      <p className='mt-1 line-clamp-2 text-[11px] leading-4 text-muted-foreground'>{priority?.status === 'needs_changes' ? 'A record needs revision before it can support the milestone.' : priority?.status === 'pending' ? 'One record is waiting for an authorized review.' : 'Add evidence that supports the next decision.'}</p>
+      <Button variant='ghost' size='sm' className='mt-2 h-8 px-0 text-xs' asChild><Link to='/workspace'>Upload evidence <ArrowRight /></Link></Button>
+    </CardContent>
+  </Card>
+}
+
+function FeedShortcutsCard({ data, onFilter }: { data: Snapshot; onFilter: (filter: FeedFilter) => void }) {
+  return <Card className='overflow-hidden border-primary/10 bg-card/80 p-0 shadow-sm'>
+    <CardContent className='grid gap-0.5 p-2'>
+      <Button variant='ghost' size='sm' className='justify-start' onClick={() => onFilter('saved')}><Bookmark />Saved posts <Badge variant='secondary' className='ml-auto'>{data.posts.filter((post) => post.saved).length}</Badge></Button>
+      <Button variant='ghost' size='sm' className='justify-start' asChild><Link to='/communities'><Users />My communities <Badge variant='secondary' className='ml-auto'>{data.communities.filter((community) => community.joined).length}</Badge></Link></Button>
+      <Button variant='ghost' size='sm' className='justify-start' asChild><Link to='/events'><CalendarDays />Events</Link></Button>
+    </CardContent>
+  </Card>
+}
+
+function FeedLeftRail({ data, state, onFilter }: { data: Snapshot; state: ExecutionDemoState; onFilter: (filter: FeedFilter) => void }) {
+  return <aside className='sticky top-20 hidden min-w-0 space-y-3 self-start xl:block'>
+    <ProfileSummaryCard data={data} />
+    <ContinueWorkingCard state={state} />
+    <CurrentMilestoneCard state={state} />
+    <EvidenceStatusCard state={state} />
+    <FeedShortcutsCard data={data} onFilter={onFilter} />
+  </aside>
 }
 
 type PersonRecommendation = {
@@ -848,56 +861,120 @@ function UpcomingEventsCard({ data }: { data: Snapshot }) {
   )
 }
 
-function MobileDiscovery({ data }: { data: Snapshot }) {
-  return (
-    <section className='space-y-3 xl:hidden' aria-labelledby='mobile-discovery-title'>
-      <div className='flex items-end justify-between gap-3 px-1'>
-        <div><p className='text-[10px] font-bold uppercase tracking-[0.13em] text-primary'>Keep the momentum</p><h2 id='mobile-discovery-title' className='mt-1 text-lg font-bold tracking-tight'>People and moments worth joining</h2></div>
-        <Button variant='ghost' size='sm' asChild><Link to='/discover'>Discover <ArrowRight /></Link></Button>
+function MentorSessionCompact({ state }: { state: ExecutionDemoState }) {
+  const session = state.mentorSessions.find((item) => item.status === 'scheduled')
+  return <Card className='border-primary/10 p-0 shadow-sm'>
+    <CardContent className='p-4'>
+      <div className='flex items-center justify-between gap-2'><p className='flex items-center gap-2 text-xs font-semibold'><GraduationCap className='size-4 text-primary' />Mentor session</p><StatusBadge status={session?.status ?? 'planned'} className='text-[9px]' /></div>
+      {session ? <>
+        <p className='mt-2 line-clamp-1 text-sm font-semibold'>{session.topic}</p>
+        <div className='mt-2 flex items-center gap-2'>
+          <span className='grid size-8 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary'>{session.mentorName.split(' ').map((part) => part[0]).slice(0, 2).join('')}</span>
+          <div className='min-w-0'><p className='truncate text-xs font-medium'>{session.mentorName}</p><p className='truncate text-[10px] text-muted-foreground'>{new Date(session.scheduledAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</p></div>
+        </div>
+        <Button variant='ghost' size='sm' className='mt-2 h-8 px-0 text-xs' asChild><Link to='/mentorship'>Review details <ArrowRight /></Link></Button>
+      </> : <div className='mt-2'><p className='text-xs leading-5 text-muted-foreground'>No mentor session is scheduled.</p><Button variant='ghost' size='sm' className='mt-1 h-8 px-0 text-xs' asChild><Link to='/mentorship'>Book mentor <ArrowRight /></Link></Button></div>}
+    </CardContent>
+  </Card>
+}
+
+const quickExecutionActions = [
+  { label: 'Add milestone', to: '/workspace' as const, icon: Target },
+  { label: 'Upload evidence', to: '/workspace' as const, icon: FileUp },
+  { label: 'Find teammate', to: '/network' as const, icon: UserPlus },
+  { label: 'Book mentor', to: '/mentorship' as const, icon: GraduationCap },
+  { label: 'Apply to program', to: '/programs' as const, icon: CalendarDays },
+] as const
+
+function QuickActionsCompact() {
+  return <Card className='border-primary/10 p-0 shadow-sm'>
+    <CardHeader className='px-4 pb-2 pt-4'><CardTitle className='text-sm'>Quick actions</CardTitle></CardHeader>
+    <CardContent className='grid grid-cols-2 gap-2 px-4 pb-4'>
+      {quickExecutionActions.map(({ label, to, icon: Icon }) => <Button key={label} variant='outline' className='h-auto min-h-14 flex-col gap-1 whitespace-normal px-2 py-2 text-center text-[10px] leading-3' asChild><Link to={to}><Icon className='size-4 text-primary' />{label}</Link></Button>)}
+      <Button variant='outline' className='h-auto min-h-14 flex-col gap-1 whitespace-normal px-2 py-2 text-center text-[10px] leading-3' asChild><a href='#feed-composer'><Sparkles className='size-4 text-primary' />Publish update</a></Button>
+    </CardContent>
+  </Card>
+}
+
+function WorkflowProgressCompact({ state }: { state: ExecutionDemoState }) {
+  const workflow = [
+    { label: 'Team', complete: state.memberships.length > 1 },
+    { label: 'Milestone', complete: state.milestones.length > 0 },
+    { label: 'Evidence', complete: state.evidence.length > 0 },
+    { label: 'Mentor', complete: state.mentorSessions.length > 0 },
+    { label: 'Program', complete: state.programApplications.length > 0 },
+    { label: 'Investor', complete: state.introRequests.length > 0 },
+  ]
+  const active = workflow.filter((step) => step.complete).length
+  return <Card className='border-primary/10 p-0 shadow-sm'>
+    <CardHeader className='px-4 pb-2 pt-4'><div className='flex items-center justify-between gap-2'><CardTitle className='text-sm'>Workflow progress</CardTitle><Badge variant='secondary' className='text-[9px]'>{active} of 6 active</Badge></div></CardHeader>
+    <CardContent className='px-4 pb-4'>
+      <ol className='space-y-1'>
+        {workflow.map((step, index) => <li key={step.label}><Link to='/workspace' className={cn('flex min-h-9 items-center gap-2 rounded-lg px-2 text-xs font-medium outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-primary', step.complete ? 'text-foreground' : 'text-muted-foreground')}><span className={cn('grid size-5 shrink-0 place-items-center rounded-full text-[9px] font-bold', step.complete ? 'bg-primary text-primary-foreground' : 'bg-muted')}>{step.complete ? <Check className='size-3' /> : index + 1}</span><span className='min-w-0 flex-1'>{step.label}</span><span className='text-[9px]'>{step.complete ? 'Active' : 'Next'}</span></Link></li>)}
+      </ol>
+    </CardContent>
+  </Card>
+}
+
+function MobileWorkspaceSummary({ state }: { state: ExecutionDemoState }) {
+  const milestone = state.milestones.find((item) => item.status !== 'complete')
+  const pendingEvidence = state.evidence.filter((item) => item.status === 'pending' || item.status === 'needs_changes').length
+  const nextSession = state.mentorSessions.find((item) => item.status === 'scheduled')
+  return <details className='group scroll-mt-20 rounded-2xl border border-primary/15 bg-card/90 shadow-sm'>
+    <summary className='flex min-h-14 cursor-pointer list-none items-center gap-3 px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'>
+      <span className='grid size-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary'><Target className='size-4' /></span>
+      <span className='min-w-0 flex-1'><span className='block text-sm font-semibold'>Your workspace</span><span className='block truncate text-xs text-muted-foreground'>{milestone ? `${milestone.title} · ${milestone.progress}%` : 'Create your first milestone'} · {pendingEvidence} evidence item{pendingEvidence === 1 ? '' : 's'} need attention</span></span>
+      <ArrowRight className='size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90' />
+    </summary>
+    <div className='border-t px-4 py-4'>
+      <div className='grid grid-cols-2 gap-2 text-xs'>
+        <div className='rounded-xl bg-muted/35 p-3'><span className='text-muted-foreground'>Milestone</span><b className='mt-1 block'>{milestone?.progress ?? 0}% complete</b></div>
+        <div className='rounded-xl bg-muted/35 p-3'><span className='text-muted-foreground'>Evidence</span><b className='mt-1 block'>{pendingEvidence} need attention</b></div>
       </div>
-      <div className='grid items-start gap-3 md:grid-cols-2'>
-        <PeopleToMeetCard data={data} compact />
-        <UpcomingEventsCard data={data} />
+      <p className='mt-3 text-xs text-muted-foreground'>{nextSession ? `Next: ${nextSession.topic} with ${nextSession.mentorName}` : 'Next: review programs or book a mentor session.'}</p>
+      <div className='mt-3 grid grid-cols-2 gap-2'>
+        {quickExecutionActions.map(({ label, to, icon: Icon }) => <Button key={label} variant='outline' size='sm' className='justify-start px-2 text-[10px]' asChild><Link to={to}><Icon className='size-3.5' />{label}</Link></Button>)}
+        <Button variant='outline' size='sm' className='justify-start px-2 text-[10px]' asChild>
+          <Link to={state.selectedPersona === 'student' ? '/startups/new' : '/workspace'}><Rocket className='size-3.5' />{state.selectedPersona === 'student' ? 'Create startup' : 'Open workspace'}</Link>
+        </Button>
       </div>
+    </div>
+  </details>
+}
+
+function MobileFeedContext({ data, state }: { data: Snapshot; state: ExecutionDemoState }) {
+  return <div className='space-y-4 lg:hidden'>
+    <MobileWorkspaceSummary state={state} />
+    <section aria-labelledby='mobile-people-title'>
+      <div className='mb-2 flex items-center justify-between gap-3 px-1'><h2 id='mobile-people-title' className='text-base font-bold'>People to meet</h2><Button variant='ghost' size='sm' asChild><Link to='/discover'>View all</Link></Button></div>
+      <PeopleToMeetCard data={data} compact />
     </section>
-  )
+    <UpcomingEventsCard data={data} />
+  </div>
+}
+
+function TabletFeedRail({ data, state, onFilter }: { data: Snapshot; state: ExecutionDemoState; onFilter: (filter: FeedFilter) => void }) {
+  return <aside className='sticky top-20 hidden min-w-0 space-y-3 self-start lg:block xl:hidden'>
+    <ProfileSummaryCard data={data} compact />
+    <ContinueWorkingCard state={state} />
+    <PeopleToMeetCard data={data} compact />
+    <CurrentMilestoneCard state={state} />
+    <MentorSessionCompact state={state} />
+    <QuickActionsCompact />
+    <UpcomingEventsCard data={data} />
+    <FeedShortcutsCard data={data} onFilter={onFilter} />
+  </aside>
 }
 
 function FeedRightRail({ data }: { data: Snapshot }) {
-  const tagCounts = new Map<string, number>()
-  data.posts.forEach((p) => (p.tags ?? []).forEach((t) => tagCounts.set(t, (tagCounts.get(t) ?? 0) + 1)))
-  const trending = [...tagCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4)
-  const trendColors = ['from-emerald-500/20 via-emerald-500/5 to-transparent', 'from-amber-500/20 via-amber-500/5 to-transparent', 'from-sky-500/20 via-sky-500/5 to-transparent', 'from-violet-500/20 via-violet-500/5 to-transparent']
-  return (
-    <aside className='hidden space-y-4 xl:block'>
-      <PeopleToMeetCard data={data} />
-      <UpcomingEventsCard data={data} />
-
-      <Card className='glass-card overflow-hidden border-primary/10 p-0 shadow-sm'>
-        <div className='h-0.5 bg-gradient-to-r from-primary/20 via-primary/5 to-transparent' />
-        <CardHeader><CardTitle className='flex items-center gap-2 text-base'><Sparkles className='size-4 text-primary' /> Trending topics</CardTitle></CardHeader>
-        <CardContent className='space-y-1 text-sm'>
-          {trending.length === 0 && <p className='px-2 py-3 text-xs text-muted-foreground'>No tags yet — publish a tagged update.</p>}
-          {trending.map(([tag, count], i) => (
-            <div key={tag}>
-              <Trend icon={<Hash className='size-3.5 text-primary' />} title={tag} posts={`${count} post${count === 1 ? '' : 's'}`} color={trendColors[i % trendColors.length]} />
-              {i < trending.length - 1 && <div className='mx-2 h-px bg-gradient-to-r from-primary/10 to-transparent' />}
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-
-      <Card className='glass-card overflow-hidden border-primary/10 p-0 shadow-sm'>
-        <div className='h-0.5 bg-gradient-to-r from-emerald-500/20 via-emerald-500/5 to-transparent' />
-        <CardHeader className='pb-2'><CardTitle className='flex items-center gap-2 text-base'><TrendingUp className='size-4 text-emerald-500' /> Ecosystem pulse</CardTitle><CardDescription className='flex items-center gap-1 text-[11px]'><span className='size-1.5 rounded-full bg-emerald-500' /> Illustrative week</CardDescription></CardHeader>
-        <CardContent className='grid grid-cols-3 gap-2 pt-1 text-center'>
-          {dashboardMetrics.map((metric) => (
-            <div key={metric.label} title={metric.detail} className='rounded-xl border border-border/60 bg-card/55 p-2.5'><div className='text-lg font-extrabold tracking-tight text-foreground'>{metric.value}</div><div className='text-[10px] leading-4 text-muted-foreground'>{metric.label}</div></div>
-          ))}
-        </CardContent>
-      </Card>
-    </aside>
-  )
+  const { state } = useExecutionStore()
+  return <aside className='sticky top-20 hidden min-w-0 space-y-3 self-start xl:block'>
+    <PeopleToMeetCard data={data} />
+    <MentorSessionCompact state={state} />
+    <QuickActionsCompact />
+    <WorkflowProgressCompact state={state} />
+    <UpcomingEventsCard data={data} />
+  </aside>
 }
 
 function PostAction({ icon: Icon, label, active, onClick }: { icon: typeof Heart; label: string; active?: boolean; onClick: () => void }) {
@@ -923,25 +1000,6 @@ function PostAction({ icon: Icon, label, active, onClick }: { icon: typeof Heart
       <Icon className={cn('size-4', active && 'fill-current')} />
       <span>{label}</span>
     </Button>
-  )
-}
-
-function Trend({ icon, title, posts, color }: { icon?: React.ReactNode; title: string; posts: string; color?: string }) {
-  return (
-    <div className='group cursor-pointer rounded-lg px-3 py-2.5 transition-all duration-200 hover:bg-muted/50'>
-      <div className='flex items-center gap-2'>
-        {icon && (
-          <span className={cn(
-            'grid size-7 shrink-0 place-items-center rounded-lg bg-gradient-to-br',
-            color || 'from-primary/20 to-primary/5'
-          )}>
-            {icon}
-          </span>
-        )}
-        <p className='font-medium text-sm group-hover:text-primary transition-colors'>{title}</p>
-      </div>
-      <p className='text-xs text-muted-foreground mt-1 ml-9'>{posts}</p>
-    </div>
   )
 }
 
