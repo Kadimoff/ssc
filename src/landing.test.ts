@@ -94,20 +94,22 @@ describe('restored SSC landing page', () => {
     expect(source).toContain('Students from different universities and disciplines')
     expect(source).toContain("className='landing-member-card w-[190px] shrink-0 px-2 py-3 text-center'")
     expect(source).toContain("className='landing-carousel landing-members-rail mt-12 flex w-full gap-6")
-    expect(source).toContain("label='Demo'")
+    expect(source).not.toContain("<DemoDataBadge label='Demo' />")
   })
 
-  it('uses one animated page background and transparent section surfaces', () => {
+  it('uses the reference WebGL shader behind transparent landing sections', () => {
     const source = readFileSync(new URL('./pages/landing/index.tsx', import.meta.url), 'utf8')
     const styles = readFileSync(new URL('./styles.css', import.meta.url), 'utf8')
+    const shader = readFileSync(new URL('./components/shader-background.tsx', import.meta.url), 'utf8')
 
     expect(source).toContain("className='landing-page-shell")
-    expect(source).toContain("className='landing-ambient-background'")
-    expect(styles).toContain('@keyframes landing-ambient-drift')
+    expect(source).not.toContain("className='landing-ambient-background'")
+    expect(styles).not.toContain('.landing-ambient-background')
     expect(styles).toMatch(/\.landing-hero\s*\{\s*background:\s*transparent;/)
     expect(styles).toMatch(/\.landing-section-mint\s*\{\s*background:\s*transparent;/)
-    expect(styles).toContain('.landing-ambient-background::before')
-    expect(styles).toContain('animation: none !important')
+    expect(shader).toContain("canvas.getContext('webgl')")
+    expect(shader).toContain('jelly/rubber mouse interaction')
+    expect(shader).not.toContain("matchMedia('(max-width: 767px)')")
   })
 
   it('lets the university marquee animate across the full viewport', () => {

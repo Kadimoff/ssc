@@ -73,7 +73,6 @@ export function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return <div className='landing-page-shell relative isolate min-h-svh overflow-hidden'>
-    <div className='landing-ambient-background' aria-hidden='true' />
     <header className='glass-header fixed inset-x-0 top-0 z-50 border-b'>
       <div className='app-container flex h-[72px] items-center gap-3'>
         <Link to='/' aria-label='SSC home' className='flex h-12 w-[104px] shrink-0 items-center overflow-hidden rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-primary sm:w-[122px]'>
@@ -425,7 +424,7 @@ function MemberRailCard({ member, clone = false, onView }: { member: FeaturedMem
       <AvatarImage src={member.avatarUrl ? localAsset(member.avatarUrl) : undefined} alt={clone ? '' : `Illustrative demo profile for ${member.name}`} loading='lazy' />
       <AvatarFallback className='bg-primary/10 text-base font-bold text-primary'>{initials}</AvatarFallback>
     </Avatar>
-    <div className='mt-3 flex items-center justify-center gap-1.5'><h3 className='truncate text-sm font-semibold'>{member.name}</h3><DemoDataBadge label='Demo' /></div>
+    <div className='mt-3 flex items-center justify-center gap-1.5'><h3 className='truncate text-sm font-semibold'>{member.name}</h3></div>
     <p className='mt-0.5 truncate text-xs text-muted-foreground'>{member.role}</p>
     <div className='mt-2 flex h-5 justify-center gap-1 overflow-hidden'>{member.skills.slice(0, 2).map((skill) => <Badge key={skill} variant='secondary' className='px-1.5 py-0 text-[9px]'>{skill}</Badge>)}</div>
     <Button type='button' variant='link' size='sm' tabIndex={clone ? -1 : 0} className='mt-1 h-7 px-1 text-xs' onClick={onView}>View profile <ArrowRight className='size-3' /></Button>

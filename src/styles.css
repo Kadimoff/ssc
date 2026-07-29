@@ -164,54 +164,6 @@ body:has([data-slot='dialog-overlay'][data-state='open']) .mobile-bottom-nav {
 .landing-page-shell {
   background: transparent;
 }
-.landing-ambient-background {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 12% 14%, color-mix(in oklch, var(--primary) 18%, transparent), transparent 34rem),
-    radial-gradient(circle at 88% 30%, oklch(.78 .13 84 / .10), transparent 30rem),
-    radial-gradient(circle at 42% 72%, color-mix(in oklch, var(--primary) 11%, transparent), transparent 38rem),
-    linear-gradient(155deg, color-mix(in oklch, var(--background) 94%, var(--primary)), var(--background) 48%, color-mix(in oklch, var(--background) 96%, oklch(.76 .12 84)));
-  background-position: 0% 0%, 100% 12%, 44% 100%, 50% 50%;
-  background-size: 145% 145%, 155% 155%, 150% 150%, 100% 100%;
-  animation: landing-ambient-drift 28s ease-in-out infinite alternate;
-}
-.landing-ambient-background::before {
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(circle, color-mix(in oklch, var(--primary) 28%, transparent) 1px, transparent 1.35px);
-  background-position: 0 0;
-  background-size: 42px 42px;
-  content: '';
-  mask-image: linear-gradient(180deg, black, transparent 44%, black 78%, transparent);
-  opacity: .12;
-  animation: landing-ambient-grid 42s linear infinite;
-}
-.landing-ambient-background::after {
-  position: absolute;
-  inset: -18%;
-  background:
-    radial-gradient(ellipse at 22% 32%, color-mix(in oklch, var(--primary) 12%, transparent), transparent 34%),
-    radial-gradient(ellipse at 76% 68%, oklch(.76 .12 84 / .07), transparent 32%);
-  content: '';
-  filter: blur(18px);
-  animation: landing-ambient-orbits 34s ease-in-out infinite alternate;
-}
-@keyframes landing-ambient-drift {
-  0% { background-position: 0% 0%, 100% 12%, 44% 100%, 50% 50%; }
-  50% { background-position: 16% 12%, 84% 36%, 58% 72%, 50% 50%; }
-  100% { background-position: 7% 28%, 96% 54%, 30% 58%, 50% 50%; }
-}
-@keyframes landing-ambient-grid {
-  to { background-position: 84px 42px; }
-}
-@keyframes landing-ambient-orbits {
-  from { transform: translate3d(-2%, -1%, 0) scale(1); }
-  to { transform: translate3d(3%, 2%, 0) scale(1.06); }
-}
 .landing-page-shell main > section {
   background-color: transparent;
 }
@@ -314,15 +266,6 @@ body:has([data-slot='dialog-overlay'][data-state='open']) .mobile-bottom-nav {
   :root { --glass-blur: 8px; }
   .glass-card { backdrop-filter: blur(4px) saturate(125%); -webkit-backdrop-filter: blur(4px) saturate(125%); }
   .feed-workspace-surface::after { display: none; }
-  .landing-ambient-background {
-    background-size: 210% 180%, 220% 190%, 210% 190%, 100% 100%;
-    animation-duration: 38s;
-  }
-  .landing-ambient-background::before { opacity: .07; }
-  .landing-ambient-background::after {
-    filter: blur(10px);
-    animation-duration: 42s;
-  }
 .responsive-dialog {
     inset: 0 !important;
     top: 0 !important;
@@ -543,7 +486,4 @@ body:has([data-slot='dialog-overlay'][data-state='open']) .mobile-bottom-nav {
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
-  .landing-ambient-background,
-  .landing-ambient-background::before,
-  .landing-ambient-background::after { animation: none !important; }
 }

@@ -113,12 +113,6 @@ export function ShaderBackground() {
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const narrowViewportQuery = window.matchMedia('(max-width: 767px)')
-    if (reducedMotionQuery.matches || narrowViewportQuery.matches) {
-      canvas.hidden = true
-      return
-    }
     const gl = (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')) as WebGLRenderingContext | null
     if (!gl) return
 
@@ -192,7 +186,7 @@ export function ShaderBackground() {
     }
 
     const isDark = () => (document.documentElement.classList.contains('dark') ? 1 : 0)
-    const reducedMotion = reducedMotionQuery.matches
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
     let rafId = 0
     let running = true
