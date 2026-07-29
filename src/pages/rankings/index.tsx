@@ -1,141 +1,135 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { gsap } from 'gsap'
-import { useGSAP } from '@gsap/react'
-import { BriefcaseBusiness, TrendingUp, ArrowDown, ArrowUp, Gauge, Pause, Play, RefreshCw } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useMemo, useState } from 'react'
+import { BadgeCheck, BarChart3, Building2, Network, Search, ShieldCheck, UserRound } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
+import { PageContainer } from '@/app/app-shared'
+import { RankingFilters, RankingMethodology, RankingPodium, RankingRow, RankingScoreBreakdown } from '@/components/rankings'
+import {
+  categoryRankings,
+  startupRankings,
+  type RankingCategory,
+  type RankingEntry,
+  type RankingPeriod,
+  type RankingSort,
+} from '@/data/rankings-data'
 import { cn } from '@/lib/utils'
-import { MotionRocket } from '@/components/motion-rocket'
-import { PageContainer, PageHeading } from '@/app/app-shared'
 
-/* ------------------------------------------------------------------ */
-/*  Startup Hiring Rankings — animated racing leaderboard             */
-/* ------------------------------------------------------------------ */
-
-interface RankingStartup {
-  slug: string; name: string; sector: string; color: string; openRoles: number; weeks: number[]
-}
-
-// Hiring-momentum over 12 weeks (composite of open roles × growth signals).
-// Series cross over on purpose so ranks race.
-const startupRankings: RankingStartup[] = [
-  { slug: 'greenstack', name: 'GreenStack', sector: 'Climate', color: '#10b981', openRoles: 5, weeks: [40, 42, 45, 50, 55, 60, 68, 72, 70, 75, 82, 88] },
-  { slug: 'edflow', name: 'EduFlow', sector: 'EdTech', color: '#a78bfa', openRoles: 3, weeks: [70, 72, 75, 73, 70, 65, 62, 60, 58, 55, 60, 62] },
-  { slug: 'medimatch', name: 'MediMatch', sector: 'Health', color: '#f5b840', openRoles: 2, weeks: [50, 55, 58, 60, 62, 65, 64, 66, 70, 72, 74, 78] },
-  { slug: 'mediroute', name: 'MediRoute', sector: 'Health', color: '#38bdf8', openRoles: 1, weeks: [85, 84, 82, 80, 78, 75, 72, 70, 68, 66, 64, 60] },
-  { slug: 'skillbridge', name: 'SkillBridge AI', sector: 'EdTech', color: '#f87171', openRoles: 4, weeks: [35, 38, 42, 48, 52, 58, 62, 65, 68, 72, 76, 80] },
-  { slug: 'modelworks', name: 'ModelWorks', sector: 'AI', color: '#14b8a6', openRoles: 3, weeks: [60, 62, 60, 58, 60, 62, 65, 68, 66, 64, 66, 68] },
-  { slug: 'orbitlabs', name: 'Orbit Labs', sector: 'SaaS', color: '#fb923c', openRoles: 2, weeks: [45, 44, 42, 40, 38, 40, 42, 45, 48, 50, 52, 54] },
-  { slug: 'northstudio', name: 'North Studio', sector: 'Design', color: '#c084fc', openRoles: 1, weeks: [30, 32, 35, 38, 42, 45, 48, 50, 52, 55, 58, 60] },
+const categories: Array<{ key: RankingCategory; label: string; icon: typeof BarChart3 }> = [
+  { key: 'startups', label: 'Startups', icon: BarChart3 },
+  { key: 'founders', label: 'Founders', icon: UserRound },
+  { key: 'universities', label: 'Universities', icon: Building2 },
+  { key: 'communities', label: 'Communities', icon: Network },
 ]
 
-const RANK_WEEKS = 12
-
-const RANK_ROW_H = 74
-
 export function RankingsPage() {
-  const [week, setWeek] = useState(0)
-  const [playing, setPlaying] = useState(true)
-  const [speed, setSpeed] = useState(1)
-  const trackRef = useRef<HTMLDivElement>(null)
-  const rowEls = useRef<Map<string, HTMLDivElement>>(new Map())
-  useGSAP(() => { gsap.set('[data-rank-row]', { y: 0 }) }, { scope: trackRef })
+  const [category, setCategory] = useState<RankingCategory>('startups')
+  const [search, setSearch] = useState('')
+  const [sector, setSector] = useState('All')
+  const [stage, setStage] = useState('All')
+  const [university, setUniversity] = useState('All')
+  const [period, setPeriod] = useState<RankingPeriod>('30d')
+  const [verifiedOnly, setVerifiedOnly] = useState(false)
+  const [sort, setSort] = useState<RankingSort>('overall')
+  const [selected, setSelected] = useState<RankingEntry | null>(null)
 
-  useEffect(() => {
-    if (!playing) return
-    const id = window.setTimeout(() => setWeek((w) => (w + 1) % RANK_WEEKS), 1500 / speed)
-    return () => window.clearTimeout(id)
-  }, [week, playing, speed])
+  const sectors = useMemo(() => ['All', ...new Set(startupRankings.map((entry) => entry.sector))], [])
+  const stages = useMemo(() => ['All', ...new Set(startupRankings.map((entry) => entry.stage))], [])
+  const universities = useMemo(() => ['All', ...new Set(startupRankings.map((entry) => entry.university))], [])
 
   const ranked = useMemo(() => startupRankings
-    .map((s) => ({ slug: s.slug, momentum: s.weeks[week] }))
-    .sort((a, b) => b.momentum - a.momentum), [week])
-  const rankOf = (slug: string) => ranked.findIndex((r) => r.slug === slug)
-  const maxMomentum = Math.max(...ranked.map((r) => r.momentum), 1)
-
-  useGSAP(() => {
-    startupRankings.forEach((s) => {
-      const el = rowEls.current.get(s.slug)
-      if (!el) return
-      gsap.to(el, { y: rankOf(s.slug) * RANK_ROW_H, duration: 0.85, ease: 'power3.inOut' })
+    .map((entry) => ({ ...entry, score: entry.periodScores[period] }))
+    .filter((entry) => {
+      const query = search.trim().toLowerCase()
+      const matchesSearch = !query || `${entry.name} ${entry.university} ${entry.sector}`.toLowerCase().includes(query)
+      return matchesSearch &&
+        (sector === 'All' || entry.sector === sector) &&
+        (stage === 'All' || entry.stage === stage) &&
+        (university === 'All' || entry.university === university) &&
+        (!verifiedOnly || entry.verifiedEvidence)
     })
-  }, { dependencies: [week] })
+    .sort((left, right) => {
+      if (sort === 'growth') return right.growth - left.growth
+      if (sort === 'milestones') return right.milestoneProgress - left.milestoneProgress
+      if (sort === 'community') return right.communityContribution - left.communityContribution
+      if (sort === 'activity') return right.activityRecency - left.activityRecency
+      return right.score - left.score
+    }), [period, search, sector, stage, university, verifiedOnly, sort])
 
-  const leader = ranked[0] ? startupRankings.find((s) => s.slug === ranked[0].slug) : null
-  // biggest climber vs week 0
-  const climber = [...startupRankings].map((s) => ({ s, delta: s.weeks[week] - s.weeks[Math.max(0, week - 1)] })).sort((a, b) => b.delta - a.delta)[0]
-  const totalRoles = startupRankings.reduce((sum, s) => sum + s.openRoles, 0)
+  const resetFilters = () => {
+    setSearch('')
+    setSector('All')
+    setStage('All')
+    setUniversity('All')
+    setPeriod('30d')
+    setVerifiedOnly(false)
+    setSort('overall')
+  }
 
-  return <PageContainer>
-    <div className='mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between'>
-      <PageHeading eyebrow='Hiring rankings' title='The race for talent, week by week.' description='Student startups compete by hiring momentum — open roles weighted by growth signals. Bars race as the quarter unfolds.' />
-      <div className='flex items-center gap-2'>
-        <Button variant='outline' size='sm' onClick={() => setSpeed((s) => (s === 1 ? 2 : s === 2 ? 0.5 : 1))}><Gauge className='size-4' />{speed}× speed</Button>
-        <Button variant='outline' size='sm' onClick={() => { setWeek(0); setPlaying(true) }}><RefreshCw className='size-4' />Restart</Button>
-        <Button size='sm' onClick={() => setPlaying((p) => !p)}>{playing ? <><Pause className='size-4' />Pause</> : <><Play className='size-4' />Play</>}</Button>
-      </div>
-    </div>
-
-    {/* KPI row */}
-    <div className='mb-6 grid gap-4 sm:grid-cols-3'>
-      <Card className='glass-card'><CardHeader className='flex-row items-center gap-3 space-y-0'><span className='grid size-10 place-items-center rounded-xl bg-amber-500/15'><MotionRocket color='#f5b840' boost size={20} /></span><div><CardDescription>Current leader</CardDescription><CardTitle className='text-lg'>{leader?.name ?? '—'}</CardTitle></div></CardHeader></Card>
-      <Card className='glass-card'><CardHeader className='flex-row items-center gap-3 space-y-0'><span className='grid size-10 place-items-center rounded-xl bg-emerald-500/15 text-emerald-500'><TrendingUp className='size-5' /></span><div><CardDescription>Biggest climber</CardDescription><CardTitle className='text-lg'>{climber?.s.name ?? '—'} <span className='text-xs font-semibold text-emerald-500'>+{climber?.delta ?? 0}</span></CardTitle></div></CardHeader></Card>
-      <Card className='glass-card'><CardHeader className='flex-row items-center gap-3 space-y-0'><span className='grid size-10 place-items-center rounded-xl bg-sky-500/15 text-sky-500'><BriefcaseBusiness className='size-5' /></span><div><CardDescription>Open roles tracked</CardDescription><CardTitle className='text-lg'>{totalRoles}</CardTitle></div></CardHeader></Card>
-    </div>
-
-    {/* Week scrubber */}
-    <Card className='glass-card mb-5 p-4'><div className='flex items-center gap-4'>
-      <div className='text-sm font-semibold whitespace-nowrap'>Week {week + 1}<span className='text-muted-foreground'> / {RANK_WEEKS}</span></div>
-      <input type='range' min={0} max={RANK_WEEKS - 1} value={week} onChange={(e) => { setWeek(Number(e.target.value)); setPlaying(false) }} className='h-1.5 flex-1 cursor-pointer appearance-none rounded-full bg-muted accent-primary' />
-    </div></Card>
-
-    {/* Racing track */}
-    <Card className='glass-card overflow-hidden p-0'>
-      <div className='flex items-center justify-between border-b px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
-        <span>Hiring momentum</span><span>Live ranking</span>
-      </div>
-      <div className='relative px-3 py-3 sm:px-4' style={{ height: startupRankings.length * RANK_ROW_H + 8 }}>
-        <div ref={trackRef} className='relative'>
-          {startupRankings.map((s) => {
-            const rank = rankOf(s.slug)
-            const momentum = s.weeks[week]
-            const prev = s.weeks[Math.max(0, week - 1)]
-            const change = momentum - prev
-            const widthPct = (momentum / maxMomentum) * 100
-            const isLeader = rank === 0
-            return (
-              <div
-                key={s.slug}
-                data-rank-row={s.slug}
-                ref={(el) => { if (el) rowEls.current.set(s.slug, el) }}
-                className='absolute inset-x-0' style={{ top: 4, height: RANK_ROW_H - 8 }}
-              >
-                <div className='flex h-full items-center gap-3'>
-                  <div className={cn('grid size-8 shrink-0 place-items-center rounded-lg text-sm font-extrabold', isLeader ? 'bg-amber-500 text-white' : 'bg-muted text-muted-foreground')}>{rank + 1}</div>
-                  <div className='grid size-9 shrink-0 place-items-center rounded-lg text-xs font-bold text-white' style={{ background: s.color }}>{s.name.split(' ').map((p) => p[0]).join('').slice(0, 2)}</div>
-                  <div className='w-28 shrink-0 truncate sm:w-36'><b className='block truncate text-sm'>{s.name}</b><span className='text-[10px] text-muted-foreground'>{s.sector} · {s.openRoles} open</span></div>
-                  <div className='relative h-7 flex-1 rounded-md bg-muted/40'>
-                    <div className='absolute inset-y-0 left-0 flex items-center overflow-hidden rounded-md px-2 transition-[width] duration-700 ease-[cubic-bezier(.2,.8,.2,1)]' style={{ width: `${widthPct}%`, background: `linear-gradient(90deg, ${s.color}, color-mix(in srgb, ${s.color} 60%, #f5b840))`, boxShadow: isLeader ? `0 0 22px -4px ${s.color}` : 'none' }}>
-                      <span className='truncate text-xs font-bold text-white drop-shadow-sm'>{momentum}</span>
-                    </div>
-                    {/* Rocket riding the leading edge — boosts on rank climb */}
-                    <div className='absolute top-1/2 -translate-x-1/2 -translate-y-1/2 transition-[left] duration-700 ease-[cubic-bezier(.2,.8,.2,1)]' style={{ left: `${widthPct}%` }}>
-                      <MotionRocket color={s.color} boost={change > 0} size={17} />
-                    </div>
-                  </div>
-                  <div className='w-12 shrink-0 text-right'>
-                    {change > 0 && <span className='inline-flex items-center gap-0.5 text-xs font-semibold text-emerald-500'><ArrowUp className='size-3' />{change}</span>}
-                    {change < 0 && <span className='inline-flex items-center gap-0.5 text-xs font-semibold text-red-400'><ArrowDown className='size-3' />{Math.abs(change)}</span>}
-                    {change === 0 && <span className='text-xs text-muted-foreground'>—</span>}
-                  </div>
-                </div>
-              </div>
-            )
-          })}
+  return (
+    <PageContainer>
+      <header className='mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between'>
+        <div className='max-w-3xl'>
+          <Badge variant='secondary' className='gap-1.5'><BarChart3 className='size-3.5' />Ecosystem visibility</Badge>
+          <h1 className='mt-4 text-3xl font-bold tracking-tight sm:text-4xl'>Startup Rankings</h1>
+          <p className='mt-3 text-base leading-7 text-muted-foreground sm:text-lg'>Verified progress, execution and ecosystem contribution signals.</p>
+          <p className='mt-2 text-xs text-muted-foreground'>Updated from current illustrative workspace records. Scores support discovery and are not outcome predictions.</p>
         </div>
-      </div>
-    </Card>
+        <div className='flex flex-wrap gap-2'>
+          <Badge variant='outline' className='h-9 gap-1.5 px-3'><ShieldCheck className='size-3.5' />Illustrative ranking</Badge>
+          <RankingMethodology />
+        </div>
+      </header>
 
-    <p className='mt-4 text-xs text-muted-foreground'>Momentum = open roles weighted by recent growth and engagement signals. Series is illustrative for the demo; the real metric will be computed server-side when the backend lands.</p>
-  </PageContainer>
+      <nav aria-label='Ranking categories' className='no-scrollbar mb-5 flex gap-2 overflow-x-auto pb-1'>
+        {categories.map((item) => <button key={item.key} type='button' onClick={() => setCategory(item.key)} className={cn('inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-2 text-xs font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary/50', category === item.key ? 'border-primary/35 bg-primary/10 text-primary' : 'bg-card/70 text-muted-foreground hover:text-foreground')} aria-pressed={category === item.key}><item.icon className='size-3.5' />{item.label}</button>)}
+      </nav>
+
+      {category === 'startups' ? (
+        <section aria-labelledby='startup-ranking-title' className='space-y-5'>
+          <RankingFilters
+            search={search} setSearch={setSearch}
+            sector={sector} setSector={setSector} sectors={sectors}
+            stage={stage} setStage={setStage} stages={stages}
+            university={university} setUniversity={setUniversity} universities={universities}
+            period={period} setPeriod={setPeriod}
+            verifiedOnly={verifiedOnly} setVerifiedOnly={setVerifiedOnly}
+            sort={sort} setSort={setSort} onReset={resetFilters}
+          />
+
+          {ranked.length > 0 && <RankingPodium entries={ranked} onSelect={setSelected} />}
+
+          <Card className='gap-0 overflow-hidden border-primary/10 bg-card/80 py-0 shadow-sm'>
+            <div className='flex flex-col gap-2 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between'>
+              <div><h2 id='startup-ranking-title' className='text-base font-semibold'>Current ranking</h2><p className='mt-0.5 text-xs text-muted-foreground'>{ranked.length} venture{ranked.length === 1 ? '' : 's'} match the active view.</p></div>
+              <Badge variant='outline' className='w-fit gap-1'><BadgeCheck className='size-3 text-primary' />Decision-support signals</Badge>
+            </div>
+            {ranked.length > 0 ? <>
+              <div className='hidden grid-cols-[44px_minmax(180px,1fr)_minmax(220px,2fr)_72px_64px_40px] gap-3 border-b bg-muted/25 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground lg:grid'>
+                <span>Rank</span><span>Venture identity</span><span>Signal strength</span><span className='text-right'>Score</span><span className='text-right'>Change</span><span />
+              </div>
+              <div className='space-y-2 p-3 lg:space-y-0 lg:p-0'>{ranked.map((entry, index) => <RankingRow key={entry.slug} entry={entry} rank={index + 1} onDetails={setSelected} />)}</div>
+            </> : <EmptyRanking />}
+          </Card>
+
+          <Card className='border-amber-500/15 bg-amber-500/[0.045]'><CardContent className='flex gap-3 p-4'><ShieldCheck className='mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400' /><div><p className='text-sm font-semibold'>Discovery support, not an investment ranking</p><p className='mt-1 text-xs leading-5 text-muted-foreground'>Scores combine available execution, evidence, milestones, team, community and activity records. They do not estimate investment return, funding probability or venture success.</p></div></CardContent></Card>
+        </section>
+      ) : <CategoryRanking category={category} />}
+
+      <RankingScoreBreakdown entry={selected} onClose={() => setSelected(null)} />
+    </PageContainer>
+  )
+}
+
+function EmptyRanking() {
+  return <div className='px-6 py-16 text-center'><Search className='mx-auto size-9 text-muted-foreground' /><h3 className='mt-4 font-semibold'>No ranked ventures yet</h3><p className='mt-1 text-sm text-muted-foreground'>Complete milestones and add verified evidence to appear here.</p></div>
+}
+
+function CategoryRanking({ category }: { category: Exclude<RankingCategory, 'startups'> }) {
+  const entries = categoryRankings[category] ?? []
+  return (
+    <Card className='gap-0 overflow-hidden border-primary/10 bg-card/80 py-0'>
+      <div className='border-b px-5 py-4'><h2 className='text-base font-semibold capitalize'>{category} ranking</h2><p className='mt-1 text-xs text-muted-foreground'>Illustrative ecosystem contribution and verified activity signals. Startup ranking filters do not apply to this preview.</p></div>
+      {entries.length ? <div className='space-y-2 p-3'>{entries.map((entry, index) => <div key={entry.id} className='grid gap-3 rounded-xl border border-border/70 bg-card p-4 sm:grid-cols-[44px_minmax(0,1fr)_90px_60px] sm:items-center'><span className='grid size-9 place-items-center rounded-xl bg-primary/10 font-extrabold text-primary'>{index + 1}</span><div className='min-w-0'><p className='font-semibold'>{entry.name}</p><p className='mt-0.5 text-xs text-muted-foreground'>{entry.meta}</p><p className='mt-2 text-[11px] text-muted-foreground'>{entry.signal}</p></div><div><b className='text-xl'>{entry.score}</b><span className='ml-1 text-[10px] text-muted-foreground'>points</span></div><Badge variant='outline' className={entry.change > 0 ? 'text-emerald-600' : ''}>{entry.change > 0 ? `Up ${entry.change}` : 'No change'}</Badge></div>)}</div> : <EmptyRanking />}
+    </Card>
+  )
 }

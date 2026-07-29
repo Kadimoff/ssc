@@ -4,7 +4,8 @@ import { useStaggerCards, useLikeAnimation, useBookmarkAnimation } from '@/hooks
 import { ArrowRight, BadgeCheck, Bookmark, BriefcaseBusiness, CalendarDays, Check, CircleDollarSign, CircleHelp, ClipboardCheck, Clock3, Hash, Heart, Link2, MapPin, MessageCircle, MessagesSquare, MoreHorizontal, Rocket, Send, Share2, Sparkles, TrendingUp, Trophy, UserPlus, Users, Video } from 'lucide-react'
 import { apiClient } from '@/data/client'
 import type { PostKind, PostLink, Snapshot, User } from '@/data/types'
-import { dashboardEvents, dashboardMetrics, dashboardNextSteps, mediaForPost } from '@/data/feed-dashboard-data'
+import { dashboardEvents, dashboardMetrics, dashboardNextSteps, dashboardQuickActions, mediaForPost, nextMentorSession, startupSummary } from '@/data/feed-dashboard-data'
+import { MentorSessionCard, QuickActionsCard, StartupSummaryCard } from '@/components/feed'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -81,10 +82,17 @@ export function FeedPage() {
     setVisibleCount(6)
   }
 
-  return <PageContainer className='grid items-start gap-5 xl:grid-cols-[250px_minmax(0,680px)_300px] 2xl:gap-6'>
-    <FeedLeftRail data={data} onFilter={selectFilter} />
-    <section ref={feedRef} className='min-w-0 space-y-4'>
-      <MobileDashboardSummary data={data} />
+  return (
+    <div className='feed-workspace-surface'>
+      <PageContainer className='relative z-10 grid items-start gap-5 xl:grid-cols-[250px_minmax(0,680px)_300px] 2xl:gap-6'>
+        <FeedLeftRail data={data} onFilter={selectFilter} />
+        <section ref={feedRef} className='min-w-0 space-y-4'>
+          <MobileDashboardSummary data={data} />
+          <div className='grid gap-3 md:grid-cols-2 xl:hidden'>
+            <StartupSummaryCard startup={startupSummary} compact className='md:row-span-2' />
+            <QuickActionsCard actions={dashboardQuickActions} compact />
+            <MentorSessionCard session={nextMentorSession} />
+          </div>
       <div className='flex items-end justify-between gap-4 px-1'>
         <div>
           <div className='mb-1 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-primary'>
@@ -127,9 +135,11 @@ export function FeedPage() {
           Load more ecosystem updates <ArrowRight className='size-4' />
         </Button>
       )}
-    </section>
-    <FeedRightRail data={data} />
-  </PageContainer>
+        </section>
+        <FeedRightRail data={data} />
+      </PageContainer>
+    </div>
+  )
 }
 
 function FeedComposer({ me }: { me: Snapshot['currentUser'] }) {
@@ -152,7 +162,7 @@ function FeedComposer({ me }: { me: Snapshot['currentUser'] }) {
     { kind: 'question', label: 'Feedback' },
   ]
   return (
-    <Card className='glass-card overflow-hidden border-primary/10 p-0 shadow-sm'>
+    <Card id='feed-composer' className='glass-card scroll-mt-32 overflow-hidden border-primary/10 p-0 shadow-sm'>
       <div className={cn('h-1 bg-gradient-to-r', KIND_META[kind].grad)} />
       <CardContent className='p-4 sm:p-5'>
         <div className='mb-3 flex items-center justify-between gap-3'>
@@ -430,6 +440,9 @@ function FeedLeftRail({ data, onFilter }: { data: Snapshot; onFilter: (filter: F
           <Button variant='ghost' className='justify-start' asChild><Link to='/events'><CalendarDays />Events <span className='ml-auto size-2 rounded-full bg-emerald-500' aria-label='New events available' /></Link></Button>
         </CardContent>
       </Card>
+      <StartupSummaryCard startup={startupSummary} />
+      <QuickActionsCard actions={dashboardQuickActions} />
+      <MentorSessionCard session={nextMentorSession} />
     </aside>
   )
 }

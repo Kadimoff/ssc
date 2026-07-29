@@ -28,6 +28,35 @@ export type FeedMediaAsset = {
   fit?: 'cover' | 'contain'
 }
 
+export type StartupSummary = {
+  name: string
+  slug: string
+  stage: 'idea' | 'validation' | 'mvp' | 'revenue'
+  profileCompletion: number
+  activeUsers: string
+  lookingFor: string
+  nextMilestone: string
+}
+
+export type QuickActionIcon = 'publish' | 'milestone' | 'cofounder' | 'mentor'
+
+export type QuickAction = {
+  id: string
+  label: string
+  icon: QuickActionIcon
+  href: '#feed-composer' | '/goals' | '/network' | '/mentorship'
+}
+
+export type MentorSession = {
+  id: string
+  title: string
+  mentor: string
+  dateLabel: string
+  duration: string
+  location: string
+  note?: string
+}
+
 const avatarByUserId: Partial<Record<EntityId, string>> = {
   usr_1: 'images/founders/aysel-mammadova.webp',
   usr_2: 'images/founders/reshad-quliyev.webp',
@@ -136,6 +165,33 @@ export const dashboardMetrics: DashboardMetric[] = [
   { value: '9', label: 'New startups' },
   { value: '45', label: 'Mentors online' },
 ]
+
+export const startupSummary: StartupSummary = {
+  name: 'GreenStack',
+  slug: 'greenstack',
+  stage: 'mvp',
+  profileCompletion: 82,
+  activeUsers: '1,000+',
+  lookingFor: 'Technical co-founder',
+  nextMilestone: 'Third faculty pilot',
+}
+
+export const dashboardQuickActions: QuickAction[] = [
+  { id: 'publish-update', label: 'Publish an update', icon: 'publish', href: '#feed-composer' },
+  { id: 'add-milestone', label: 'Add a milestone', icon: 'milestone', href: '/goals' },
+  { id: 'find-cofounder', label: 'Find a co-founder', icon: 'cofounder', href: '/network' },
+  { id: 'book-mentor', label: 'Book a mentor', icon: 'mentor', href: '/mentorship' },
+]
+
+export const nextMentorSession: MentorSession = {
+  id: 'mentor-session-1',
+  title: 'Product validation',
+  mentor: 'Tarlan Yusifzade',
+  dateLabel: 'Tomorrow · 15:00',
+  duration: '30 min',
+  location: 'Google Meet',
+  note: 'Prepare your traction questions',
+}
 
 export function assetUrl(path: string) {
   if (/^(?:https?:|data:|blob:)/i.test(path)) return path
