@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import {
+  useCounterAnimation,
   useHeroEntrance,
   useMarquee,
   useRevealCards,
@@ -10,27 +11,21 @@ import {
 import {
   ArrowRight,
   BadgeCheck,
-  BarChart3,
-  BookOpenCheck,
-  BriefcaseBusiness,
-  Building2,
-  CalendarCheck2,
+  CalendarDays,
   Check,
-  ClipboardCheck,
-  Compass,
-  FileCheck2,
+  ChevronRight,
   GraduationCap,
-  Handshake,
+  HandCoins,
   HeartHandshake,
-  Layers3,
+  Lightbulb,
+  MapPin,
   Menu,
+  Network,
+  Newspaper,
   Rocket,
-  SearchCheck,
-  ShieldCheck,
+  School,
   Sparkles,
-  Target,
-  Users,
-  Workflow,
+  type Users,
 } from 'lucide-react'
 import { ThemeToggle } from '@/app/app-shared'
 import { useSnapshot } from '@/app/app-data'
@@ -40,42 +35,38 @@ import { PilotInquiryDialog } from '@/components/landing/pilot-inquiry-dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { DemoDataBadge, ResponsiveDialog } from '@/components/execution-primitives'
 import { businessPackages, primaryRevenueStreams, trustCommitments } from '@/config/business-model'
 import { localAsset } from '@/config/demo-assets'
-import { featuredMembers, universityWordmarks, type FeaturedMember } from '@/data/landing-content'
+import {
+  ecosystemMetrics,
+  ecosystemPillars,
+  eventItems,
+  featuredMembers,
+  newsItems,
+  universityWordmarks,
+  type EcosystemIcon,
+  type FeaturedMember,
+} from '@/data/landing-content'
 import { cn } from '@/lib/utils'
 import sscLogo from '../../../components/ssc-logo-optimized.webp'
 
 const landingNav = [
-  ['Product', 'workflow'],
-  ['How it works', 'workspace-preview'],
-  ['For students', 'stakeholders'],
-  ['For institutions', 'institutional'],
-  ['Programs', 'programs'],
+  ['Ecosystem', 'ecosystem'],
+  ['Members', 'members'],
+  ['Updates', 'updates'],
   ['Business model', 'business-model'],
 ] as const
 
-const workflowSteps = [
-  { title: 'Verified profile', description: 'Confirm a participant’s university context without heavy KYC.', icon: ShieldCheck },
-  { title: 'Build or join a team', description: 'Create a startup, define open roles and find complementary builders.', icon: Users },
-  { title: 'Define milestones', description: 'Turn ambition into owned, dated and measurable execution steps.', icon: Target },
-  { title: 'Add evidence', description: 'Attach interviews, prototypes, metrics and pilot records to progress.', icon: FileCheck2 },
-  { title: 'Work with mentors', description: 'Prepare focused sessions and leave with accountable action items.', icon: GraduationCap },
-  { title: 'Enter programs', description: 'Apply once the team, evidence and eligibility context are visible.', icon: CalendarCheck2 },
-  { title: 'Prepare a handoff', description: 'Share relevant signals and missing evidence with authorized investors.', icon: BriefcaseBusiness },
-  { title: 'Report outcomes', description: 'Give institutions an auditable view of activity and verified progress.', icon: BarChart3 },
-] as const
-
-const stakeholders = [
-  { title: 'Students and founders', icon: Rocket, text: 'Build a team, manage progress, prove execution, find mentors and programs—and stay free.' },
-  { title: 'Universities', icon: Building2, text: 'Verify participants, coordinate portfolios and programs, and replace fragmented tracking with outcome visibility.' },
-  { title: 'Mentors', icon: GraduationCap, text: 'Receive better-matched founders, prepare around goals, and track action items and follow-up.' },
-  { title: 'Programs and accelerators', icon: Layers3, text: 'Review applications, operate cohorts, collect evidence, prepare demo day and export outcomes.' },
-  { title: 'Investors', icon: SearchCheck, text: 'Discover relevant ventures, inspect evidence, identify missing signals and request consent-based introductions.' },
-  { title: 'Partners', icon: Handshake, text: 'Contribute programs, experts and challenges while tracking commitments and operational outcomes.' },
-] as const
+const ecosystemIcons = {
+  investors: HandCoins,
+  incubation: Rocket,
+  mentors: GraduationCap,
+  ecosystem: Network,
+  students: Lightbulb,
+  universities: School,
+} satisfies Record<EcosystemIcon, typeof Users>
 
 export function LandingPage() {
   const { data } = useSnapshot()
@@ -93,12 +84,12 @@ export function LandingPage() {
         <div className='ml-auto flex items-center gap-1 xl:ml-5'>
           <span className='hidden sm:inline-flex'><ThemeToggle /></span>
           <Button variant='ghost' size='sm' className='hidden md:inline-flex' asChild><Link to='/sign-in'>Sign in</Link></Button>
-          <Button size='sm' className='min-h-10' asChild><Link to='/sign-up'>Start building free</Link></Button>
+          <Button size='sm' className='min-h-10' asChild><Link to='/sign-up'>Get started</Link></Button>
           <ResponsiveDialog
             open={mobileMenuOpen}
             onOpenChange={setMobileMenuOpen}
             title='Explore SSC'
-            description='Execution for students, programs and university ecosystems.'
+            description='Explore the SSC ecosystem, its people, updates, and institutional model.'
             className='sm:max-w-md'
             trigger={<Button variant='ghost' size='icon' className='xl:hidden' aria-label='Open navigation'><Menu /></Button>}
             footer={<div className='flex w-full gap-2'><Button variant='outline' className='flex-1' asChild><Link to='/sign-in' onClick={() => setMobileMenuOpen(false)}>Sign in</Link></Button><Button className='flex-1' asChild><Link to='/sign-up' onClick={() => setMobileMenuOpen(false)}>Start free</Link></Button></div>}
@@ -114,14 +105,10 @@ export function LandingPage() {
 
     <main>
       <HeroSection />
-      <WorkflowSection />
-      <StakeholderSection />
-      <WorkspacePreviewSection />
-      <EvidenceSection />
-      <ProgramsSection />
-      <InstitutionalSection />
-      <InvestorSection />
-      <CommunitySection />
+      <EcosystemSection />
+      <MembersSection />
+      <UpdatesSection />
+      <UniversitySection />
       <BusinessModelSection />
       <PilotSection />
       <FinalCallToAction />
@@ -140,181 +127,217 @@ function HeroSection() {
     <div data-hero-blob className='pointer-events-none absolute bottom-[8%] right-[8%] size-72 rounded-full bg-amber-400/[0.07] blur-[110px]' />
     <div className='app-container grid min-h-[calc(100svh-5rem)] items-center gap-8 py-12 md:gap-10 lg:grid-cols-[1.08fr_.92fr] lg:gap-14 lg:py-20'>
       <div className='relative z-10'>
-        <Badge data-hero-badge variant='outline' className='mb-6 border-primary/20 bg-background/60 px-3 py-1.5 text-primary shadow-sm backdrop-blur'>Free for students · Built for university startup ecosystems</Badge>
-        <h1 className='max-w-4xl text-4xl font-extrabold leading-[1.03] tracking-[-.045em] text-balance sm:text-6xl lg:text-7xl xl:text-[4.8rem]'>
-          <span data-hero-line className='block'>Turn university ideas into</span>
-          <span data-hero-line className='animated-gradient-text block'>verified startup outcomes.</span>
+        <div data-hero-badge className='mb-8 inline-flex items-center gap-2 rounded-full border bg-background/60 px-4 py-1.5 text-xs font-medium text-muted-foreground shadow-xs backdrop-blur'>
+          <span className='size-2 animate-pulse rounded-full bg-primary' />
+          Professional momentum, without the noise
+        </div>
+        <h1 className='max-w-4xl text-5xl font-extrabold leading-[1.05] tracking-[-.04em] sm:text-6xl lg:text-7xl xl:text-8xl'>
+          <span data-hero-line className='block'>The network for</span>
+          <span data-hero-line className='animated-gradient-text block'>student builders</span>
         </h1>
         <p data-hero-subtitle className='mt-6 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl'>
-          SSC brings students, universities, mentors, programs and investors into one execution workflow—from verified profiles and team formation to milestones, evidence, programs and introductions.
+          Share meaningful work, meet aligned collaborators, and discover opportunities — all in one focused professional community.
         </p>
-        <div data-hero-metrics className='mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap'>
-          <span className='hero-button-float'><Button size='lg' className='premium-explore-cta group' asChild><Link to='/sign-up'>Start building free <ArrowRight className='transition-transform group-hover:translate-x-0.5' /></Link></Button></span>
-          <span className='hero-button-float hero-button-float-delayed'><PilotInquiryDialog label='Run a university pilot' className='bg-secondary text-secondary-foreground hover:bg-secondary/80' /></span>
-          <Button size='lg' variant='ghost' asChild><a href='#workflow'>See how SSC works</a></Button>
+        <div data-hero-buttons className='mt-10 flex flex-wrap gap-3'>
+          <span className='hero-button-float'><Button size='lg' className='premium-explore-cta group gap-2 overflow-hidden text-[15px]' asChild><Link to='/feed'>Explore the community <ArrowRight className='transition-transform group-hover:translate-x-0.5' /></Link></Button></span>
+          <span className='hero-button-float hero-button-float-delayed'><Button size='lg' variant='outline' className='text-[15px]' asChild><Link to='/sign-up'>Create your profile <Sparkles /></Link></Button></span>
         </div>
-        <div data-hero-metrics className='mt-10 grid max-w-2xl grid-cols-3 gap-3 border-t pt-6 sm:gap-6'>
-          <HeroProof value='Free' label='Students & founders' />
-          <HeroProof value='Role-aware' label='Shared workflow' />
-          <HeroProof value='Local demo' label='Illustrative data' />
+        <div data-hero-metrics className='mt-14 grid max-w-xl grid-cols-3 gap-3 border-t pt-7 sm:gap-6'>
+          <Metric value='Sample' label='Student builders' />
+          <Metric value='Illustrative' label='University ecosystems' />
+          <Metric value='Demo' label='Mentor workflows' />
         </div>
-        <div data-hero-metrics className='mt-5 flex flex-wrap items-center gap-2'>
-          <DemoDataBadge label='Illustrative workspace' />
-          <span className='text-sm text-muted-foreground'>Sample multi-stakeholder workflow · No public traction claim</span>
+        <div data-hero-metrics className='mt-5'>
+          <DemoDataBadge label='Illustrative ecosystem' />
         </div>
       </div>
-      <div data-hero-card className='landing-hero-visual' aria-label='Illustrative SSC ecosystem workflow'>
+      <div data-hero-card className='landing-hero-visual' aria-label='Illustrative SSC ecosystem'>
         <div className='absolute inset-12 -z-10 rounded-full bg-primary/10 blur-[90px]' />
         <HeroStats />
-        <div className='landing-hero-visual-label'><DemoDataBadge label='Illustrative workflow' /></div>
+        <div className='landing-hero-visual-label'><DemoDataBadge label='Illustrative ecosystem' /></div>
       </div>
     </div>
   </section>
 }
 
-function HeroProof({ value, label }: { value: string; label: string }) {
-  return <div className='min-w-0'><strong className='block truncate text-base font-extrabold tracking-tight sm:text-lg'>{value}</strong><span className='mt-1 block text-[11px] leading-4 text-muted-foreground sm:text-xs'>{label}</span></div>
+function Metric({ value, label }: { value: string; label: string }) {
+  return <div className='min-w-0'><strong className='block text-base font-extrabold tracking-tight sm:text-2xl'>{value}</strong><span className='mt-1 block text-[11px] leading-4 text-muted-foreground sm:text-sm'>{label}</span></div>
 }
 
 function SectionHeading({ eyebrow, title, description, align = 'center' }: { eyebrow: string; title: string; description: string; align?: 'center' | 'left' }) {
   return <div className={align === 'center' ? 'mx-auto max-w-3xl text-center' : 'max-w-2xl'}>
-    <p className='text-xs font-bold uppercase tracking-[.16em] text-primary'>{eyebrow}</p>
-    <h2 className='mt-4 text-3xl font-bold tracking-[-.03em] text-balance sm:text-4xl lg:text-5xl'>{title}</h2>
-    <p className='mt-5 text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8'>{description}</p>
+    <Badge variant='secondary' className='px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider'>{eyebrow}</Badge>
+    <h2 className='mt-6 text-3xl font-bold tracking-[-.025em] text-balance sm:text-4xl lg:text-5xl'>{title}</h2>
+    <p className='mx-auto mt-5 max-w-2xl text-lg leading-8 text-muted-foreground'>{description}</p>
   </div>
 }
 
-function WorkflowSection() {
+function EcosystemSection() {
   const sectionRef = useRef<HTMLElement>(null)
-  useScrollReveal(sectionRef, { targets: '[data-animate]', stagger: 0.1 })
-  useTiltCards(sectionRef, '[data-tilt]', { maxTilt: 4 })
-  return <section ref={sectionRef} id='workflow' data-landing-section='workflow' className='landing-section landing-section-mint relative z-10 scroll-mt-24 py-24 sm:py-32'>
+  useScrollReveal(sectionRef, { targets: '> .app-container > [data-animate]', stagger: 0.05 })
+  useCounterAnimation(sectionRef, '[data-counter]')
+  useTiltCards(sectionRef, '[data-tilt]', { maxTilt: 5 })
+
+  return <section ref={sectionRef} id='ecosystem' data-landing-section='ecosystem' className='relative z-10 scroll-mt-20 py-24 sm:py-32'>
     <div className='app-container'>
-      <div data-animate><SectionHeading eyebrow='Core workflow' title='One operating loop from eligibility to outcomes.' description='SSC gives every stakeholder the same execution context without turning the product into another social feed.' /></div>
-      <div data-animate className='relative mt-14 grid gap-3 sm:grid-cols-2 lg:grid-cols-4'>
-        {workflowSteps.map(({ title, description, icon: Icon }, index) => <Card data-tilt key={title} className='landing-story-card group relative overflow-hidden border-primary/10 bg-card/75 [transform-style:preserve-3d]'>
-          <CardHeader className='h-full'>
-            <div className='flex items-center justify-between'><span className='grid size-11 place-items-center rounded-xl bg-primary/10 text-primary'><Icon className='size-5' /></span><span className='text-xs font-bold text-muted-foreground'>{String(index + 1).padStart(2, '0')}</span></div>
-            <CardTitle className='mt-4 text-base'>{title}</CardTitle>
-            <CardDescription className='leading-6'>{description}</CardDescription>
-          </CardHeader>
-        </Card>)}
+      <SectionHeading
+        eyebrow='The SSC ecosystem'
+        title='One community, an entire startup ecosystem.'
+        description='SSC connects the relationships, knowledge and environments student founders need to move from curiosity to real progress.'
+      />
+      <div data-animate className='mt-14 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border bg-border shadow-sm sm:grid-cols-3 lg:grid-cols-5'>
+        {ecosystemMetrics.map((metric, index) => (
+          <div key={metric.label} className='ecosystem-metric-float relative bg-card p-6 text-center sm:p-8' style={{ animationDelay: `${index * -0.45}s` }}>
+            <div className='absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-primary/30 to-transparent' />
+            <strong data-counter className='text-2xl font-extrabold text-primary sm:text-3xl'>{metric.value}</strong>
+            <p className='mt-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground'>{metric.label}</p>
+          </div>
+        ))}
+      </div>
+      <div data-animate className='mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3'>
+        {ecosystemPillars.map((pillar, index) => {
+          const Icon = ecosystemIcons[pillar.icon]
+          return <div key={pillar.title} className='ecosystem-card-float' style={{ animationDelay: `${index * -0.55}s` }}>
+            <Card data-tilt className='group relative h-full overflow-hidden border-primary/5 transition-all duration-300 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 [transform-style:preserve-3d]'>
+              <div className='pointer-events-none absolute -inset-px rounded-xl bg-gradient-to-br from-primary/[0.03] to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
+              <CardHeader>
+                <span className='mb-3 grid size-11 place-items-center rounded-xl bg-primary/10 text-primary transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-lg group-hover:shadow-primary/25'>
+                  <Icon size={20} />
+                </span>
+                <CardTitle className='text-lg'>{pillar.title}</CardTitle>
+                <CardDescription className='leading-6'>{pillar.description}</CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+        })}
       </div>
     </div>
   </section>
 }
 
-function StakeholderSection() {
+function MembersSection() {
   const sectionRef = useRef<HTMLElement>(null)
-  useRevealCards(sectionRef, '[data-reveal]', { stagger: 0.08 })
-  return <section ref={sectionRef} id='stakeholders' data-landing-section='stakeholders' className='landing-section relative z-10 scroll-mt-24 py-24 sm:py-32'>
+  useScrollReveal(sectionRef, { targets: '> .app-container > [data-animate]' })
+
+  return <section ref={sectionRef} id='members' data-landing-section='members' className='relative z-10 scroll-mt-20 py-24 sm:py-32'>
     <div className='app-container'>
-      <SectionHeading eyebrow='Who SSC serves' title='Different roles. One shared record of progress.' description='Each workspace is role-aware, while the underlying team, milestone, evidence, program and outcome context remains consistent.' />
-      <div className='mt-12 grid gap-4 md:grid-cols-2 xl:grid-cols-3'>
-        {stakeholders.map(({ title, text, icon: Icon }, index) => <Card data-reveal key={title} className={cn('landing-story-card', index === 0 ? 'border-primary/25 bg-primary/[0.045]' : 'border-border/80 bg-card/70')}>
-          <CardHeader><span className='grid size-10 place-items-center rounded-xl bg-primary/10 text-primary'><Icon className='size-5' /></span><CardTitle className='mt-3 text-lg'>{title}</CardTitle><CardDescription className='leading-6'>{text}</CardDescription></CardHeader>
-        </Card>)}
+      <div data-animate className='max-w-2xl'>
+        <Badge variant='secondary' className='px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider'>People of SSC</Badge>
+        <h2 className='mt-5 text-3xl font-bold tracking-[-.025em] sm:text-5xl'>Meet the builders behind the momentum.</h2>
+        <p className='mt-5 text-lg leading-8 text-muted-foreground'>Illustrative student, founder, mentor and operator profiles show the range of roles that can work together in SSC.</p>
       </div>
-    </div>
-  </section>
-}
-
-function WorkspacePreviewSection() {
-  return <section id='workspace-preview' data-landing-section='workspace-preview' className='relative z-10 scroll-mt-24 py-20 sm:py-28'>
-    <div className='app-container grid items-center gap-10 lg:grid-cols-[.86fr_1.14fr]'>
-      <div>
-        <SectionHeading align='left' eyebrow='Execution workspace' title='Know the next action in ten seconds.' description='Continue Working, startup health, the current milestone, evidence status, program deadlines and attention items appear before community updates.' />
-        <div className='mt-8 space-y-3'>
-          {['Role-aware next action', 'Startup and team completeness', 'Milestone and evidence coverage', 'Mentor, application and verification attention'].map((item) => <p key={item} className='flex items-center gap-3 text-sm font-medium'><Check className='size-4 text-primary' />{item}</p>)}
-        </div>
-        <Button className='mt-8' asChild><Link to='/feed'>View the demo workspace <ArrowRight /></Link></Button>
-      </div>
-      <Card className='overflow-hidden border-primary/15 bg-card/75 shadow-xl'>
-        <div className='flex items-center justify-between border-b px-5 py-4'><div><p className='text-sm font-semibold'>Founder workspace</p><p className='text-xs text-muted-foreground'>Illustrative CampusCart workflow</p></div><DemoDataBadge /></div>
-        <img src={localAsset('images/feed/greenstack-dashboard.webp')} alt='Illustrative SSC execution workspace preview with startup progress and evidence signals' className='aspect-[16/10] w-full bg-muted/40 object-contain' loading='lazy' />
-      </Card>
-    </div>
-  </section>
-}
-
-function EvidenceSection() {
-  return <section data-landing-section='evidence' className='relative z-10 py-20 sm:py-28'>
-    <div className='app-container grid gap-5 lg:grid-cols-2'>
-      <Card className='overflow-hidden border-primary/15 bg-gradient-to-br from-primary/[0.08] to-card'>
-        <CardHeader><span className='grid size-11 place-items-center rounded-xl bg-primary text-primary-foreground'><BadgeCheck /></span><CardTitle className='mt-4 text-2xl'>Verification with a clear review trail</CardTitle><CardDescription className='text-base leading-7'>Students submit institution context and consent. Authorized operators can approve, reject or request changes with a visible audit record.</CardDescription></CardHeader>
-        <CardContent className='grid grid-cols-2 gap-2'>
-          {['Draft', 'Pending', 'Needs changes', 'Verified'].map((status) => <div key={status} className='rounded-xl border bg-background/55 p-3 text-sm font-semibold'>{status}</div>)}
-        </CardContent>
-      </Card>
-      <Card className='overflow-hidden border-amber-500/20 bg-gradient-to-br from-amber-500/[0.07] to-card'>
-        <CardHeader><span className='grid size-11 place-items-center rounded-xl bg-amber-500/15 text-amber-700 dark:text-amber-300'><FileCheck2 /></span><CardTitle className='mt-4 text-2xl'>Progress that can be inspected</CardTitle><CardDescription className='text-base leading-7'>Interviews, prototypes, metrics and pilot records connect directly to milestones. Review states distinguish a claim from verified evidence.</CardDescription></CardHeader>
-        <CardContent className='space-y-2'>
-          {['Evidence definition', 'Safe demo file metadata', 'Reviewer note and status', 'Outcome-ready audit context'].map((item) => <p key={item} className='flex items-center gap-3 rounded-xl border bg-background/55 p-3 text-sm'><Check className='size-4 text-amber-600' />{item}</p>)}
-        </CardContent>
-      </Card>
-    </div>
-  </section>
-}
-
-function ProgramsSection() {
-  return <section id='programs' data-landing-section='programs' className='relative z-10 scroll-mt-24 py-20 sm:py-28'>
-    <div className='app-container'>
-      <SectionHeading eyebrow='Programs and mentorship' title='Turn support into accountable follow-through.' description='Discovery is connected to real eligibility, applications, sessions, action items, deadlines and evidence—not just profile browsing.' />
-      <div className='mt-12 grid gap-4 lg:grid-cols-3'>
-        {[
-          { icon: Compass, title: 'Discover the right support', text: 'See program fit, mentor expertise, stage, availability and a clear recommendation reason.' },
-          { icon: BookOpenCheck, title: 'Prepare with context', text: 'Bring the startup, challenge, desired outcome and relevant material into every session or application.' },
-          { icon: ClipboardCheck, title: 'Track what happens next', text: 'Link mentor actions and program submissions to milestones, owners, deadlines and demo-day readiness.' },
-        ].map(({ icon: Icon, title, text }) => <Card key={title}><CardHeader><Icon className='size-6 text-primary' /><CardTitle className='mt-3'>{title}</CardTitle><CardDescription className='leading-6'>{text}</CardDescription></CardHeader></Card>)}
-      </div>
-    </div>
-  </section>
-}
-
-function InstitutionalSection() {
-  const outputs = ['Verified participants', 'Active startups', 'Teams formed', 'Milestones completed', 'Evidence coverage', 'Mentor sessions', 'Cohort completion', 'Demo-day ready teams', 'Consent-based introductions']
-  const sectionRef = useRef<HTMLElement>(null)
-  useScrollReveal(sectionRef, { targets: '[data-animate]' })
-  return <section ref={sectionRef} id='institutional' data-landing-section='institutional' className='landing-section landing-section-mint relative z-10 scroll-mt-24 py-24 sm:py-32'>
-    <div className='app-container'>
-      <div className='grid items-center gap-10 lg:grid-cols-[1fr_1fr]'>
-        <div data-animate>
-          <SectionHeading align='left' eyebrow='Institutional value' title='Operate entrepreneurship without the spreadsheet maze.' description='University and program teams receive verification, portfolio, cohort, mentor, outcome, audit and reporting workflows in one role-aware system.' />
-          <div className='mt-8 flex flex-wrap gap-2'>{outputs.map((output) => <Badge key={output} variant='secondary' className='px-3 py-1.5'>{output}</Badge>)}</div>
-          <div className='mt-8 flex flex-wrap gap-3'><PilotInquiryDialog /><Button variant='outline' asChild><Link to='/partnerships'>View institutional capabilities</Link></Button></div>
-        </div>
-        <Card data-animate className='glass-card landing-story-card border-primary/15'>
-          <CardHeader><div className='flex items-center justify-between'><span className='grid size-11 place-items-center rounded-xl bg-primary/10 text-primary'><Workflow /></span><DemoDataBadge label='Illustrative outcomes' /></div><CardTitle className='mt-4'>One outcome chain, visible by role</CardTitle><CardDescription>Operational measures—not likes, follows or content views.</CardDescription></CardHeader>
-          <CardContent className='space-y-2'>
-            {['Participant verified', 'Startup and team created', 'Milestone completed', 'Evidence reviewed', 'Mentor action closed', 'Program outcome reported'].map((item, index) => <div key={item} className='flex items-center gap-3 rounded-xl border bg-card/55 p-3'><span className='grid size-7 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary'>{index + 1}</span><span className='text-sm font-medium'>{item}</span></div>)}
-          </CardContent>
-        </Card>
-      </div>
-      <EcosystemPills />
-    </div>
-  </section>
-}
-
-function InvestorSection() {
-  return <section data-landing-section='investor' className='relative z-10 py-20 sm:py-28'>
-    <div className='app-container rounded-3xl border border-primary/15 bg-gradient-to-br from-card/90 via-card/70 to-primary/[0.06] p-6 shadow-xl sm:p-10 lg:p-14'>
-      <div className='grid items-center gap-10 lg:grid-cols-[.92fr_1.08fr]'>
-        <SectionHeading align='left' eyebrow='Investor handoff' title='Relevant context without pretending to predict returns.' description='Authorized investors can review matched signals, missing evidence, watchlists and consent-based introduction requests. SSC supports decisions; it does not score guaranteed investment outcomes.' />
-        <div className='grid gap-3 sm:grid-cols-2'>
-          {['Thesis relevance', 'Verified evidence coverage', 'Missing decision signals', 'Startup ask and next milestone', 'Watchlist updates', 'Tracked introduction status'].map((item) => <div key={item} className='flex min-h-20 items-center gap-3 rounded-xl border bg-background/55 p-4'><SearchCheck className='size-5 shrink-0 text-primary' /><span className='text-sm font-semibold'>{item}</span></div>)}
-        </div>
-      </div>
-    </div>
-  </section>
-}
-
-function CommunitySection() {
-  return <section data-landing-section='community' className='landing-section relative z-10 py-24 sm:py-32'>
-    <div className='app-container'>
-      <SectionHeading eyebrow='Community as an enabling layer' title='People and updates stay connected to the work.' description='Demo profiles, recommendations, events and feed posts help teams find support. They remain secondary to milestones, evidence, programs and outcomes.' />
     </div>
     <MembersRail />
-    <div className='app-container mt-7 flex justify-center'><Button variant='outline' asChild><Link to='/discover'>Explore demo recommendations <ArrowRight /></Link></Button></div>
+  </section>
+}
+
+function UpdatesSection() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const [newsStart, setNewsStart] = useState(0)
+  const [newsFading, setNewsFading] = useState(false)
+  useRevealCards(sectionRef, '> .app-container [data-reveal]', { stagger: 0.12 })
+
+  useEffect(() => {
+    let fadeTimer = 0
+    let swapTimer = 0
+    const rotate = () => {
+      fadeTimer = window.setTimeout(() => {
+        setNewsFading(true)
+        swapTimer = window.setTimeout(() => {
+          setNewsStart((current) => (current + 1) % newsItems.length)
+          setNewsFading(false)
+          rotate()
+        }, 400)
+      }, 4_600)
+    }
+    rotate()
+    return () => { window.clearTimeout(fadeTimer); window.clearTimeout(swapTimer) }
+  }, [])
+
+  const visibleNews = [newsItems[newsStart], newsItems[(newsStart + 1) % newsItems.length]]
+
+  return <section ref={sectionRef} id='updates' data-landing-section='updates' className='relative z-10 scroll-mt-20 py-24 sm:py-32'>
+    <div className='app-container'>
+      <div className='updates-heading-float'>
+        <SectionHeading
+          eyebrow='What is happening'
+          title='Ideas, opportunities and moments that move the community.'
+          description='Follow the progress of student teams and find the next room worth being in.'
+        />
+      </div>
+      <div className='mt-14 grid items-stretch gap-10 lg:grid-cols-2'>
+        <div className='flex h-full flex-col'>
+          <div className='updates-column-heading mb-6 flex items-center gap-2'>
+            <span className='grid size-8 place-items-center rounded-lg bg-primary/10 text-primary'><Newspaper size={16} /></span>
+            <h3 className='text-xl font-semibold'>Latest news</h3>
+          </div>
+          <div className={cn('news-rotation-grid grid flex-1 auto-rows-fr gap-4', newsFading && 'is-fading')}>
+            {visibleNews.map((item) => (
+              <Card key={`${newsStart}-${item.title}`} data-reveal className='news-rotate-card group relative h-full overflow-hidden transition-all duration-300 hover:shadow-md'>
+                <div className='absolute left-0 top-0 h-full w-0.5 bg-primary/20 transition-all duration-300 group-hover:bg-primary' />
+                <CardHeader>
+                  <div className='flex items-center gap-2 text-xs text-muted-foreground'>
+                    <Badge variant='outline' className='text-[10px]'>{item.category}</Badge>
+                    <span>{item.date}</span>
+                  </div>
+                  <CardTitle className='pt-2 text-xl'>{item.title}</CardTitle>
+                  <CardDescription className='leading-6'>{item.summary}</CardDescription>
+                </CardHeader>
+                <CardFooter>
+                  <Button variant='link' className='gap-1 px-0 text-[13px]' asChild><Link to='/news'>Read update <ChevronRight size={14} /></Link></Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        </div>
+        <div className='flex h-full flex-col'>
+          <div className='updates-column-heading mb-6 flex items-center gap-2'>
+            <span className='grid size-8 place-items-center rounded-lg bg-primary/10 text-primary'><CalendarDays size={16} /></span>
+            <h3 className='text-xl font-semibold'>Upcoming events</h3>
+          </div>
+          <div className='grid flex-1 auto-rows-fr gap-4'>
+            {eventItems.map((event, index) => (
+              <Card key={event.title} data-reveal className='group relative flex h-full flex-row items-stretch gap-0 overflow-hidden p-0 transition-all duration-300 hover:shadow-md' style={{ transitionDelay: `${index * 80}ms` }}>
+                <div className='grid w-28 shrink-0 place-items-center rounded-l-xl bg-gradient-to-b from-primary/15 to-primary/5 p-4 text-center text-primary'>
+                  <div><b className='block text-3xl font-extrabold tracking-tight'>{event.day}</b><span className='text-[10px] font-bold uppercase tracking-[.2em]'>{event.month}</span></div>
+                </div>
+                <CardContent className='flex min-w-0 flex-1 flex-col justify-center p-5'>
+                  <div className='mb-2 flex flex-wrap gap-3 text-xs text-muted-foreground'>
+                    <span className='flex items-center gap-1'><CalendarDays size={12} />{event.time}</span>
+                    <span className='flex items-center gap-1'><MapPin size={12} />{event.location}</span>
+                  </div>
+                  <h4 className='font-semibold'>{event.title}</h4>
+                  <p className='mt-1 text-sm text-muted-foreground'>{event.format}</p>
+                </CardContent>
+                <Button variant='ghost' size='icon' className='my-auto mr-4 shrink-0' aria-label={`View ${event.title}`} asChild><Link to='/events'><ChevronRight /></Link></Button>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+}
+
+function UniversitySection() {
+  const sectionRef = useRef<HTMLElement>(null)
+  useScrollReveal(sectionRef, { targets: '> .app-container > [data-animate]' })
+  useMarquee(sectionRef, '[data-marquee]', { speed: 25 })
+
+  return <section ref={sectionRef} data-landing-section='universities' className='relative z-10 py-24 sm:py-28'>
+    <div className='app-container text-center'>
+      <p data-animate className='text-sm font-semibold uppercase tracking-[.2em] text-muted-foreground'>Built for university entrepreneurship environments</p>
+      <div data-animate className='relative mt-10 overflow-hidden'>
+        <div data-marquee className='flex gap-4'>
+          {[...universityWordmarks, ...universityWordmarks].map((name, index) => (
+            <span key={`${name}-${index}`} aria-hidden={index >= universityWordmarks.length || undefined} className='shrink-0 rounded-xl border bg-card px-6 py-3.5 text-sm font-semibold text-muted-foreground shadow-xs transition-colors hover:border-primary/20 hover:text-foreground'>
+              {name}
+            </span>
+          ))}
+        </div>
+      </div>
+      <p data-animate className='mx-auto mt-8 max-w-2xl text-xs text-muted-foreground'>Demo ecosystem representation. Organization labels do not imply customers, formal partnerships, or endorsements.</p>
+    </div>
   </section>
 }
 
@@ -424,29 +447,14 @@ function MemberProfile({ member }: { member: FeaturedMember }) {
   </div>
 }
 
-function EcosystemPills() {
-  const marqueeRef = useRef<HTMLDivElement>(null)
-  useMarquee(marqueeRef, '[data-marquee-track]', { speed: 24 })
-  return <div ref={marqueeRef} className='mt-14 overflow-hidden rounded-2xl border border-primary/10 bg-background/45 py-5'>
-    <div className='mb-4 flex flex-wrap items-center justify-between gap-2 px-5'>
-      <p className='text-xs font-bold uppercase tracking-[.14em] text-primary'>Designed for ecosystem settings</p>
-      <DemoDataBadge label='Illustrative organization types' />
-    </div>
-    <div data-marquee-track className='flex w-max items-center gap-3 px-3'>
-      {[...universityWordmarks, ...universityWordmarks].map((label, index) => <span key={`${label}-${index}`} aria-hidden={index >= universityWordmarks.length || undefined} className='inline-flex min-h-11 items-center rounded-full border bg-card px-5 text-sm font-semibold shadow-sm'>{label}</span>)}
-    </div>
-    <p className='px-5 pt-4 text-xs leading-5 text-muted-foreground'>Illustrative organization types only. Names and labels do not imply customers, formal partnerships, or endorsements.</p>
-  </div>
-}
-
 function BusinessModelSection() {
   const sectionRef = useRef<HTMLElement>(null)
   useRevealCards(sectionRef, '[data-reveal]', { stagger: 0.06 })
   return <section ref={sectionRef} id='business-model' data-landing-section='business-model' className='landing-section landing-section-mint relative z-10 scroll-mt-24 py-24 sm:py-32'>
     <div className='app-container'>
       <SectionHeading eyebrow='Business and sustainability model' title='A model that keeps SSC free for students.' description='Students and founders use SSC free. Universities, programs and ecosystem operators fund the infrastructure through institutional licenses, program operations and partnership packages.' />
-      <div className='mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-5'>
-        {businessPackages.filter((plan) => plan.active && plan.public).map((plan) => <Card data-reveal key={plan.id} className={cn('landing-story-card', plan.id === 'students-founders' ? 'border-primary/30 bg-primary/[0.055] xl:col-span-2' : plan.id === 'institutional-pilot' ? 'border-amber-500/30 bg-amber-500/[0.035] xl:col-span-2' : '')}>
+      <div className='mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-6'>
+        {businessPackages.filter((plan) => plan.active && plan.public).map((plan) => <Card data-reveal key={plan.id} className={cn('landing-story-card xl:col-span-2', plan.id === 'students-founders' ? 'border-primary/30 bg-primary/[0.055] xl:col-span-3' : plan.id === 'institutional-pilot' ? 'border-amber-500/30 bg-amber-500/[0.035] xl:col-span-3' : '')}>
           <CardHeader>
             <div className='flex items-start justify-between gap-2'><CardTitle className='text-lg'>{plan.publicLabel}</CardTitle>{plan.id === 'students-founders' && <Badge className='bg-primary'>Core access</Badge>}</div>
             <p className='text-2xl font-extrabold tracking-tight text-primary'>{plan.publicPrice}</p>
@@ -522,11 +530,20 @@ function DemoDisclaimer() {
 }
 
 function LandingFooter() {
-  return <footer data-landing-section='footer' className='relative z-10 pb-10'>
-    <div className='app-container flex flex-col gap-7 border-t pt-10 text-sm text-muted-foreground sm:flex-row sm:items-center'>
-      <div className='flex items-center gap-3'><img className='h-10 w-24 object-left' src={sscLogo} alt='SSC' /><span>Execution for university startup ecosystems.</span></div>
-      <nav aria-label='Footer' className='flex flex-wrap gap-x-5 gap-y-3 sm:ml-auto'><Link to='/privacy' className='hover:text-foreground'>Privacy</Link><Link to='/terms' className='hover:text-foreground'>Terms</Link><Link to='/help' className='hover:text-foreground'>Help</Link><a href='#business-model' className='hover:text-foreground'>Business model</a></nav>
-      <p>© 2026 SSC</p>
+  return <footer data-landing-section='footer' className='relative z-10'>
+    <div className='app-container flex flex-col items-center gap-6 py-12 text-center text-sm text-muted-foreground sm:flex-row sm:flex-wrap sm:text-left lg:flex-nowrap'>
+      <Link to='/' aria-label='SSC home' className='shrink-0 rounded-xl transition-transform duration-300 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'>
+        <img className='ssc-brand-logo h-16 sm:h-[72px]' src={sscLogo} alt='SSC — Student Startup Community' />
+      </Link>
+      <p className='sm:ml-auto'>A demo platform for the next generation of student builders.</p>
+      <nav aria-label='Footer' className='flex flex-wrap justify-center gap-x-4 gap-y-2 sm:justify-end'>
+        <a href='#ecosystem' className='transition-colors hover:text-foreground'>Ecosystem</a>
+        <a href='#members' className='transition-colors hover:text-foreground'>Members</a>
+        <a href='#updates' className='transition-colors hover:text-foreground'>Updates</a>
+        <a href='#business-model' className='transition-colors hover:text-foreground'>Business model</a>
+        <Link to='/privacy' className='transition-colors hover:text-foreground'>Privacy</Link>
+        <Link to='/terms' className='transition-colors hover:text-foreground'>Terms</Link>
+      </nav>
     </div>
   </footer>
 }
