@@ -45,12 +45,12 @@ describe('restored SSC landing page', () => {
     expect(ecosystemMetrics.every((metric) => !/^\d/.test(metric.value))).toBe(true)
   })
 
-  it('uses only local portraits and an explicit initials fallback', () => {
-    const urls = featuredMembers.map((member) => member.avatarUrl).filter(Boolean)
+  it('uses a unique local portrait for every featured member', () => {
+    const urls = featuredMembers.map((member) => member.avatarUrl)
 
+    expect(urls.every(Boolean)).toBe(true)
     expect(urls.every((url) => !/^https?:/i.test(url))).toBe(true)
     expect(new Set(urls).size).toBe(urls.length)
-    expect(featuredMembers.some((member) => !member.avatarUrl)).toBe(true)
   })
 
   it('keeps the responsive mobile menu and reduced-motion styling', () => {
@@ -82,10 +82,13 @@ describe('restored SSC landing page', () => {
 
   it('keeps member-loop clones hidden from assistive technology and keyboard focus', () => {
     const source = readFileSync(new URL('./pages/landing/index.tsx', import.meta.url), 'utf8')
+    const memberAvatars = featuredMembers.map((member) => member.avatarUrl)
 
     expect(source).toContain('aria-hidden={clone || undefined}')
     expect(source).toContain('tabIndex={clone ? -1 : 0}')
     expect(new Set(featuredMembers.map((member) => member.name)).size).toBe(featuredMembers.length)
+    expect(memberAvatars.every(Boolean)).toBe(true)
+    expect(new Set(memberAvatars).size).toBe(memberAvatars.length)
   })
 
   it('restores the open People of SSC rail from the reference without external portraits', () => {

@@ -59,7 +59,7 @@ export const featuredMembers: FeaturedMember[] = [
   { name: 'Tarlan Yusifzade', avatarUrl: 'images/avatars/tarlan-yusifzade.webp', role: 'Product Mentor', university: 'Sample mentor pool', skills: ['Validation', 'GTM'], focus: 'Product strategy', stage: 'Demo profile' },
   { name: 'Nargiz Rahim', avatarUrl: 'images/avatars/nargiz-rahim.webp', role: 'Health Founder', university: 'Sample ecosystem', skills: ['Operations', 'Health'], focus: 'HealthTech', stage: 'Demo profile' },
   { name: 'Elvin Safar', avatarUrl: 'images/avatars/elvin-safar.webp', role: 'Education Founder', university: 'Sample ecosystem', skills: ['Learning', 'Growth'], focus: 'EdTech', stage: 'Demo profile' },
-  { name: 'Nihat Abbasov', avatarUrl: '', role: 'Program Reviewer', university: 'Sample operator', skills: ['Evidence', 'Cohorts'], focus: 'Program operations', stage: 'Initials fallback' },
+  { name: 'Nihat Abbasov', avatarUrl: 'images/avatars/nihat-abbasov.webp', role: 'Program Reviewer', university: 'Sample operator', skills: ['Evidence', 'Cohorts'], focus: 'Program operations', stage: 'Demo profile' },
 ]
 
 export const newsItems: NewsItem[] = [
