@@ -13,6 +13,7 @@ import { ThemeToggle, UserAvatar } from '@/app/app-shared'
 import { useAction, useSnapshot } from '@/app/app-data'
 import { canAccess, type AccessArea } from '@/app/access-policy'
 import { Copilot } from '@/features/assistant/copilot'
+import sscLogo from '../../components/ssc-logo-optimized.webp'
 
 gsap.registerPlugin(useGSAP)
 
@@ -64,7 +65,14 @@ export function AppShell() {
   return <div className='relative isolate min-h-svh'>
     <header className='glass-header sticky top-0 z-40 border-b'>
       <div className='app-container flex h-16 items-center gap-3'>
-        <nav className='nav-bar hidden xl:flex'>{visibleNavItems.map(({ to, label, icon: Icon }) => <Link key={to} to={to} className={cn('nav-link', location === to && 'nav-link-active')}><Icon />{label}</Link>)}</nav>
+        <Link
+          to='/feed'
+          aria-label='SSC home'
+          className='flex h-11 w-8 shrink-0 items-center overflow-hidden rounded-lg outline-none transition-opacity hover:opacity-85 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background xl:w-[126px]'
+        >
+          <img src={sscLogo} alt='SSC — Student Startup Community' className='h-10 w-[116px] max-w-none shrink-0 object-contain object-left dark:brightness-0 dark:invert' />
+        </Link>
+        <nav className='nav-bar !hidden xl:!flex'>{visibleNavItems.map(({ to, label, icon: Icon }) => <Link key={to} to={to} className={cn('nav-link', location === to && 'nav-link-active')}><Icon />{label}</Link>)}</nav>
         <form className='ml-auto hidden min-w-44 max-w-xs flex-1 items-center gap-2 rounded-lg border bg-muted/50 px-3 2xl:flex' onSubmit={(event) => { event.preventDefault(); if (searchQuery.trim()) navigate({ to: '/search', search: { q: searchQuery.trim() } }) }}><Search className='size-4 text-muted-foreground' /><input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} className='h-9 min-w-0 flex-1 bg-transparent text-sm outline-none' placeholder='Search workspace' aria-label='Search workspace' /></form>
         <div className='ml-auto flex items-center gap-1 md:ml-0'>
           <Badge variant='outline' className='hidden text-[10px] uppercase sm:flex'>{runtimeMode}</Badge>

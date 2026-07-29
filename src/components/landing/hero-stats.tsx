@@ -1,69 +1,103 @@
-import { cn } from '@/lib/utils'
-import { IconBuilders, IconUniversities, IconMentors, IconPartners } from './hero-icons'
+import buildersIcon from '../../../components/orbit-builders.webp'
+import universitiesIcon from '../../../components/orbit-universities.webp'
+import mentorsIcon from '../../../components/orbit-mentors.webp'
+import partnersIcon from '../../../components/orbit-partners.webp'
+import './hero-stats.css'
 
-type Stat = { icon: React.ReactNode; value: string; label: string; pos: string }
-
-const STATS: Stat[] = [
-  { icon: <IconBuilders />, value: '1,200+', label: 'builders', pos: 'lg:col-start-1 lg:row-start-1' },
-  { icon: <IconUniversities />, value: '18', label: 'universities', pos: 'lg:col-start-3 lg:row-start-1' },
-  { icon: <IconMentors />, value: '45+', label: 'mentors', pos: 'lg:col-start-1 lg:row-start-3' },
-  { icon: <IconPartners />, value: '30+', label: 'partners', pos: 'lg:col-start-3 lg:row-start-3' },
-]
-
-function StatCard({ icon, value, label, pos }: Stat) {
-  return (
-    <div
-      className={cn(
-        'group relative z-10 flex min-w-[160px] items-center gap-3 whitespace-nowrap rounded-2xl',
-        'border border-primary/15 bg-background/70 px-4 py-3 backdrop-blur-md',
-        'shadow-[0_12px_34px_-16px_rgba(0,0,0,0.55)]',
-        'transition-all duration-300 hover:border-primary/35 hover:-translate-y-0.5',
-        'hover:shadow-[0_18px_40px_-18px_color-mix(in_oklch,var(--primary)_55%,transparent)]',
-        'md:col-span-2 lg:col-span-1',
-        pos,
-      )}
-    >
-      <span className='relative grid size-11 shrink-0 place-items-center'>{icon}</span>
-      <span className='flex flex-col leading-tight'>
-        <span className='text-lg font-extrabold tracking-tight text-foreground'>{value}</span>
-        <span className='text-xs font-medium text-muted-foreground'>{label}</span>
-      </span>
-    </div>
-  )
+type Stat = {
+  image: string
+  value: string
+  label: string
+  tone: 'emerald' | 'gold' | 'mint' | 'amber'
 }
 
-/**
- * Hero statistics cluster.
- * - lg+: 3×3 diamond — 4 cards in corners, SSC badge in the center safe cell.
- * - md: stacked — badge spans the top, cards flow 2-per-row below.
- *
- * Stable grid gaps, controlled z-index, nowrap text, min-widths — no overlap.
- */
+const STATS: Stat[] = [
+  { image: buildersIcon, value: '1,200+', label: 'builders', tone: 'emerald' },
+  { image: universitiesIcon, value: '18', label: 'universities', tone: 'gold' },
+  { image: mentorsIcon, value: '45+', label: 'mentors', tone: 'mint' },
+  { image: partnersIcon, value: '30+', label: 'partners', tone: 'amber' },
+]
+
 export function HeroStats() {
   return (
-    <div
-      className={cn(
-        'grid w-full max-w-[560px] grid-cols-1 content-center items-center gap-4',
-        'md:grid-cols-2',
-        'lg:min-h-[440px] lg:grid-cols-3 lg:grid-rows-[1fr_auto_1fr] lg:gap-7',
-      )}
-    >
-      {/* Center badge — first in DOM so it sits on top in the md stack; placed
-          in the center cell for the lg diamond via explicit column/row. */}
-      <div className='relative z-20 flex justify-center md:col-span-2 lg:col-span-1 lg:col-start-2 lg:row-start-2'>
-        <div className='flex items-center gap-3 whitespace-nowrap rounded-2xl border border-primary/25 bg-background/80 px-5 py-3 text-center shadow-lg backdrop-blur-xl'>
-          <span className='relative flex size-2.5'>
-            <span className='absolute inline-flex size-2.5 animate-ping rounded-full bg-primary opacity-70' />
-            <span className='relative inline-flex size-2.5 rounded-full bg-primary' />
-          </span>
-          <span className='flex flex-col leading-tight'>
-            <span className='text-sm font-bold tracking-tight text-foreground'>Student Startup Community</span>
-            <span className='text-[11px] text-muted-foreground'>Connected · Collaborative · Building</span>
-          </span>
-        </div>
+    <section className='hero-orbit' aria-label='Student Startup Community network statistics'>
+      <div className='hero-network-stage'>
+        <svg className='hero-network' viewBox='0 0 560 460' aria-hidden='true'>
+          <defs>
+            <linearGradient id='hero-network-gradient' x1='84' y1='90' x2='476' y2='370' gradientUnits='userSpaceOnUse'>
+              <stop stopColor='#2dd4bf' />
+              <stop offset='.5' stopColor='#34d399' />
+              <stop offset='1' stopColor='#fbbf24' />
+            </linearGradient>
+            <radialGradient id='hero-network-node'>
+              <stop stopColor='#fff' />
+              <stop offset='.35' stopColor='#6ee7b7' />
+              <stop offset='1' stopColor='#10b981' stopOpacity='0' />
+            </radialGradient>
+            <filter id='hero-network-glow' x='-30%' y='-30%' width='160%' height='160%'>
+              <feGaussianBlur stdDeviation='5' result='blur' />
+              <feMerge>
+                <feMergeNode in='blur' />
+                <feMergeNode in='SourceGraphic' />
+              </feMerge>
+            </filter>
+            <path id='hero-network-route' pathLength='4' d='M280 90 L476 230 L280 370 L84 230 Z' />
+          </defs>
+
+          <g className='hero-network-glow' fill='none' stroke='url(#hero-network-gradient)'>
+            <use href='#hero-network-route' />
+            <path d='M280 90 L280 178 M476 230 L370 230 M280 370 L280 282 M84 230 L190 230' />
+            <path d='M280 178 L370 230 L280 282 L190 230 Z' />
+            <path d='M280 90 Q385 124 476 230 M476 230 Q385 336 280 370 M280 370 Q175 336 84 230 M84 230 Q175 124 280 90' />
+          </g>
+
+          <g className='hero-network-core' fill='none' stroke='url(#hero-network-gradient)'>
+            <use href='#hero-network-route' />
+            <path d='M280 90 L280 178 M476 230 L370 230 M280 370 L280 282 M84 230 L190 230' />
+            <path d='M280 178 L370 230 L280 282 L190 230 Z' />
+            <path className='hero-network-dash' d='M280 90 Q385 124 476 230 M476 230 Q385 336 280 370 M280 370 Q175 336 84 230 M84 230 Q175 124 280 90' />
+          </g>
+
+          {[[280, 90], [476, 230], [280, 370], [84, 230]].map(([cx, cy]) => (
+            <g className='hero-network-node' key={`${cx}-${cy}`} transform={`translate(${cx} ${cy})`}>
+              <circle r='21' fill='url(#hero-network-node)' />
+              <circle r='4' fill='#a7f3d0' />
+            </g>
+          ))}
+
+          {[0, -3, -6, -9].map((begin) => (
+            <circle className='hero-network-pulse' r='4' fill='#ecfdf5' filter='url(#hero-network-glow)' key={begin}>
+              <animateMotion dur='12s' begin={`${begin}s`} repeatCount='indefinite'>
+                <mpath href='#hero-network-route' />
+              </animateMotion>
+            </circle>
+          ))}
+        </svg>
+
+        {STATS.map((stat, index) => (
+          <article
+            className={`hero-orbit-item hero-orbit-item-${stat.tone}`}
+            style={{ animationDelay: `${index * -6}s` }}
+            key={stat.label}
+            tabIndex={0}
+            aria-label={`${stat.value} ${stat.label}`}
+          >
+            <div className='hero-orbit-upright'>
+              <div className='hero-orbit-card'>
+                <span className='hero-orbit-icon' aria-hidden='true'>
+                  <img src={stat.image} alt='' />
+                </span>
+                <span className='hero-orbit-copy'>
+                  <strong>{stat.value}</strong>
+                  <small>{stat.label}</small>
+                </span>
+              </div>
+            </div>
+          </article>
+        ))}
       </div>
 
-      {STATS.map((s) => <StatCard key={s.label} {...s} />)}
-    </div>
+      <p className='sr-only'>Icons move between connected network points. Hover or focus an icon to pause and highlight it.</p>
+    </section>
   )
 }

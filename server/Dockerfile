@@ -1,8 +1,9 @@
 FROM oven/bun:1-slim
 WORKDIR /app
 ENV NODE_ENV=production
-COPY node_modules ./node_modules
-COPY package.json package-lock.json tsconfig.json drizzle.config.ts ./
+COPY package.json package-lock.json ./
+RUN bun install --production
+COPY tsconfig.json drizzle.config.ts ./
 COPY drizzle ./drizzle
 COPY src ./src
 EXPOSE 3443

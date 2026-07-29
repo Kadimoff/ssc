@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { Moon, Sun } from 'lucide-react'
 import type { User } from '@/data/types'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { avatarForUser } from '@/data/feed-dashboard-data'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,7 +13,13 @@ import { readTheme, THEME_CHANGE_EVENT, toggleTheme, type Theme } from '@/lib/th
 export function UserAvatar({ user, className }: { user?: User | null; className?: string }) {
   const name = user?.name || 'Student Startup Community'
   const initials = name.split(/\s+/).map((part) => part[0]).join('').slice(0, 3).toUpperCase()
-  return <Avatar className={cn('size-10 border border-primary/15', className)}><AvatarFallback className='bg-primary/10 font-semibold text-primary'>{initials}</AvatarFallback></Avatar>
+  const avatar = avatarForUser(user)
+  return (
+    <Avatar className={cn('size-10 border border-primary/15 bg-muted', className)}>
+      {avatar && <AvatarImage src={avatar} alt={`${name} profile photo`} className='object-cover' />}
+      <AvatarFallback className='bg-primary/10 font-semibold text-primary'>{initials}</AvatarFallback>
+    </Avatar>
+  )
 }
 
 export function ThemeToggle({ label = false, className }: { label?: boolean; className?: string }) {

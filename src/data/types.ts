@@ -16,6 +16,7 @@ export interface User {
   id: EntityId
   username: string
   name: string
+  avatar?: string
   email: string
   title: string
   company: string
@@ -31,7 +32,7 @@ export interface User {
   verificationStatus: VerificationStatus
 }
 
-export type PostKind = 'update' | 'milestone' | 'raise' | 'hiring' | 'launch' | 'question'
+export type PostKind = 'update' | 'milestone' | 'raise' | 'hiring' | 'launch' | 'question' | 'event' | 'partnership'
 
 export interface Comment {
   id: EntityId

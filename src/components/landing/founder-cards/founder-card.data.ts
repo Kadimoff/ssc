@@ -13,8 +13,13 @@ export const founderCards: FounderProfile[] = [
     building: 'Climate-tech app that tracks and reduces campus energy use across university buildings.',
     stage: 'mvp',
     skills: ['React', 'Sustainability', 'Product'],
-    lookingFor: 'a technical co-founder',
-    traction: 'Piloting at 2 faculties',
+    metrics: [
+      { value: 'Pilot', label: 'Live status', icon: 'pilot' },
+      { value: '2', label: 'Faculties', icon: 'campus' },
+      { value: '12%', label: 'Energy saved', icon: 'impact' },
+    ],
+    lookingFor: { eyebrow: 'Looking for a', title: 'Technical Co-founder', icon: 'code' },
+    tractionBadge: 'Pilot at 2 faculties',
     portrait: {
       src: 'images/founders/aysel-mammadova.webp',
       alt: 'Illustrative editorial portrait of Aysel Məmmədova',
@@ -37,8 +42,13 @@ export const founderCards: FounderProfile[] = [
     building: 'AI study companion that turns lecture recordings into adaptive practice questions.',
     stage: 'validation',
     skills: ['Python', 'ML', 'Pedagogy'],
-    lookingFor: 'a product designer',
-    traction: '340 student sign-ups',
+    metrics: [
+      { value: '340+', label: 'Sign-ups', icon: 'users' },
+      { value: '68%', label: 'Weekly active', icon: 'activity' },
+      { value: '4.6/5', label: 'Learner rating', icon: 'rating' },
+    ],
+    lookingFor: { eyebrow: 'Looking for a', title: 'Product Designer', icon: 'design' },
+    tractionBadge: '340+ student sign-ups',
     portrait: {
       src: 'images/founders/reshad-quliyev.webp',
       alt: 'Illustrative editorial portrait of Rəşad Quliyev',
@@ -61,8 +71,13 @@ export const founderCards: FounderProfile[] = [
     building: 'Marketplace connecting students with affordable verified medical professionals.',
     stage: 'revenue',
     skills: ['Operations', 'Health', 'Strategy'],
-    lookingFor: 'seed investment',
-    traction: '$2.1k MRR · 18 providers',
+    metrics: [
+      { value: '$2.1K', label: 'Monthly revenue', icon: 'revenue' },
+      { value: '18', label: 'Providers', icon: 'providers' },
+      { value: '31%', label: 'Repeat bookings', icon: 'growth' },
+    ],
+    lookingFor: { eyebrow: 'Looking for', title: 'Seed Investment', icon: 'funding' },
+    tractionBadge: '$2.1K MRR',
     portrait: {
       src: 'images/founders/leyla-aliyeva.webp',
       alt: 'Illustrative editorial portrait of Leyla Əliyeva',

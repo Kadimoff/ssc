@@ -14,6 +14,7 @@ import { HeroStats } from '@/components/landing/hero-stats'
 import { ProfileInfo, ThemeToggle } from '@/app/app-shared'
 import { useSnapshot } from '@/app/app-data'
 import { Copilot } from '@/features/assistant/copilot'
+import sscLogo from '../../../components/ssc-logo-optimized.webp'
 
 export function LandingPage() {
   const heroRef = useRef<HTMLDivElement>(null)
@@ -25,6 +26,13 @@ export function LandingPage() {
     {/* ---- NAV ---- */}
     <header className='glass-header fixed inset-x-0 top-0 z-50'>
       <div className='app-container flex h-[72px] items-center gap-2'>
+        <Link
+          to='/'
+          aria-label='SSC home'
+          className='w-10 shrink-0 overflow-hidden rounded-lg transition-transform duration-300 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-auto sm:overflow-visible'
+        >
+          <img className='ssc-brand-logo h-12 sm:h-[54px]' src={sscLogo} alt='SSC — Student Startup Community' />
+        </Link>
         <nav aria-label='Landing page sections' className='ml-auto hidden items-center gap-1 lg:flex'>
           <a className='nav-link' href='#ecosystem'>Ecosystem</a>
           <a className='nav-link' href='#members'>Members</a>
@@ -423,9 +431,16 @@ function LandingCallToAction() {
 /* ---- Footer ---- */
 function LandingFooter() {
   return <footer data-landing-section='footer' className='relative z-10'>
-    <div className='app-container flex flex-col gap-6 py-12 text-sm text-muted-foreground sm:flex-row sm:items-center'>
+    <div className='app-container flex flex-col items-center gap-6 py-12 text-center text-sm text-muted-foreground sm:flex-row sm:flex-wrap sm:text-left lg:flex-nowrap'>
+      <Link
+        to='/'
+        aria-label='SSC home'
+        className='shrink-0 rounded-xl transition-transform duration-300 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+      >
+        <img className='ssc-brand-logo h-16 sm:h-[72px]' src={sscLogo} alt='SSC — Student Startup Community' />
+      </Link>
       <p className='sm:ml-auto'>A demo platform for the next generation of student builders.</p>
-      <div className='flex gap-4'>
+      <div className='flex flex-wrap justify-center gap-x-4 gap-y-2 sm:justify-end'>
         <a href='#ecosystem' className='transition-colors hover:text-foreground'>Ecosystem</a>
         <a href='#members' className='transition-colors hover:text-foreground'>Members</a>
         <a href='#updates' className='transition-colors hover:text-foreground'>Updates</a>
