@@ -1,81 +1,87 @@
 import { useState } from 'react'
-import { BadgeCheck, CalendarDays, Handshake, Plus, Rocket, Target, Users } from 'lucide-react'
-import { apiClient } from '@/data/client'
-import type { ContributionType, ProgramType } from '@/data/types'
-import { useAction, useSnapshot } from '@/app/app-data'
+import { Link } from '@tanstack/react-router'
+import { CalendarDays, CheckCircle2, ClipboardCheck, FileCheck2, Handshake, Plus, Rocket, Search, Users } from 'lucide-react'
+import { toast } from 'sonner'
+import { useSnapshot } from '@/app/app-data'
 import { AuthRequired, PageContainer, PageHeading, PageLoading } from '@/app/app-shared'
-import { canAccess } from '@/app/access-policy'
+import { DemoDataBadge, EmptyState, ResponsiveDialog, StatusBadge } from '@/components/execution-primitives'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { useExecutionStore } from '@/features/execution/store'
+import type { ProgramApplication } from '@/features/execution/types'
+import { cn } from '@/lib/utils'
 
+type ProgramView = 'discover' | 'applications' | 'cohort' | 'operator'
 const readable = (value: string) => value.replace(/_/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
 
 export function ProgramsPage() {
   const { data } = useSnapshot()
+  const { state } = useExecutionStore()
   const [query, setQuery] = useState('')
+  const operator = ['program_admin', 'partner', 'platform_admin'].includes(state.selectedPersona)
+  const member = state.programApplications.some((item) => item.status === 'approved' || item.status === 'complete')
+  const [view, setView] = useState<ProgramView>(operator ? 'operator' : 'discover')
   if (!data) return <PageLoading />
-  if (!data.currentUser) return <AuthRequired title='Sign in to view joint programs' />
+  if (!data.currentUser) return <AuthRequired title='Sign in to open programs' />
   const programs = data.programs.filter((program) => `${program.name} ${program.description}`.toLowerCase().includes(query.toLowerCase()))
+  const views: Array<{ id: ProgramView; label: string }> = [
+    { id: 'discover', label: 'Discover' },
+    { id: 'applications', label: `My applications (${state.programApplications.filter((item) => item.applicantId === data.currentUser?.id || state.selectedPersona === 'founder').length})` },
+    ...(member ? [{ id: 'cohort' as const, label: 'Cohort progress' }] : []),
+    ...(operator ? [{ id: 'operator' as const, label: `Operator review (${state.programApplications.filter((item) => item.status === 'pending').length})` }] : []),
+  ]
+
   return <PageContainer>
-    <div className='flex flex-col gap-5 md:flex-row md:items-end md:justify-between'>
-      <PageHeading eyebrow='Joint programs' title='One workspace for every partner-led cohort.' description='Define roles before launch, track delivery against commitments, and connect every reported outcome to evidence.' />
-      {canAccess(data.currentUser, 'partnerships') && <div className='flex gap-2'><ContributionDialog /><CreateProgramDialog /></div>}
-    </div>
-    <div className='mb-5 rounded-xl border border-amber-500/25 bg-amber-500/5 px-4 py-3 text-sm text-amber-800 dark:text-amber-200'>Program names, participants, commitments, and results shown here are illustrative demo records.</div>
-    <div className='mb-6 grid gap-4 sm:grid-cols-3'>
-      <Signal icon={Rocket} label='Programs' value={data.programs.length} />
-      <Signal icon={Users} label='Cohorts' value={data.cohorts.length} />
-      <Signal icon={BadgeCheck} label='Verified outcomes' value={data.outcomes.filter((item) => item.verificationStatus === 'verified').length} />
-    </div>
-    <Input className='mb-5 max-w-md' value={query} onChange={(event) => setQuery(event.target.value)} placeholder='Search joint programs...' />
-    <div className='space-y-5'>{programs.map((program) => {
-      const host = data.organizations.find((organization) => organization.id === program.hostOrganizationId)
-      const partnerRows = data.programPartners.filter((partner) => partner.programId === program.id)
-      const cohorts = data.cohorts.filter((cohort) => cohort.programId === program.id)
-      const contributions = data.contributions.filter((item) => item.programId === program.id)
-      return <Card key={program.id}>
-        <CardHeader><div className='flex flex-wrap items-center justify-between gap-2'><div className='flex gap-2'><Badge><Rocket className='size-3' />{readable(program.type)}</Badge><Badge variant='outline'>{readable(program.status)}</Badge></div><span className='text-xs text-muted-foreground'>{program.startsAt} → {program.endsAt}</span></div><CardTitle className='pt-2'>{program.name}</CardTitle><CardDescription>{program.description}</CardDescription></CardHeader>
-        <CardContent className='grid gap-6 lg:grid-cols-3'>
-          <section><h3 className='mb-3 flex items-center gap-2 text-sm font-semibold'><Handshake className='size-4 text-primary' />Partner roles</h3><div className='space-y-2'>{partnerRows.map((partner) => {
-            const organization = data.organizations.find((item) => item.id === partner.organizationId)
-            return <div key={partner.id} className='rounded-lg border p-3'><b className='text-sm'>{organization?.displayName}</b><p className='text-xs text-primary'>{readable(partner.role)}</p><p className='mt-1 text-xs text-muted-foreground'>{partner.commitmentSummary}</p></div>
-          })}<p className='text-xs text-muted-foreground'>Host: {host?.displayName}</p></div></section>
-          <section><h3 className='mb-3 flex items-center gap-2 text-sm font-semibold'><CalendarDays className='size-4 text-primary' />Cohorts & milestones</h3>{cohorts.map((cohort) => <div key={cohort.id} className='mb-2 rounded-lg border p-3'><div className='flex justify-between gap-2'><b className='text-sm'>{cohort.name}</b><Badge variant='secondary'>{readable(cohort.status)}</Badge></div><p className='mt-1 text-xs text-muted-foreground'>Capacity {cohort.capacity}</p></div>)}<div className='mt-3 flex flex-wrap gap-1'>{program.milestoneLabels.map((item) => <Badge key={item} variant='outline'>{item}</Badge>)}</div></section>
-          <section><h3 className='mb-3 flex items-center gap-2 text-sm font-semibold'><Target className='size-4 text-primary' />Contributions</h3>{contributions.map((item) => <div key={item.id} className='mb-2 rounded-lg border p-3'><div className='flex justify-between gap-2'><b className='text-sm'>{readable(item.type)}</b><Badge variant={item.verificationStatus === 'verified' ? 'default' : 'secondary'}>{readable(item.verificationStatus)}</Badge></div><p className='mt-1 text-xs text-muted-foreground'>{item.quantity} {item.unit} · {item.description}</p></div>)}</section>
-        </CardContent>
-      </Card>
-    })}</div>
+    <div className='mb-3'><DemoDataBadge label='Illustrative programs' /></div>
+    <PageHeading eyebrow='Programs' title='Apply, participate, and review from one workflow.' description='Founders submit current evidence, cohort members track progress, and operators make reasoned application decisions.' />
+    <nav className='no-scrollbar mb-6 flex gap-2 overflow-x-auto' aria-label='Program workspace sections'>{views.map((item) => <button type='button' key={item.id} onClick={() => setView(item.id)} className={cn('min-h-11 shrink-0 rounded-full border px-4 text-xs font-semibold', view === item.id ? 'border-primary/35 bg-primary/10 text-primary' : 'text-muted-foreground')}>{item.label}</button>)}</nav>
+
+    {view === 'discover' && <><div className='relative mb-5 max-w-lg'><Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground' /><Input className='h-11 pl-10' value={query} onChange={(event) => setQuery(event.target.value)} placeholder='Search programs by stage or outcome' /></div><div className='space-y-5'>{programs.map((program) => {
+      const host = data.organizations.find((item) => item.id === program.hostOrganizationId)
+      const partners = data.programPartners.filter((item) => item.programId === program.id)
+      const applied = state.programApplications.find((item) => item.programId === program.id && (item.applicantId === data.currentUser?.id || state.selectedPersona === 'founder'))
+      return <Card key={program.id}><CardHeader><div className='flex flex-wrap items-center justify-between gap-2'><div className='flex gap-2'><Badge><Rocket className='size-3' />{readable(program.type)}</Badge><StatusBadge status={program.status} /></div><span className='text-xs text-muted-foreground'>{program.startsAt} → {program.endsAt}</span></div><CardTitle className='pt-2'>{program.name}</CardTitle><CardDescription className='leading-6'>{program.description}</CardDescription></CardHeader><CardContent className='grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px]'><div><div className='grid gap-3 sm:grid-cols-3'><ProgramSignal icon={Handshake} label='Host' value={host?.displayName ?? 'SSC'} /><ProgramSignal icon={Users} label='Partners' value={String(partners.length)} /><ProgramSignal icon={FileCheck2} label='Evidence points' value={String(program.milestoneLabels.length)} /></div><div className='mt-4 flex flex-wrap gap-1.5'>{program.milestoneLabels.map((item) => <Badge key={item} variant='outline'>{item}</Badge>)}</div></div><div className='rounded-xl border bg-muted/20 p-4'><b className='text-sm'>Application fit</b><p className='mt-2 text-xs leading-5 text-muted-foreground'>Recommended because your startup is validating, has a defined next milestone, and can submit an evidence bundle.</p>{applied ? <div className='mt-4 flex items-center gap-2'><StatusBadge status={applied.status} /><Button size='sm' variant='outline' onClick={() => setView('applications')}>View application</Button></div> : <ApplicationDialog programId={program.id} programName={program.name} applicantId={data.currentUser?.id ?? 'usr_9'} />}</div></CardContent></Card>
+    })}{!programs.length && <EmptyState title='No programs match' description='Try a broader search term.' icon={CalendarDays} />}</div></>}
+
+    {view === 'applications' && <ApplicationList applicantId={data.currentUser.id} />}
+    {view === 'cohort' && <CohortProgress />}
+    {view === 'operator' && <OperatorQueue />}
   </PageContainer>
 }
 
-function Signal({ icon: Icon, label, value }: { icon: typeof Rocket; label: string; value: number }) { return <Card><CardContent className='flex items-center gap-3 p-5'><Icon className='text-primary' /><div><p className='text-xs text-muted-foreground'>{label}</p><b className='text-2xl'>{value}</b></div></CardContent></Card> }
-
-function CreateProgramDialog() {
-  const { data } = useSnapshot()
-  const [open, setOpen] = useState(false), [name, setName] = useState(''), [description, setDescription] = useState('')
-  const [type, setType] = useState<ProgramType>('sprint')
-  const hostOrganizationId = data?.organizations[0]?.id ?? ''
-  const create = useAction(() => apiClient.createProgram({
-    name: name.trim(), type, status: 'draft', hostOrganizationId, description: description.trim(),
-    startsAt: '2026-09-01', endsAt: '2026-11-30', eligibilityRules: ['Verified participant'],
-    milestoneLabels: ['Team formed', 'Problem validated', 'Prototype evidenced'],
-    outcomesFramework: ['team_formed', 'mvp_completed'],
-  }), 'Joint program created')
-  return <Dialog open={open} onOpenChange={setOpen}><DialogTrigger asChild><Button><Plus />New program</Button></DialogTrigger><DialogContent><DialogHeader><DialogTitle>Create a joint program</DialogTitle><DialogDescription>Start in draft so partner roles and evidence rules can be agreed before launch.</DialogDescription></DialogHeader><div className='space-y-3'><Input value={name} onChange={(event) => setName(event.target.value)} placeholder='Program name' /><select className='h-10 w-full rounded-md border bg-background px-3 text-sm' value={type} onChange={(event) => setType(event.target.value as ProgramType)}>{['accelerator', 'challenge', 'sprint', 'demo_day', 'mentor_series', 'incubator_prep'].map((item) => <option key={item} value={item}>{readable(item)}</option>)}</select><Textarea value={description} onChange={(event) => setDescription(event.target.value)} placeholder='Program purpose and scope' /><Button className='w-full' disabled={name.trim().length < 3 || create.isPending} onClick={() => create.mutate(undefined, { onSuccess: () => { setOpen(false); setName(''); setDescription('') } })}>Create draft program</Button></div></DialogContent></Dialog>
+function ApplicationDialog({ programId, programName, applicantId }: { programId: string; programName: string; applicantId: string }) {
+  const { store } = useExecutionStore()
+  const [open, setOpen] = useState(false)
+  const [startupSlug, setStartupSlug] = useState('campus-cart')
+  const [answer, setAnswer] = useState('')
+  return <ResponsiveDialog open={open} onOpenChange={setOpen} title={`Apply to ${programName}`} description='Explain the decision this program will help you make and reference current evidence.' trigger={<Button className='mt-4 w-full'><Plus />Start application</Button>} footer={<><Button variant='outline' onClick={() => setOpen(false)}>Save draft</Button><Button disabled={answer.trim().length < 20} onClick={() => { store.addApplication({ programId, programName, startupSlug, applicantId, answer: answer.trim() }); toast.success('Application submitted'); setOpen(false) }}>Submit application</Button></>}><div className='grid gap-4'><Label>Startup slug<Input className='mt-2' value={startupSlug} onChange={(event) => setStartupSlug(event.target.value)} /></Label><Label>Why now?<Textarea className='mt-2 min-h-32' value={answer} onChange={(event) => setAnswer(event.target.value)} placeholder='The milestone, decision, evidence, and program support you need…' /></Label><div className='rounded-xl border bg-muted/30 p-3 text-xs text-muted-foreground'>Your shared milestone and evidence metadata remain in the local execution store. File contents are never uploaded in demo mode.</div></div></ResponsiveDialog>
 }
 
-function ContributionDialog() {
-  const { data } = useSnapshot()
-  const [open, setOpen] = useState(false), [quantity, setQuantity] = useState('10'), [unit, setUnit] = useState('hours'), [description, setDescription] = useState('')
-  const [type, setType] = useState<ContributionType>('mentors')
-  const programId = data?.programs[0]?.id ?? '', organizationId = data?.organizations[1]?.id ?? ''
-  const create = useAction(() => apiClient.recordContribution({
-    programId, organizationId, type, quantity: Math.max(0, Number(quantity)), unit, description,
-    evidenceIds: [],
-  }), 'Contribution recorded for verification')
-  return <Dialog open={open} onOpenChange={setOpen}><DialogTrigger asChild><Button variant='outline'><Handshake />Record contribution</Button></DialogTrigger><DialogContent><DialogHeader><DialogTitle>Record partner contribution</DialogTitle><DialogDescription>This creates a pending record; a verifier must approve it before reporting.</DialogDescription></DialogHeader><div className='space-y-3'><select className='h-10 w-full rounded-md border bg-background px-3 text-sm' value={type} onChange={(event) => setType(event.target.value as ContributionType)}>{['mentors', 'students', 'challenge', 'funding', 'credits', 'space', 'judging', 'pilot_access', 'marketing'].map((item) => <option key={item} value={item}>{readable(item)}</option>)}</select><div className='grid grid-cols-2 gap-3'><Input type='number' min='0' value={quantity} onChange={(event) => setQuantity(event.target.value)} /><Input value={unit} onChange={(event) => setUnit(event.target.value)} placeholder='Unit' /></div><Textarea value={description} onChange={(event) => setDescription(event.target.value)} placeholder='What was committed or delivered?' /><Button className='w-full' disabled={!programId || !organizationId || create.isPending} onClick={() => create.mutate(undefined, { onSuccess: () => { setOpen(false); setDescription('') } })}>Record pending contribution</Button></div></DialogContent></Dialog>
+function ApplicationList({ applicantId }: { applicantId: string }) {
+  const { state } = useExecutionStore()
+  const applications = state.programApplications.filter((item) => item.applicantId === applicantId || state.selectedPersona === 'founder')
+  return applications.length ? <div className='space-y-3'>{applications.map((application) => <Card key={application.id}><CardContent className='grid gap-4 p-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center'><div><div className='flex flex-wrap items-center gap-2'><b>{application.programName}</b><StatusBadge status={application.status} /></div><p className='mt-2 text-sm text-muted-foreground'>{application.answer}</p>{application.reviewerNote && <p className='mt-3 rounded-lg bg-muted p-3 text-xs'><b>Reviewer note:</b> {application.reviewerNote}</p>}</div><Button variant='outline' asChild><Link to='/startups/$slug' params={{ slug: application.startupSlug }}>Open evidence</Link></Button></CardContent></Card>)}</div> : <EmptyState title='No program applications' description='Discover an aligned program and submit a milestone-led application.' icon={ClipboardCheck} />
 }
+
+function CohortProgress() {
+  const { state } = useExecutionStore()
+  const milestones = state.milestones.filter((item) => item.startupSlug === 'campus-cart')
+  return <div className='grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]'><Card><CardHeader><CardTitle>Validation sprint progress</CardTitle><CardDescription>Startup work stays linked to cohort checkpoints.</CardDescription></CardHeader><CardContent className='space-y-3'>{milestones.map((item) => <div key={item.id} className='rounded-xl border p-4'><div className='flex justify-between gap-2'><b>{item.title}</b><StatusBadge status={item.status} /></div><div className='mt-3 h-2 overflow-hidden rounded-full bg-muted'><div className='h-full bg-primary' style={{ width: `${item.progress}%` }} /></div><p className='mt-2 text-xs text-muted-foreground'>{item.evidenceDefinition}</p></div>)}</CardContent></Card><Card><CardHeader><CardTitle>Next cohort checkpoint</CardTitle></CardHeader><CardContent><Badge><CalendarDays className='size-3' />August 8 · 14:00</Badge><h3 className='mt-4 font-semibold'>Evidence review clinic</h3><p className='mt-2 text-sm leading-6 text-muted-foreground'>Bring one milestone decision and the source material that supports it.</p><Button className='mt-4 w-full' asChild><Link to='/workspace'>Prepare evidence</Link></Button></CardContent></Card></div>
+}
+
+function OperatorQueue() {
+  const { state, store } = useExecutionStore()
+  const [noteById, setNoteById] = useState<Record<string, string>>({})
+  const applications = state.programApplications
+  return <div className='space-y-3'>{applications.map((application) => <Card key={application.id}><CardContent className='grid gap-4 p-5 lg:grid-cols-[minmax(0,1fr)_360px]'><div><div className='flex flex-wrap items-center gap-2'><b>{application.programName}</b><StatusBadge status={application.status} /></div><p className='mt-1 text-xs text-muted-foreground'>{application.startupSlug} · submitted {new Date(application.submittedAt).toLocaleString()}</p><p className='mt-3 text-sm leading-6'>{application.answer}</p><div className='mt-3 flex gap-2'><Badge variant='outline'><CheckCircle2 className='size-3' />Milestones linked</Badge><Badge variant='outline'><FileCheck2 className='size-3' />Evidence available</Badge></div></div><div className='rounded-xl border bg-muted/20 p-3'><Label>Decision note<Textarea className='mt-2 min-h-20 bg-background' value={noteById[application.id] ?? application.reviewerNote ?? ''} onChange={(event) => setNoteById((current) => ({ ...current, [application.id]: event.target.value }))} /></Label><div className='mt-3 flex flex-wrap gap-2'><ReviewButton application={application} status='approved' note={noteById[application.id]} onReview={store.reviewApplication.bind(store)} /><ReviewButton application={application} status='needs_changes' note={noteById[application.id]} onReview={store.reviewApplication.bind(store)} /><ReviewButton application={application} status='rejected' note={noteById[application.id]} onReview={store.reviewApplication.bind(store)} /></div></div></CardContent></Card>)}</div>
+}
+
+function ReviewButton({ application, status, note, onReview }: { application: ProgramApplication; status: ProgramApplication['status']; note?: string; onReview: (id: string, status: ProgramApplication['status'], note: string) => void }) {
+  return <Button size='sm' variant={status === 'approved' ? 'default' : 'outline'} disabled={(status === 'needs_changes' || status === 'rejected') && !note?.trim()} onClick={() => { onReview(application.id, status, note?.trim() || 'Application meets the sample program criteria.'); toast.success(`Application marked ${status.replace('_', ' ')}`) }}>{readable(status)}</Button>
+}
+
+function ProgramSignal({ icon: Icon, label, value }: { icon: typeof Rocket; label: string; value: string }) { return <div className='rounded-xl border p-3'><Icon className='size-4 text-primary' /><p className='mt-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground'>{label}</p><b className='mt-1 block text-sm'>{value}</b></div> }

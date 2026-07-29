@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { useStaggerCards, useLikeAnimation, useBookmarkAnimation } from '@/hooks/use-animations'
-import { ArrowRight, BadgeCheck, Bookmark, BriefcaseBusiness, CalendarDays, Check, CircleDollarSign, CircleHelp, ClipboardCheck, Clock3, Hash, Heart, Link2, MapPin, MessageCircle, MessagesSquare, MoreHorizontal, Rocket, Send, Share2, Sparkles, TrendingUp, Trophy, UserPlus, Users, Video } from 'lucide-react'
+import { ArrowRight, BadgeCheck, Bookmark, BriefcaseBusiness, CalendarDays, Check, CircleDollarSign, CircleHelp, ClipboardCheck, Clock3, GraduationCap, Hash, Heart, Link2, MapPin, MessageCircle, MessagesSquare, MoreHorizontal, Rocket, Send, Share2, Sparkles, Target, TrendingUp, Trophy, UserPlus, Users, Video } from 'lucide-react'
 import { apiClient } from '@/data/client'
 import type { PostKind, PostLink, Snapshot, User } from '@/data/types'
 import { dashboardEvents, dashboardMetrics, dashboardNextSteps, dashboardQuickActions, mediaForPost, nextMentorSession, startupSummary } from '@/data/feed-dashboard-data'
@@ -14,6 +14,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { PageContainer, PageLoading, UserAvatar } from '@/app/app-shared'
 import { useAction, useSnapshot } from '@/app/app-data'
+import { DemoDataBadge, StatusBadge } from '@/components/execution-primitives'
+import { useExecutionStore } from '@/features/execution/store'
 
 /* ------------------------------------------------------------------ */
 /*  Feed — kind metadata, composer, post card, rails                  */
@@ -52,6 +54,7 @@ function timeAgo(iso: string): string {
 
 export function FeedPage() {
   const { data } = useSnapshot()
+  const { state } = useExecutionStore()
   const [filter, setFilter] = useState<FeedFilter>('all')
   const [visibleCount, setVisibleCount] = useState(6)
   const feedRef = useRef<HTMLDivElement>(null)
@@ -87,6 +90,7 @@ export function FeedPage() {
       <PageContainer className='relative z-10 grid items-start gap-5 xl:grid-cols-[250px_minmax(0,680px)_300px] 2xl:gap-6'>
         <FeedLeftRail data={data} onFilter={selectFilter} />
         <section ref={feedRef} className='min-w-0 space-y-4'>
+          <ExecutionHome state={state} name={me?.name ?? 'Builder'} />
           <MobileDashboardSummary data={data} />
           <div className='grid gap-3 md:grid-cols-2 xl:hidden'>
             <StartupSummaryCard startup={startupSummary} compact className='md:row-span-2' />
@@ -100,12 +104,12 @@ export function FeedPage() {
               <span className='absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-55' />
               <span className='relative inline-flex size-2 rounded-full bg-emerald-500' />
             </span>
-            SSC community live
+            Sample ecosystem activity
           </div>
           <h1 className='text-2xl font-bold tracking-tight sm:text-[28px]'>Founder activity</h1>
           <p className='mt-1 text-sm text-muted-foreground'>Launches, traction and useful asks from the ecosystem.</p>
         </div>
-        <Badge variant='outline' className='hidden shrink-0 border-primary/20 bg-primary/5 text-primary sm:inline-flex'>142 builders active</Badge>
+        <DemoDataBadge label='Illustrative feed' />
       </div>
       <FeedComposer me={me} />
       <div className='flex flex-wrap gap-2'>
@@ -141,6 +145,23 @@ export function FeedPage() {
     </div>
   )
 }
+
+function ExecutionHome({ state, name }: { state: ReturnType<typeof useExecutionStore>['state']; name: string }) {
+  const next = state.milestones.find((item) => item.status !== 'complete')
+  const pending = state.evidence.filter((item) => item.status === 'pending').length
+  return <section className='overflow-hidden rounded-2xl border border-primary/20 bg-card/90 shadow-sm'>
+    <div className='h-1 bg-gradient-to-r from-primary via-emerald-400 to-amber-300' />
+    <div className='p-4 sm:p-5'>
+      <div className='flex flex-wrap items-start justify-between gap-3'><div><div className='flex items-center gap-2'><Badge variant='secondary'>Continue working</Badge><StatusBadge status={next?.status ?? 'planned'} /></div><h1 className='mt-3 text-2xl font-bold tracking-tight'>Welcome back, {name.split(' ')[0]}.</h1><p className='mt-1 text-sm text-muted-foreground'>The next useful action comes before community updates.</p></div><Button asChild><Link to='/workspace'>Open workspace <ArrowRight /></Link></Button></div>
+      <div className='mt-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center'>
+        <div className='rounded-xl border bg-muted/25 p-4'><div className='flex items-start justify-between gap-3'><div><p className='text-xs font-bold uppercase tracking-wide text-primary'>Next milestone</p><b className='mt-1 block'>{next?.title ?? 'Create your first startup milestone'}</b><p className='mt-1 text-xs text-muted-foreground'>{next?.evidenceDefinition ?? 'Define the evidence that will count as complete.'}</p></div><span className='text-xl font-bold text-primary'>{next?.progress ?? 0}%</span></div><div className='mt-3 h-2 overflow-hidden rounded-full bg-muted'><div className='h-full rounded-full bg-primary' style={{ width: `${next?.progress ?? 0}%` }} /></div></div>
+        <div className='grid grid-cols-2 gap-2 sm:w-52'><Button variant='outline' size='sm' asChild><Link to='/workspace'><Target />Milestones</Link></Button><Button variant='outline' size='sm' asChild><Link to='/mentorship'><GraduationCap />Mentor</Link></Button><Button variant='outline' size='sm' asChild><Link to='/programs'><CalendarDays />Programs</Link></Button><Button variant='outline' size='sm' asChild><Link to='/workspace'><FileCheckIcon />Evidence {pending}</Link></Button></div>
+      </div>
+    </div>
+  </section>
+}
+
+function FileCheckIcon() { return <ClipboardCheck className='size-4' /> }
 
 function FeedComposer({ me }: { me: Snapshot['currentUser'] }) {
   const [content, setContent] = useState('')

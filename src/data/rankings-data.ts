@@ -20,6 +20,8 @@ export type RankingEntry = {
   score: number
   change: number
   verifiedEvidence: boolean
+  evidenceCount: number
+  confidence: number
   strongestSignal: string
   lastActivity: string
   activityRecency: number
@@ -57,6 +59,8 @@ export function normalizeRankingEntry(entry: RawRankingEntry): RankingEntry | nu
     score,
     change: Number.isFinite(entry.change) ? Math.trunc(entry.change ?? 0) : 0,
     verifiedEvidence: Boolean(entry.verifiedEvidence),
+    evidenceCount: Math.max(0, Math.trunc(Number.isFinite(entry.evidenceCount) ? entry.evidenceCount ?? 0 : (entry.verifiedEvidence ? 4 : 1))),
+    confidence: clampScore(entry.confidence ?? (entry.verifiedEvidence ? 88 : 62)),
     strongestSignal: entry.strongestSignal?.trim() || 'No verified signal recorded',
     lastActivity: entry.lastActivity?.trim() || 'No recent activity',
     activityRecency: clampScore(entry.activityRecency),

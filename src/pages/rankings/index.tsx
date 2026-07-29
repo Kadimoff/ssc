@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { BadgeCheck, BarChart3, Building2, Network, Search, ShieldCheck, UserRound } from 'lucide-react'
+import { BadgeCheck, BarChart3, Building2, Network, Search, ShieldCheck } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { PageContainer } from '@/app/app-shared'
@@ -16,7 +16,6 @@ import { cn } from '@/lib/utils'
 
 const categories: Array<{ key: RankingCategory; label: string; icon: typeof BarChart3 }> = [
   { key: 'startups', label: 'Startups', icon: BarChart3 },
-  { key: 'founders', label: 'Founders', icon: UserRound },
   { key: 'universities', label: 'Universities', icon: Building2 },
   { key: 'communities', label: 'Communities', icon: Network },
 ]

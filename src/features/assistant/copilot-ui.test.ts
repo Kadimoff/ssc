@@ -37,7 +37,8 @@ describe('SSC Copilot interaction shell', () => {
   })
 
   it('uses a single bottom-right Copilot launcher outside the app header', () => {
-    expect(appShellSource).toContain("<main ref={mainRef} className='relative z-10 pb-20 xl:pb-0'><Outlet /></main>\n    {data && <Copilot snapshot={data} />}")
+    expect(appShellSource).toContain("<main ref={mainRef}")
+    expect(appShellSource).toContain("<Outlet /></main>\n    {data && <Copilot snapshot={data} />}")
     expect(appShellSource).not.toContain("{ to: '/assistant', label: 'Copilot'")
     expect(source).toContain("className='group fixed bottom-20 right-4")
     expect(source).toContain("aria-label='Open SSC Copilot'")

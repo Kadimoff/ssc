@@ -1,0 +1,13 @@
+.git
+.github
+node_modules
+artifacts
+server
+tools
+docs
+fayllarim
+brainfix
+*.pdf
+*.docx
+*.mp4
+npm-debug.log*

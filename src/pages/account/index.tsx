@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Bell, CheckCircle2, Eye, LockKeyhole, Save, Target } from 'lucide-react'
+import { BadgeCheck, Bell, Eye, FileCheck2, LockKeyhole, Save, ShieldCheck, Upload } from 'lucide-react'
+import { toast } from 'sonner'
 import { apiClient } from '@/data/client'
 import type { User } from '@/data/types'
 import { useAction, useSnapshot } from '@/app/app-data'
@@ -9,6 +10,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { DemoDataBadge, EmptyState, StatusBadge } from '@/components/execution-primitives'
+import { useExecutionStore } from '@/features/execution/store'
+import type { VerificationRequest } from '@/features/execution/types'
+import { WorkspacePage } from '@/pages/workspace'
 
 export function SettingsPage() {
   const { data } = useSnapshot()
@@ -25,25 +31,62 @@ function SettingsForm({ user }: { user: User }) {
 
 export function VerificationPage() {
   const { data } = useSnapshot()
+  const { state } = useExecutionStore()
   if (!data) return <PageLoading />
   if (!data.currentUser) return <AuthRequired title='Sign in to view verification' />
   const user = data.currentUser
-  return <PageContainer><PageHeading eyebrow='Trust and identity' title='Verification' description='Understand what has been verified, what remains pending, and how the decision is used.' /><div className='grid gap-5 md:grid-cols-3'><VerificationStep title='Account identity' status='verified' text='Email and account ownership confirmed for this environment.' /><VerificationStep title='Role authority' status={user.roles.some((role) => ['partner_admin', 'program_manager', 'platform_admin'].includes(role)) ? 'verified' : 'not required'} text='Required only for privileged partner and program operations.' /><VerificationStep title='Organization authority' status={user.verificationStatus} text='Reviewed separately from general profile identity.' /></div><Card className='mt-6'><CardHeader><CardTitle>Correction and appeal</CardTitle></CardHeader><CardContent><p className='leading-7 text-muted-foreground'>If a verification status is incorrect, provide the minimum evidence needed to the program administrator. Rejected or suspended decisions must include a review note in production.</p></CardContent></Card></PageContainer>
+  const reviewer = ['program_admin', 'partner', 'platform_admin'].includes(state.selectedPersona)
+  return <PageContainer>
+    <div className='mb-3'><DemoDataBadge label='Safe metadata only' /></div>
+    <PageHeading eyebrow='Trust and identity' title={reviewer ? 'Verification review queue' : 'Student verification'} description={reviewer ? 'Review student submissions, inspect safe document metadata, and record a reasoned decision.' : 'Confirm your institution with a guided submission. Uploaded document contents are never persisted in demo mode.'} />
+    {reviewer ? <VerificationQueue /> : <VerificationWizard userId={user.id} />}
+    <Card className='mt-6'><CardHeader><CardTitle>Correction and appeal</CardTitle></CardHeader><CardContent><p className='leading-7 text-muted-foreground'>Every rejected or needs-changes decision includes a review note. Applicants can correct their details and resubmit without losing the prior local record.</p></CardContent></Card>
+  </PageContainer>
 }
 
+function VerificationWizard({ userId }: { userId: string }) {
+  const { state, store } = useExecutionStore()
+  const existing = state.verificationRequests.find((item) => item.userId === userId) ?? { id: `ver_${userId}`, userId, institution: '', studentId: '', status: 'draft' as const }
+  const [step, setStep] = useState(1)
+  const [institution, setInstitution] = useState(existing.institution)
+  const [studentId, setStudentId] = useState(existing.studentId)
+  const [document, setDocument] = useState(existing.document)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+  if (existing.status !== 'draft' && step === 1) {
+    return <Card><CardHeader><div className='flex items-center justify-between gap-3'><div><CardTitle>Your verification request</CardTitle><CardDescription>Submitted {existing.submittedAt ? new Date(existing.submittedAt).toLocaleString() : 'in this browser'}</CardDescription></div><StatusBadge status={existing.status} /></div></CardHeader><CardContent><div className='grid gap-3 sm:grid-cols-3'><VerificationFact label='Institution' value={existing.institution} /><VerificationFact label='Student ID' value={existing.studentId} /><VerificationFact label='Document' value={existing.document?.name ?? 'Not attached'} /></div>{existing.reviewerNote && <div className='mt-4 rounded-xl border bg-muted/30 p-4 text-sm'><b>Reviewer note</b><p className='mt-1 text-muted-foreground'>{existing.reviewerNote}</p></div>}{['rejected', 'needs_changes'].includes(existing.status) && <Button className='mt-4' onClick={() => { store.upsertVerification({ ...existing, status: 'draft' }); setStep(1) }}>Correct and resubmit</Button>}</CardContent></Card>
+  }
+  const next = () => {
+    setError('')
+    if (step === 1 && (institution.trim().length < 3 || studentId.trim().length < 3)) return setError('Add your institution and student ID before continuing.')
+    if (step === 2 && !document) return setError('Choose a supporting document. Only its safe metadata will be saved.')
+    setStep((current) => Math.min(3, current + 1))
+  }
+  const submit = () => {
+    setSubmitting(true)
+    const request: VerificationRequest = { ...existing, institution: institution.trim(), studentId: studentId.trim(), document, status: 'pending', submittedAt: new Date().toISOString() }
+    window.setTimeout(() => { store.upsertVerification(request); setSubmitting(false); setStep(1); toast.success('Verification submitted for review') }, 350)
+  }
+  return <Card className='mx-auto max-w-3xl'><CardHeader><div className='flex items-center justify-between'><CardTitle>Student submission</CardTitle><Badge variant='outline'>Step {step} of 3</Badge></div><div className='mt-3 grid grid-cols-3 gap-2'>{[1, 2, 3].map((item) => <div key={item} className={`h-1.5 rounded-full ${item <= step ? 'bg-primary' : 'bg-muted'}`} />)}</div></CardHeader><CardContent className='space-y-5'>
+    {step === 1 && <div className='grid gap-4'><Label>Institution<Input className='mt-2' value={institution} onChange={(event) => setInstitution(event.target.value)} placeholder='University or college' /></Label><Label>Student ID<Input className='mt-2' value={studentId} onChange={(event) => setStudentId(event.target.value)} placeholder='Institution-issued identifier' /></Label></div>}
+    {step === 2 && <div><Label>Supporting document<Input className='mt-2' type='file' accept='.pdf,.png,.jpg,.jpeg' onChange={(event) => { const file = event.target.files?.[0]; setDocument(file ? { name: file.name, size: file.size, type: file.type } : undefined) }} /></Label><div className='mt-4 flex gap-3 rounded-xl border border-primary/15 bg-primary/[0.04] p-4'><Upload className='size-5 shrink-0 text-primary' /><p className='text-sm leading-6 text-muted-foreground'>This frontend demonstration stores only file name, size, and MIME type. It does not persist or upload document contents.</p></div>{document && <p className='mt-3 text-sm'><b>Selected:</b> {document.name} · {Math.ceil(document.size / 1024)} KB</p>}</div>}
+    {step === 3 && <div className='grid gap-3 sm:grid-cols-3'><VerificationFact label='Institution' value={institution} /><VerificationFact label='Student ID' value={studentId} /><VerificationFact label='Document' value={document?.name ?? ''} /></div>}
+    {error && <p role='alert' className='rounded-lg border border-red-500/25 bg-red-500/10 p-3 text-sm text-red-600'>{error}</p>}
+    <div className='flex justify-between border-t pt-4'><Button variant='outline' disabled={step === 1 || submitting} onClick={() => setStep((current) => Math.max(1, current - 1))}>Back</Button>{step < 3 ? <Button onClick={next}>Continue</Button> : <Button disabled={submitting} onClick={submit}>{submitting ? 'Submitting…' : 'Submit for review'}</Button>}</div>
+  </CardContent></Card>
+}
+
+function VerificationQueue() {
+  const { state, store } = useExecutionStore()
+  const [notes, setNotes] = useState<Record<string, string>>({})
+  const queue = state.verificationRequests.filter((item) => item.status !== 'draft')
+  return queue.length ? <div className='space-y-4'>{queue.map((request) => <Card key={request.id}><CardContent className='grid gap-5 p-5 lg:grid-cols-[minmax(0,1fr)_380px]'><div><div className='flex flex-wrap items-center gap-2'><span className='grid size-10 place-items-center rounded-xl bg-primary/10 text-primary'><ShieldCheck /></span><b>{request.institution}</b><StatusBadge status={request.status} /></div><div className='mt-4 grid gap-3 sm:grid-cols-2'><VerificationFact label='Student ID' value={request.studentId} /><VerificationFact label='Document metadata' value={request.document ? `${request.document.name} · ${Math.ceil(request.document.size / 1024)} KB · ${request.document.type || 'unknown type'}` : 'Missing'} /></div></div><div className='rounded-xl border bg-muted/20 p-3'><Label>Decision note<Textarea className='mt-2 min-h-20 bg-background' value={notes[request.id] ?? request.reviewerNote ?? ''} onChange={(event) => setNotes((current) => ({ ...current, [request.id]: event.target.value }))} /></Label><div className='mt-3 flex flex-wrap gap-2'><Button size='sm' onClick={() => { store.upsertVerification({ ...request, status: 'verified', reviewerNote: notes[request.id] || 'Institution and document metadata reviewed.' }); toast.success('Student verified') }}><BadgeCheck />Verify</Button><Button size='sm' variant='outline' disabled={!notes[request.id]?.trim()} onClick={() => store.upsertVerification({ ...request, status: 'needs_changes', reviewerNote: notes[request.id] })}>Needs changes</Button><Button size='sm' variant='outline' disabled={!notes[request.id]?.trim()} onClick={() => store.upsertVerification({ ...request, status: 'rejected', reviewerNote: notes[request.id] })}>Reject</Button></div></div></CardContent></Card>)}</div> : <EmptyState title='Verification queue is clear' description='New student submissions will appear here for authorized reviewers.' icon={FileCheck2} />
+}
+
+function VerificationFact({ label, value }: { label: string; value: string }) { return <div className='rounded-xl border bg-muted/20 p-3'><p className='text-[10px] font-semibold uppercase tracking-wide text-muted-foreground'>{label}</p><b className='mt-1 block break-words text-sm'>{value || 'Not provided'}</b></div> }
+
 export function GoalsPage() {
-  const { data } = useSnapshot()
-  const initial = JSON.parse(localStorage.getItem('ssc.goals.v1') ?? JSON.stringify([
-    { title: 'Validate the highest-risk customer assumption', evidence: 'Five structured interviews and a written decision summary', done: true },
-    { title: 'Close the most important team gap', evidence: 'Role brief, three AI matches reviewed, and one founder conversation', done: false },
-    { title: 'Prepare the next pilot milestone', evidence: 'Named partner, success metric, owner, and target date', done: false },
-  ])) as Array<{ title: string; evidence: string; done: boolean }>
-  const [goals, setGoals] = useState(initial), [title, setTitle] = useState(''), [evidence, setEvidence] = useState('')
-  if (!data) return <PageLoading />
-  if (!data.currentUser) return <AuthRequired title='Sign in to manage goals' />
-  const persist = (next: typeof goals) => { setGoals(next); localStorage.setItem('ssc.goals.v1', JSON.stringify(next)) }
-  return <PageContainer><PageHeading eyebrow='Execution' title='Goals and evidence' description='Define the next decision or milestone and state what evidence will count as complete.' /><Card><CardContent className='grid gap-3 p-5 md:grid-cols-[1fr_1fr_auto]'><Input value={title} onChange={(event) => setTitle(event.target.value)} placeholder='Goal or milestone' /><Input value={evidence} onChange={(event) => setEvidence(event.target.value)} placeholder='Evidence required' /><Button disabled={title.trim().length < 3} onClick={() => { persist([...goals, { title: title.trim(), evidence: evidence.trim(), done: false }]); setTitle(''); setEvidence('') }}><Target />Add goal</Button></CardContent></Card><div className='mt-5 space-y-3'>{goals.map((goal, index) => <Card key={`${goal.title}-${index}`}><CardContent className='flex items-center gap-4 p-4'><button onClick={() => persist(goals.map((item, itemIndex) => itemIndex === index ? { ...item, done: !item.done } : item))} className='text-primary'><CheckCircle2 className={goal.done ? 'fill-primary/20' : ''} /></button><div><b className={goal.done ? 'line-through opacity-60' : ''}>{goal.title}</b><p className='text-sm text-muted-foreground'>{goal.evidence || 'Evidence definition pending'}</p></div><Badge className='ml-auto' variant={goal.done ? 'default' : 'secondary'}>{goal.done ? 'Complete' : 'Open'}</Badge></CardContent></Card>)}</div></PageContainer>
+  return <WorkspacePage milestonesOnly />
 }
 
 function Setting({ icon: Icon, title, text }: { icon: typeof Eye; title: string; text: string }) { return <div className='flex gap-3 rounded-xl border p-4'><Icon className='mt-0.5 size-5 text-primary' /><div><b className='text-sm'>{title}</b><p className='mt-1 text-xs text-muted-foreground'>{text}</p></div></div> }
-function VerificationStep({ title, status, text }: { title: string; status: string; text: string }) { return <Card><CardHeader><Badge className='w-fit' variant={status === 'verified' ? 'default' : 'secondary'}>{status.replace(/_/g, ' ')}</Badge><CardTitle className='pt-2 text-lg'>{title}</CardTitle></CardHeader><CardContent><p className='text-sm leading-6 text-muted-foreground'>{text}</p></CardContent></Card> }

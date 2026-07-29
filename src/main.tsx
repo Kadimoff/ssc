@@ -7,11 +7,11 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import {
   AccessDeniedPage, AccessGate, AdminPage, AppShell, AssistantPage, CommunitiesPage, CommunityDetailPage, EventDetailPage,
-  EventsPage, FeedPage, GoalsPage, HelpPage, InvestorsPage, JobDetailPage, JobsPage, LandingPage, LivePage,
+  EventsPage, FeedPage, HelpPage, InvestorsPage, JobDetailPage, JobsPage, LandingPage, LivePage,
   MemberProfilePage, MentorshipPage, MessagesPage, NetworkPage, NewsDetailPage, NewsPage, NotFoundPage,
   NotificationsPage, PartnershipsPage, PrivacyPage, ProfilePage, ProgramsPage, RankingsPage, SearchPage,
   SettingsPage, SignInPage, SignUpPage, StartupCreatePage, StartupDetailPage, StartupsPage, TermsPage,
-  VerificationPage,
+  VerificationPage, WorkspacePage, DiscoverPage,
 } from './app'
 import { ShaderBackground } from './components/shader-background'
 import './styles.css'
@@ -22,6 +22,8 @@ const rootRoute = createRootRoute({ component: () => <><ShaderBackground /><Outl
 const landingRoute = createRoute({ getParentRoute: () => rootRoute, path: '/', component: LandingPage })
 const appRoute = createRoute({ getParentRoute: () => rootRoute, id: 'app', component: AppShell })
 const feedRoute = createRoute({ getParentRoute: () => appRoute, path: '/feed', component: FeedPage })
+const workspaceRoute = createRoute({ getParentRoute: () => appRoute, path: '/workspace', component: WorkspacePage })
+const discoverRoute = createRoute({ getParentRoute: () => appRoute, path: '/discover', component: DiscoverPage })
 const profileRoute = createRoute({ getParentRoute: () => appRoute, path: '/profile', component: ProfilePage })
 const networkRoute = createRoute({ getParentRoute: () => appRoute, path: '/network', component: NetworkPage })
 const startupsRoute = createRoute({ getParentRoute: () => appRoute, path: '/startups', component: StartupsPage })
@@ -47,7 +49,7 @@ const searchRoute = createRoute({ getParentRoute: () => appRoute, path: '/search
 const assistantRoute = createRoute({ getParentRoute: () => appRoute, path: '/assistant', component: AssistantPage })
 const settingsRoute = createRoute({ getParentRoute: () => appRoute, path: '/settings', component: SettingsPage })
 const verificationRoute = createRoute({ getParentRoute: () => appRoute, path: '/verification', component: VerificationPage })
-const goalsRoute = createRoute({ getParentRoute: () => appRoute, path: '/goals', component: GoalsPage })
+const goalsRoute = createRoute({ getParentRoute: () => appRoute, path: '/goals', component: () => <WorkspacePage milestonesOnly /> })
 const helpRoute = createRoute({ getParentRoute: () => appRoute, path: '/help', component: HelpPage })
 const privacyRoute = createRoute({ getParentRoute: () => appRoute, path: '/privacy', component: PrivacyPage })
 const termsRoute = createRoute({ getParentRoute: () => appRoute, path: '/terms', component: TermsPage })
@@ -57,7 +59,7 @@ const signInRoute = createRoute({ getParentRoute: () => rootRoute, path: '/sign-
 const signUpRoute = createRoute({ getParentRoute: () => rootRoute, path: '/sign-up', component: SignUpPage })
 const guardedPartnershipsRoute = createRoute({ getParentRoute: () => appRoute, path: '/partnerships', component: () => <AccessGate area='partnerships'><PartnershipsPage /></AccessGate> })
 const routeTree = rootRoute.addChildren([landingRoute, appRoute.addChildren([
-  feedRoute, profileRoute, networkRoute, memberProfileRoute, startupsRoute, startupCreateRoute, startupDetailRoute,
+  feedRoute, workspaceRoute, discoverRoute, profileRoute, networkRoute, memberProfileRoute, startupsRoute, startupCreateRoute, startupDetailRoute,
   mentorshipRoute, programsRoute, guardedPartnershipsRoute, adminRoute, investorsRoute, rankingsRoute,
   communitiesRoute, communityDetailRoute, messagesRoute, notificationsRoute, jobsRoute, jobDetailRoute,
   newsRoute, newsDetailRoute, eventsRoute, eventDetailRoute, liveRoute, searchRoute, assistantRoute, settingsRoute,

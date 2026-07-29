@@ -51,7 +51,7 @@ export function RankingRow({ entry, rank, onDetails }: { entry: RankingEntry; ra
           <div className='min-w-0'>
             <div className='flex min-w-0 items-center gap-1.5'><p className='truncate text-sm font-semibold group-hover:text-primary'>{entry.name}</p>{entry.verifiedEvidence && <BadgeCheck className='size-4 shrink-0 text-primary' aria-label='Verified evidence' />}</div>
             <p className='mt-0.5 line-clamp-1 text-[11px] text-muted-foreground'>{entry.university}</p>
-            <div className='mt-1 flex flex-wrap gap-1'><Badge variant='secondary' className='px-1.5 py-0 text-[9px]'>{entry.sector}</Badge><Badge variant='outline' className='px-1.5 py-0 text-[9px]'>{entry.stage}</Badge></div>
+            <div className='mt-1 flex flex-wrap gap-1'><Badge variant='secondary' className='px-1.5 py-0 text-[9px]'>{entry.sector}</Badge><Badge variant='outline' className='px-1.5 py-0 text-[9px]'>{entry.stage}</Badge><Badge variant='outline' className='px-1.5 py-0 text-[9px]'>{entry.evidenceCount} evidence · {entry.confidence}% confidence</Badge></div>
           </div>
         </div>
         <div className='ml-auto flex items-center gap-2 lg:hidden'><RankChange change={entry.change} /><Button variant='ghost' size='icon' className='size-8' onClick={(event) => { event.stopPropagation(); onDetails(entry) }} aria-label={`View ${entry.name} score breakdown`}><ChevronRight className='size-4' /></Button></div>

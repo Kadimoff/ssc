@@ -37,44 +37,20 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { PageContainer, PageLoading } from '@/app/app-shared'
 import { useSnapshot } from '@/app/app-data'
 import { apiClient } from '@/data/client'
+import { DemoDataBadge, ResponsiveDialog } from '@/components/execution-primitives'
+import { useExecutionStore } from '@/features/execution/store'
 
 type InvestorTab = 'overview' | 'discover' | 'pipeline' | 'compare' | 'mentors'
-
-const WATCHLIST_KEY = 'ssc.investorWatchlist.v1'
-const COMPARE_KEY = 'ssc.investorCompare.v1'
-const PIPELINE_KEY = 'ssc.investorPipeline.v1'
-const NOTES_KEY = 'ssc.investorNotes.v1'
-const INTROS_KEY = 'ssc.investorIntros.v1'
-
-function readRecord<T extends string>(key: string, fallback: Record<string, T> = {}) {
-  try {
-    const value = JSON.parse(localStorage.getItem(key) ?? 'null')
-    return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, T> : fallback
-  } catch {
-    return fallback
-  }
-}
-
-function readStringSet(key: string, fallback: string[] = []) {
-  try {
-    const value = JSON.parse(localStorage.getItem(key) ?? 'null')
-    return new Set<string>(Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : fallback)
-  } catch {
-    return new Set<string>(fallback)
-  }
-}
-
-function persistSet(key: string, value: Set<string>) {
-  localStorage.setItem(key, JSON.stringify([...value]))
-}
 
 export function InvestorsPage() {
   const navigate = useNavigate()
   const { data } = useSnapshot()
+  const { state: execution, store: executionStore } = useExecutionStore()
   const [tab, setTab] = useState<InvestorTab>('overview')
   const [activeThesisId, setActiveThesisId] = useState(savedInvestorTheses[0].id)
   const [draftThesis, setDraftThesis] = useState('')
@@ -86,21 +62,17 @@ export function InvestorsPage() {
   const [verifiedEvidenceOnly, setVerifiedEvidenceOnly] = useState(false)
   const [completeTeamOnly, setCompleteTeamOnly] = useState(false)
   const [sort, setSort] = useState<'match' | 'readiness' | 'team'>('match')
-  const [watched, setWatched] = useState<Set<string>>(() => readStringSet(WATCHLIST_KEY, ['mediroute', 'greenstack', 'campus-cart']))
-  const [compared, setCompared] = useState<Set<string>>(() => readStringSet(COMPARE_KEY))
-  const [intros, setIntros] = useState<Set<string>>(() => readStringSet(INTROS_KEY))
-  const [pipeline, setPipeline] = useState<Record<string, InvestorPipelineStage>>(() => readRecord(PIPELINE_KEY, {
-    mediroute: 'diligence',
-    greenstack: 'meeting',
-    'campus-cart': 'screening',
-    agrivision: 'sourced',
-  }))
-  const [notes, setNotes] = useState<Record<string, string>>(() => readRecord(NOTES_KEY))
+  const [introTarget, setIntroTarget] = useState<StartupData | null>(null)
   const [remoteResponse, setRemoteResponse] = useState<AssistantResponse | null>(null)
   const [matching, setMatching] = useState(false)
 
   if (!data) return <PageLoading />
 
+  const watched = new Set(execution.watchlist)
+  const compared = new Set(execution.comparison)
+  const intros = new Set(execution.introRequests.map((item) => item.startupSlug))
+  const pipeline = execution.investorPipeline as Record<string, InvestorPipelineStage>
+  const notes = execution.investorNotes
   const startups = data.startups?.length ? data.startups : staticStartups
   const mentors = data.mentors?.length ? data.mentors : staticMentors
   const context = assistantContextFromSnapshot(data, startups, mentors, false)
@@ -143,37 +115,14 @@ export function InvestorsPage() {
   ]
 
   const toggleWatch = (startup: StartupData) => {
-    setWatched((previous) => {
-      const next = new Set(previous)
-      if (next.has(startup.slug)) next.delete(startup.slug)
-      else next.add(startup.slug)
-      persistSet(WATCHLIST_KEY, next)
-      toast.success(next.has(startup.slug) ? 'Added to watchlist' : 'Removed from watchlist')
-      return next
-    })
+    executionStore.toggleWatch(startup.slug)
+    toast.success(watched.has(startup.slug) ? 'Removed from watchlist' : 'Added to watchlist')
   }
   const toggleCompare = (startup: StartupData) => {
-    setCompared((previous) => {
-      const next = new Set(previous)
-      if (next.has(startup.slug)) next.delete(startup.slug)
-      else if (next.size >= 3) {
-        toast.error('Compare up to three ventures at a time.')
-        return previous
-      } else next.add(startup.slug)
-      persistSet(COMPARE_KEY, next)
-      return next
-    })
+    if (!compared.has(startup.slug) && compared.size >= 3) return toast.error('Compare up to three ventures at a time.')
+    executionStore.toggleCompare(startup.slug)
   }
-  const requestIntro = (startup: StartupData) => {
-    setIntros((previous) => {
-      if (previous.has(startup.slug)) return previous
-      const next = new Set(previous)
-      next.add(startup.slug)
-      persistSet(INTROS_KEY, next)
-      toast.success(`Intro request recorded for ${startup.name}.`)
-      return next
-    })
-  }
+  const requestIntro = (startup: StartupData) => setIntroTarget(startup)
   const applyThesis = async () => {
     const next = draftThesis.trim() || 'Show the strongest available ventures'
     setThesis(next)
@@ -193,22 +142,15 @@ export function InvestorsPage() {
   }
   const openStartup = (slug: string) => navigate({ to: '/startups/$slug', params: { slug } })
   const setPipelineStage = (slug: string, value: InvestorPipelineStage) => {
-    setPipeline((current) => {
-      const next = { ...current, [slug]: value }
-      localStorage.setItem(PIPELINE_KEY, JSON.stringify(next))
-      return next
-    })
+    executionStore.update((current) => ({ ...current, investorPipeline: { ...current.investorPipeline, [slug]: value } }))
   }
   const setInvestorNote = (slug: string, value: string) => {
-    setNotes((current) => {
-      const next = { ...current, [slug]: value }
-      localStorage.setItem(NOTES_KEY, JSON.stringify(next))
-      return next
-    })
+    executionStore.update((current) => ({ ...current, investorNotes: { ...current.investorNotes, [slug]: value } }))
   }
 
   return (
     <PageContainer>
+      <div className='mb-3'><DemoDataBadge label='Illustrative investor signals' /></div>
       <InvestorWorkspaceHeader
         theses={savedInvestorTheses}
         activeThesisId={activeThesisId}
@@ -299,8 +241,24 @@ export function InvestorsPage() {
       )}
       {tab === 'compare' && <InvestorCompare selected={comparedStartups} response={thesisResponse} onRemove={toggleCompare} onDiscover={() => setTab('discover')} />}
       {tab === 'mentors' && <InvestorExpertNetwork mentors={mentors} onOpen={() => navigate({ to: '/mentorship' })} />}
+      <IntroRequestDialog startup={introTarget} investorId={data.currentUser?.id ?? 'usr_8'} onClose={() => setIntroTarget(null)} />
     </PageContainer>
   )
+}
+
+function IntroRequestDialog({ startup, investorId, onClose }: { startup: StartupData | null; investorId: string; onClose: () => void }) {
+  const { store } = useExecutionStore()
+  const [reason, setReason] = useState('')
+  return <ResponsiveDialog
+    open={Boolean(startup)}
+    onOpenChange={(open) => !open && onClose()}
+    title={`Request an introduction${startup ? ` to ${startup.name}` : ''}`}
+    description='Explain why the introduction is relevant. The request will be tracked through its connection status.'
+    footer={<><Button variant='outline' onClick={onClose}>Cancel</Button><Button disabled={reason.trim().length < 10} onClick={() => { if (!startup) return; store.requestIntro(investorId, startup.slug, reason.trim()); toast.success(`Intro request recorded for ${startup.name}`); setReason(''); onClose() }}>Send request</Button></>}
+  >
+    <Textarea value={reason} onChange={(event) => setReason(event.target.value)} placeholder='The thesis fit, signal you reviewed, and purpose of the conversation…' className='min-h-32' />
+    <p className='mt-3 text-xs text-muted-foreground'>This is a local sample request. No message is sent outside the demo workspace.</p>
+  </ResponsiveDialog>
 }
 
 function InvestorOverview({
