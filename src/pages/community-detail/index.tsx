@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
+import { localAsset } from '@/config/demo-assets'
 
 const snapshotKey = ['snapshot'] as const
 
@@ -47,7 +48,7 @@ export function CommunityDetailPage() {
     <PageContainer>
       <Card className='overflow-hidden p-0'>
         <div className='relative h-48 sm:h-56 bg-muted'>
-          <img src={detail.coverUrl} alt='' className='size-full object-cover' loading='lazy' />
+          <img src={localAsset(detail.coverUrl)} alt='' className='size-full object-cover' loading='lazy' />
           <div className='absolute inset-0 bg-gradient-to-t from-background/80 to-transparent' />
         </div>
         <div className='relative -mt-10 flex flex-col gap-5 px-6 pb-7 sm:flex-row sm:items-end'>

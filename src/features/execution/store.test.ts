@@ -13,6 +13,12 @@ class MemoryStorage implements Storage {
 }
 
 describe('execution demo store', () => {
+  it('starts a fresh MVP demo with the platform persona', () => {
+    const store = new ExecutionStore(new MemoryStorage())
+
+    expect(store.getSnapshot().selectedPersona).toBe('platform_admin')
+  })
+
   it('migrates legacy workflow keys additively', () => {
     const storage = new MemoryStorage()
     storage.setItem('ssc.goals.v1', JSON.stringify([{ title: 'Ship pilot', evidence: 'Signed scope', done: true }]))
@@ -88,5 +94,31 @@ describe('execution demo store', () => {
     expect(refreshed.verificationRequests.find((item) => item.id === 'ver_test')?.status).toBe('pending')
     expect(refreshed.mentorSessions.find((item) => item.id === session.id)).toMatchObject({ status: 'complete', rating: 5 })
     expect(refreshed.programApplications.find((item) => item.id === application.id)).toMatchObject({ status: 'needs_changes', reviewerNote: 'Add the source metric' })
+  })
+
+  it('persists locally saved pilot inquiries and application drafts without changing the v2 key', () => {
+    const storage = new MemoryStorage()
+    const store = new ExecutionStore(storage)
+
+    store.savePilotInquiry({ organization: 'Demo Innovation Office', role: 'Program lead', email: 'lead@example.edu', useCase: 'University entrepreneurship pilot', notes: 'Validate one cohort.' })
+    store.saveApplicationDraft({ programId: 'prg_draft', programName: 'Demo program', startupSlug: 'campus-cart', applicantId: 'usr_9', answer: 'Draft evidence context' })
+
+    const refreshed = new ExecutionStore(storage).getSnapshot()
+    expect(refreshed.version).toBe(2)
+    expect(refreshed.pilotInquiries[0]).toMatchObject({ organization: 'Demo Innovation Office', storage: 'local_demo' })
+    expect(refreshed.programApplications.find((item) => item.programId === 'prg_draft')?.status).toBe('draft')
+  })
+
+  it('uses distinct seeded sessions for institutional demo personas', () => {
+    const storage = new MemoryStorage()
+    const store = new ExecutionStore(storage)
+    const sessions: string[] = []
+
+    for (const persona of ['program_admin', 'partner', 'platform_admin'] as const) {
+      store.selectPersona(persona)
+      sessions.push(storage.getItem(SESSION_KEY) ?? '')
+    }
+
+    expect(new Set(sessions).size).toBe(3)
   })
 })

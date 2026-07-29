@@ -6,6 +6,7 @@ import type {
   ExecutionEvidence,
   MentorSession,
   OpenRole,
+  PilotInquiry,
   PersonaId,
   PersonaPreset,
   ProgramApplication,
@@ -14,7 +15,7 @@ import type {
 } from './types'
 
 export const EXECUTION_STORE_KEY = 'ssc.executionDemoState.v2'
-const PERSONA_INITIALIZED_KEY = 'ssc.executionPersonaInitialized.v1'
+const PERSONA_INITIALIZED_KEY = 'ssc.executionPersonaInitialized.v2'
 
 export const personaPresets: PersonaPreset[] = [
   { id: 'student', label: 'Student · no startup', description: 'Explore teams, programs, and verification.', userId: 'usr_3', role: 'student' },
@@ -22,9 +23,9 @@ export const personaPresets: PersonaPreset[] = [
   { id: 'member', label: 'Startup member', description: 'Contribute to team milestones.', userId: 'usr_10', role: 'student' },
   { id: 'mentor', label: 'Mentor', description: 'Run sessions and founder action items.', userId: 'usr_5', role: 'mentor' },
   { id: 'investor', label: 'Investor', description: 'Review evidence and request introductions.', userId: 'usr_8', role: 'investor' },
-  { id: 'program_admin', label: 'University · program admin', description: 'Review applications and verification.', userId: 'usr_1', role: 'program_manager' },
-  { id: 'partner', label: 'Partner operator', description: 'Track commitments and outcomes.', userId: 'usr_1', role: 'partner_admin' },
-  { id: 'platform_admin', label: 'Platform administrator', description: 'Audit and govern the workspace.', userId: 'usr_1', role: 'platform_admin' },
+  { id: 'program_admin', label: 'University · program admin', description: 'Review applications and verification.', userId: 'usr_17', role: 'program_manager' },
+  { id: 'partner', label: 'Partner operator', description: 'Track commitments and outcomes.', userId: 'usr_18', role: 'partner_admin' },
+  { id: 'platform_admin', label: 'Platform administrator', description: 'Audit and govern the workspace.', userId: 'usr_19', role: 'platform_admin' },
 ]
 
 const now = () => new Date().toISOString()
@@ -56,7 +57,7 @@ function safeRecord<T>(storage: Storage, key: string): { value: Record<string, T
 export function seedExecutionState(): ExecutionDemoState {
   return {
     version: 2,
-    selectedPersona: 'founder',
+    selectedPersona: 'platform_admin',
     memberships: [
       { id: 'mem_campus_founder', startupSlug: 'campus-cart', userId: 'usr_9', name: 'Aysel Mammadova', title: 'Founder & CEO', kind: 'founder' },
       { id: 'mem_campus_mobile', startupSlug: 'campus-cart', userId: 'usr_10', name: 'Murad Hasanli', title: 'Mobile Engineer', kind: 'member' },
@@ -75,10 +76,10 @@ export function seedExecutionState(): ExecutionDemoState {
     ],
     verificationRequests: [
       { id: 'ver_student', userId: 'usr_3', institution: '', studentId: '', status: 'draft' },
-      { id: 'ver_pending', userId: 'usr_15', institution: 'Baku Engineering University', studentId: 'BEU-10428', document: { name: 'student-card.pdf', size: 284000, type: 'application/pdf' }, status: 'pending', submittedAt: '2026-07-28T12:00:00.000Z' },
+      { id: 'ver_pending', userId: 'usr_15', institution: 'Baku Engineering University', institutionalEmail: 'demo.student@university.example', applicantRole: 'student', supportingNote: 'Illustrative participant in a university venture-validation cohort.', consentAccepted: true, studentId: 'BEU-10428', document: { name: 'student-card.pdf', size: 284000, type: 'application/pdf' }, status: 'pending', submittedAt: '2026-07-28T12:00:00.000Z' },
     ],
     mentorSessions: [
-      { id: 'session_1', mentorId: 'usr_5', mentorName: 'Tarlan Yusifzade', founderId: 'usr_9', startupSlug: 'campus-cart', topic: 'Marketplace validation', goal: 'Decide which trust risk to test before building payments.', scheduledAt: '2026-08-01T11:00:00.000Z', durationMinutes: 45, format: 'video', status: 'scheduled', actionItems: [{ id: 'action_1', text: 'Interview three repeat sellers', milestoneId: 'ms_interviews', complete: false }] },
+      { id: 'session_1', mentorId: 'usr_5', mentorName: 'Tarlan Yusifzade', founderId: 'usr_9', startupSlug: 'campus-cart', topic: 'Marketplace validation', goal: 'Decide which trust risk to test before building payments.', startupContext: 'CampusCart is validating trusted student-to-student marketplace transactions.', challenge: 'The team has three competing trust risks and needs to prioritize one test.', expectedOutcome: 'Choose one risk, one test and a measurable decision rule.', scheduledAt: '2026-08-01T11:00:00.000Z', durationMinutes: 45, format: 'video', status: 'scheduled', actionItems: [{ id: 'action_1', text: 'Interview three repeat sellers', milestoneId: 'ms_interviews', ownerName: 'Aysel Mammadova', dueAt: '2026-08-05', complete: false }] },
     ],
     programApplications: [
       { id: 'app_1', programId: 'prg_1', programName: 'Student Venture Validation Sprint', startupSlug: 'campus-cart', applicantId: 'usr_9', answer: 'We will validate seller trust and safe checkout before expanding.', status: 'pending', submittedAt: '2026-07-27T10:00:00.000Z' },
@@ -92,6 +93,7 @@ export function seedExecutionState(): ExecutionDemoState {
     investorPipeline: { mediroute: 'diligence', greenstack: 'meeting', 'campus-cart': 'screening', agrivision: 'sourced' },
     investorNotes: {},
     introRequests: [],
+    pilotInquiries: [],
     startupDrafts: [],
     migration: { completedAt: now(), recoveredCorruptData: false },
   }
@@ -183,6 +185,9 @@ export class ExecutionStore {
   removeMembership(id: string) {
     this.commit({ ...this.state, memberships: this.state.memberships.filter((item) => item.id !== id) })
   }
+  updateMembership(id: string, patch: Partial<StartupMembership>) {
+    this.commit({ ...this.state, memberships: this.state.memberships.map((item) => item.id === id ? { ...item, ...patch } : item) })
+  }
   addRole(input: Omit<OpenRole, 'id'>) {
     this.commit({ ...this.state, openRoles: [...this.state.openRoles, { ...input, id: uid('role') }] })
   }
@@ -214,6 +219,17 @@ export class ExecutionStore {
   addApplication(input: Omit<ProgramApplication, 'id' | 'status' | 'submittedAt'>) {
     this.commit({ ...this.state, programApplications: [...this.state.programApplications, { ...input, id: uid('application'), status: 'pending', submittedAt: now() }] })
   }
+  saveApplicationDraft(input: Omit<ProgramApplication, 'id' | 'status' | 'submittedAt'>) {
+    const existing = this.state.programApplications.find((item) => item.programId === input.programId && item.applicantId === input.applicantId && item.startupSlug === input.startupSlug)
+    if (existing) {
+      this.commit({ ...this.state, programApplications: this.state.programApplications.map((item) => item.id === existing.id ? { ...item, ...input, status: 'draft' } : item) })
+      return
+    }
+    this.commit({ ...this.state, programApplications: [...this.state.programApplications, { ...input, id: uid('application'), status: 'draft', submittedAt: now() }] })
+  }
+  updateApplication(id: string, patch: Partial<ProgramApplication>) {
+    this.commit({ ...this.state, programApplications: this.state.programApplications.map((item) => item.id === id ? { ...item, ...patch } : item) })
+  }
   reviewApplication(id: string, status: ProgramApplication['status'], reviewerNote: string) {
     this.commit({ ...this.state, programApplications: this.state.programApplications.map((item) => item.id === id ? { ...item, status, reviewerNote } : item) })
   }
@@ -228,6 +244,9 @@ export class ExecutionStore {
   requestIntro(investorId: string, startupSlug: string, reason: string) {
     if (this.state.introRequests.some((item) => item.investorId === investorId && item.startupSlug === startupSlug)) return
     this.commit({ ...this.state, introRequests: [...this.state.introRequests, { id: uid('intro'), investorId, startupSlug, reason, status: 'requested', createdAt: now() }] })
+  }
+  savePilotInquiry(input: Omit<PilotInquiry, 'id' | 'createdAt' | 'storage'>) {
+    this.commit({ ...this.state, pilotInquiries: [...this.state.pilotInquiries, { ...input, id: uid('pilot'), createdAt: now(), storage: 'local_demo' }] })
   }
   markNotification(id: string) {
     this.commit({ ...this.state, notifications: this.state.notifications.map((item) => item.id === id ? { ...item, read: true } : item) })

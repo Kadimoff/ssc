@@ -13,6 +13,8 @@ import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { DemoDataBadge, StatusBadge as ExecutionStatusBadge } from '@/components/execution-primitives'
+import { PilotInquiryDialog } from '@/components/landing/pilot-inquiry-dialog'
+import { businessPackages } from '@/config/business-model'
 
 const statusTone: Record<string, string> = {
   verified: 'bg-emerald-500/10 text-emerald-600', active: 'bg-emerald-500/10 text-emerald-600',
@@ -35,6 +37,7 @@ export function PartnershipsPage() {
     <div className='mb-5 rounded-xl border border-amber-500/25 bg-amber-500/5 px-4 py-3 text-sm text-amber-800 dark:text-amber-200'>
       All named external organizations and commitments on this screen are illustrative demo data—not claimed partnerships or impact.
     </div>
+    <Card className='mb-6 border-primary/20 bg-primary/[0.025]'><CardHeader><div className='flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between'><div><CardTitle>Institutional deployment path</CardTitle><CardDescription className='mt-1 max-w-2xl'>SSC is free for students and founders. Institutions fund verification, program operations, governance, reporting and implementation support.</CardDescription></div><div className='flex flex-wrap gap-2'><PilotInquiryDialog /><Button variant='outline' asChild><a href={`${import.meta.env.BASE_URL}#business-model`}>Compare public packages</a></Button></div></div></CardHeader><CardContent className='grid gap-3 sm:grid-cols-3'>{businessPackages.filter((plan) => ['institutional-pilot', 'campus-platform', 'program-operations'].includes(plan.id)).map((plan) => <div key={plan.id} className='rounded-xl border bg-background/50 p-4'><div className='flex items-start justify-between gap-2'><b className='text-sm'>{plan.publicLabel}</b><Badge variant='outline'>{plan.publicPrice}</Badge></div><p className='mt-2 text-xs leading-5 text-muted-foreground'>{plan.description}</p></div>)}</CardContent></Card>
     <div className='mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
       <Metric icon={Building2} label='Organizations' value={data.organizations.length} detail={`${data.organizations.filter((item) => item.verificationStatus === 'verified').length} verified`} />
       <Metric icon={FileSignature} label='Agreements' value={data.agreements.length} detail={`${data.agreements.filter((item) => item.status === 'active').length} active`} />

@@ -68,8 +68,8 @@ export function RankingsPage() {
     <PageContainer>
       <header className='mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between'>
         <div className='max-w-3xl'>
-          <Badge variant='secondary' className='gap-1.5'><BarChart3 className='size-3.5' />Ecosystem visibility</Badge>
-          <h1 className='mt-4 text-3xl font-bold tracking-tight sm:text-4xl'>Startup Rankings</h1>
+          <Badge variant='secondary' className='gap-1.5'><BarChart3 className='size-3.5' />Execution signals</Badge>
+          <h1 className='mt-4 text-3xl font-bold tracking-tight sm:text-4xl'>Progress Ranking</h1>
           <p className='mt-3 text-base leading-7 text-muted-foreground sm:text-lg'>Verified progress, execution and ecosystem contribution signals.</p>
           <p className='mt-2 text-xs text-muted-foreground'>Updated from current illustrative workspace records. Scores support discovery and are not outcome predictions.</p>
         </div>
@@ -110,7 +110,7 @@ export function RankingsPage() {
             </> : <EmptyRanking />}
           </Card>
 
-          <Card className='border-amber-500/15 bg-amber-500/[0.045]'><CardContent className='flex gap-3 p-4'><ShieldCheck className='mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400' /><div><p className='text-sm font-semibold'>Discovery support, not an investment ranking</p><p className='mt-1 text-xs leading-5 text-muted-foreground'>Scores combine available execution, evidence, milestones, team, community and activity records. They do not estimate investment return, funding probability or venture success.</p></div></CardContent></Card>
+          <Card className='border-amber-500/15 bg-amber-500/[0.045]'><CardContent className='flex gap-3 p-4'><ShieldCheck className='mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400' /><div><p className='text-sm font-semibold'>Discovery support, not an investment ranking</p><p className='mt-1 text-xs leading-5 text-muted-foreground'>This ranking supports ecosystem discovery. It does not predict investment outcomes or personal value.</p><p className='mt-1 text-xs leading-5 text-muted-foreground'>Scores combine available execution, evidence, milestones, team, mentorship, program and recent activity records.</p></div></CardContent></Card>
         </section>
       ) : <CategoryRanking category={category} />}
 

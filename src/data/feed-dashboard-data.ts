@@ -1,4 +1,5 @@
 import type { EntityId, Post, User } from '@/data/types'
+import { demoAvatarUrl, localAsset } from '@/config/demo-assets'
 
 export type DashboardEvent = {
   id: string
@@ -8,6 +9,9 @@ export type DashboardEvent = {
   timeLabel: string
   host: string
   format: 'Online' | 'In person'
+  attendeeCount: number
+  attendeeUserIds: EntityId[]
+  availabilityLabel: string
 }
 
 export type DashboardNextStep = {
@@ -20,6 +24,21 @@ export type DashboardNextStep = {
 export type DashboardMetric = {
   value: string
   label: string
+  detail: string
+}
+
+export type SuggestedPerson = {
+  userId: EntityId
+  matchLabel: string
+  reason: string
+  mutualConnections: number
+}
+
+export type DashboardActivity = {
+  eyebrow: string
+  headline: string
+  detail: string
+  userIds: EntityId[]
 }
 
 export type FeedMediaAsset = {
@@ -57,25 +76,6 @@ export type MentorSession = {
   note?: string
 }
 
-const avatarByUserId: Partial<Record<EntityId, string>> = {
-  usr_1: 'images/founders/aysel-mammadova.webp',
-  usr_2: 'images/founders/reshad-quliyev.webp',
-  usr_3: 'images/founders/leyla-aliyeva.webp',
-  usr_4: 'images/avatars/kamran-vali.webp',
-  usr_5: 'images/avatars/tarlan-yusifzade.webp',
-  usr_6: 'images/avatars/nargiz-rahim.webp',
-  usr_7: 'images/avatars/elvin-safar.webp',
-  usr_8: 'images/founders/leyla-aliyeva.webp',
-  usr_9: 'images/founders/aysel-mammadova.webp',
-  usr_10: 'images/avatars/kamran-vali.webp',
-  usr_11: 'images/avatars/nargiz-rahim.webp',
-  usr_12: 'images/founders/leyla-aliyeva.webp',
-  usr_13: 'images/avatars/elvin-safar.webp',
-  usr_14: 'images/founders/reshad-quliyev.webp',
-  usr_15: 'images/avatars/kamran-vali.webp',
-  usr_16: 'images/avatars/tarlan-yusifzade.webp',
-}
-
 const mediaByPostId: Partial<Record<EntityId, FeedMediaAsset[]>> = {
   pst_1: [{
     src: 'images/feed/greenstack-dashboard.webp',
@@ -103,6 +103,9 @@ export const dashboardEvents: DashboardEvent[] = [
     timeLabel: '18:00–19:00',
     host: 'Tarlan Yusifzade',
     format: 'Online',
+    attendeeCount: 28,
+    attendeeUserIds: ['usr_5', 'usr_2', 'usr_7'],
+    availabilityLabel: '6 slots left',
   },
   {
     id: 'feed-event-2',
@@ -112,6 +115,9 @@ export const dashboardEvents: DashboardEvent[] = [
     timeLabel: '11:00–13:00',
     host: 'SSC Programs',
     format: 'In person',
+    attendeeCount: 46,
+    attendeeUserIds: ['usr_1', 'usr_9', 'usr_14'],
+    availabilityLabel: 'Registration open',
   },
   {
     id: 'feed-event-3',
@@ -121,6 +127,9 @@ export const dashboardEvents: DashboardEvent[] = [
     timeLabel: '17:30–18:30',
     host: 'SSC Mentorship',
     format: 'Online',
+    attendeeCount: 18,
+    attendeeUserIds: ['usr_5', 'usr_16', 'usr_6'],
+    availabilityLabel: '4 matches open',
   },
   {
     id: 'feed-event-4',
@@ -130,8 +139,57 @@ export const dashboardEvents: DashboardEvent[] = [
     timeLabel: '19:00–21:00',
     host: 'GreenStack',
     format: 'In person',
+    attendeeCount: 64,
+    attendeeUserIds: ['usr_2', 'usr_11', 'usr_14'],
+    availabilityLabel: 'Community event',
   },
 ]
+
+export const dashboardPeopleToMeet: SuggestedPerson[] = [
+  {
+    userId: 'usr_4',
+    matchLabel: 'AI product match',
+    reason: 'Your product strategy background complements Kamran’s applied AI delivery experience.',
+    mutualConnections: 3,
+  },
+  {
+    userId: 'usr_5',
+    matchLabel: 'Mentor match · 94%',
+    reason: 'Tarlan’s validation and go-to-market expertise matches your next startup milestone.',
+    mutualConnections: 5,
+  },
+  {
+    userId: 'usr_6',
+    matchLabel: 'Founder peer',
+    reason: 'MediMatch is working through provider growth and a new hiring cycle.',
+    mutualConnections: 2,
+  },
+  {
+    userId: 'usr_7',
+    matchLabel: 'Collaboration fit',
+    reason: 'EduFlow is looking for product feedback after a strong first beta week.',
+    mutualConnections: 4,
+  },
+  {
+    userId: 'usr_11',
+    matchLabel: 'Impact founder',
+    reason: 'Sabina is building an evidence-led pilot in climate-adjacent AgriTech.',
+    mutualConnections: 2,
+  },
+  {
+    userId: 'usr_12',
+    matchLabel: 'Early-stage founder',
+    reason: 'LegalLens is looking for product and technical collaborators before its next validation sprint.',
+    mutualConnections: 1,
+  },
+]
+
+export const dashboardActivity: DashboardActivity = {
+  eyebrow: 'Ecosystem pulse',
+  headline: '18 builders moved work forward today',
+  detail: '12 updates · 4 milestones · 2 launch notes',
+  userIds: ['usr_2', 'usr_6', 'usr_7', 'usr_14'],
+}
 
 export const dashboardNextSteps: DashboardNextStep[] = [
   {
@@ -161,9 +219,9 @@ export const dashboardNextSteps: DashboardNextStep[] = [
 ]
 
 export const dashboardMetrics: DashboardMetric[] = [
-  { value: '142', label: 'Active builders' },
-  { value: '9', label: 'New startups' },
-  { value: '45', label: 'Mentors online' },
+  { value: '142', label: 'Active builders', detail: 'Illustrative weekly activity' },
+  { value: '9', label: 'Startup updates', detail: 'Published this sample week' },
+  { value: '45', label: 'Mentor slots', detail: 'Available across programs' },
 ]
 
 export const startupSummary: StartupSummary = {
@@ -195,12 +253,11 @@ export const nextMentorSession: MentorSession = {
 
 export function assetUrl(path: string) {
   if (/^(?:https?:|data:|blob:)/i.test(path)) return path
-  return `${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`
+  return localAsset(path)
 }
 
 export function avatarForUser(user?: Pick<User, 'id' | 'avatar'> | null) {
-  const path = user?.avatar || (user?.id ? avatarByUserId[user.id] : undefined)
-  return path ? assetUrl(path) : undefined
+  return demoAvatarUrl(user?.id, user?.avatar)
 }
 
 export function mediaForPost(post: Pick<Post, 'id' | 'media'>): FeedMediaAsset[] {

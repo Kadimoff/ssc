@@ -69,6 +69,10 @@ export interface VerificationRequest {
   userId: EntityId
   institution: string
   studentId: string
+  institutionalEmail?: string
+  applicantRole?: 'student' | 'founder' | 'team_member' | 'other'
+  supportingNote?: string
+  consentAccepted?: boolean
   document?: { name: string; size: number; type: string }
   status: 'draft' | 'pending' | 'verified' | 'rejected' | 'needs_changes'
   reviewerNote?: string
@@ -79,6 +83,8 @@ export interface MentorActionItem {
   id: EntityId
   text: string
   milestoneId?: EntityId
+  ownerName?: string
+  dueAt?: string
   complete: boolean
 }
 
@@ -90,6 +96,10 @@ export interface MentorSession {
   startupSlug: string
   topic: string
   goal: string
+  startupContext?: string
+  challenge?: string
+  materialUrl?: string
+  expectedOutcome?: string
   scheduledAt: string
   durationMinutes: number
   format: 'video' | 'in_person'
@@ -132,6 +142,17 @@ export interface IntroRequest {
   createdAt: string
 }
 
+export interface PilotInquiry {
+  id: EntityId
+  organization: string
+  role: string
+  email: string
+  useCase: string
+  notes: string
+  createdAt: string
+  storage: 'local_demo'
+}
+
 export interface ExecutionDemoState {
   version: 2
   selectedPersona: PersonaId
@@ -148,6 +169,7 @@ export interface ExecutionDemoState {
   investorPipeline: Record<string, string>
   investorNotes: Record<string, string>
   introRequests: IntroRequest[]
+  pilotInquiries: PilotInquiry[]
   startupDrafts: Array<{ name: string; sector: string; problem: string; stage: string; createdAt: string }>
   migration: { completedAt: string; recoveredCorruptData: boolean }
 }

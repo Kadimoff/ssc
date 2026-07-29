@@ -1,11 +1,19 @@
 import { useRef, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { useStaggerCards, useLikeAnimation, useBookmarkAnimation } from '@/hooks/use-animations'
-import { ArrowRight, BadgeCheck, Bookmark, BriefcaseBusiness, CalendarDays, Check, CircleDollarSign, CircleHelp, ClipboardCheck, Clock3, GraduationCap, Hash, Heart, Link2, MapPin, MessageCircle, MessagesSquare, MoreHorizontal, Rocket, Send, Share2, Sparkles, Target, TrendingUp, Trophy, UserPlus, Users, Video } from 'lucide-react'
+import { AlertTriangle, ArrowRight, BadgeCheck, Bookmark, BriefcaseBusiness, Building2, CalendarDays, Check, CircleDollarSign, CircleHelp, ClipboardCheck, Clock3, FileUp, GraduationCap, Handshake, Hash, Heart, Link2, MapPin, MessageCircle, MessagesSquare, MoreHorizontal, Rocket, Search, Send, Share2, Sparkles, Target, TrendingUp, Trophy, UserPlus, Users, Video } from 'lucide-react'
 import { apiClient } from '@/data/client'
 import type { PostKind, PostLink, Snapshot, User } from '@/data/types'
-import { dashboardEvents, dashboardMetrics, dashboardNextSteps, dashboardQuickActions, mediaForPost, nextMentorSession, startupSummary } from '@/data/feed-dashboard-data'
-import { MentorSessionCard, QuickActionsCard, StartupSummaryCard } from '@/components/feed'
+import {
+  dashboardActivity,
+  dashboardEvents,
+  dashboardMetrics,
+  dashboardNextSteps,
+  dashboardPeopleToMeet,
+  mediaForPost,
+  type DashboardEvent,
+  type SuggestedPerson,
+} from '@/data/feed-dashboard-data'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -16,6 +24,7 @@ import { PageContainer, PageLoading, UserAvatar } from '@/app/app-shared'
 import { useAction, useSnapshot } from '@/app/app-data'
 import { DemoDataBadge, StatusBadge } from '@/components/execution-primitives'
 import { useExecutionStore } from '@/features/execution/store'
+import type { ExecutionDemoState } from '@/features/execution/types'
 
 /* ------------------------------------------------------------------ */
 /*  Feed — kind metadata, composer, post card, rails                  */
@@ -88,15 +97,10 @@ export function FeedPage() {
   return (
     <div className='feed-workspace-surface'>
       <PageContainer className='relative z-10 grid items-start gap-5 xl:grid-cols-[250px_minmax(0,680px)_300px] 2xl:gap-6'>
-        <FeedLeftRail data={data} onFilter={selectFilter} />
+        <FeedLeftRail data={data} state={state} onFilter={selectFilter} />
         <section ref={feedRef} className='min-w-0 space-y-4'>
-          <ExecutionHome state={state} name={me?.name ?? 'Builder'} />
-          <MobileDashboardSummary data={data} />
-          <div className='grid gap-3 md:grid-cols-2 xl:hidden'>
-            <StartupSummaryCard startup={startupSummary} compact className='md:row-span-2' />
-            <QuickActionsCard actions={dashboardQuickActions} compact />
-            <MentorSessionCard session={nextMentorSession} />
-          </div>
+          <ExecutionHome state={state} data={data} />
+          <HomeOperations state={state} />
       <div className='flex items-end justify-between gap-4 px-1'>
         <div>
           <div className='mb-1 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-primary'>
@@ -139,6 +143,7 @@ export function FeedPage() {
           Load more ecosystem updates <ArrowRight className='size-4' />
         </Button>
       )}
+      <MobileDiscovery data={data} />
         </section>
         <FeedRightRail data={data} />
       </PageContainer>
@@ -146,22 +151,315 @@ export function FeedPage() {
   )
 }
 
-function ExecutionHome({ state, name }: { state: ReturnType<typeof useExecutionStore>['state']; name: string }) {
+function ExecutionHome({ state, data }: { state: ExecutionDemoState; data: Snapshot }) {
   const next = state.milestones.find((item) => item.status !== 'complete')
-  const pending = state.evidence.filter((item) => item.status === 'pending').length
+  const name = data.currentUser?.name ?? 'Builder'
+  const context = homeContext(state, next)
+  const activeBuilders = dashboardActivity.userIds
+    .map((id) => data.users.find((user) => user.id === id))
+    .filter((user): user is User => Boolean(user))
   return <section className='overflow-hidden rounded-2xl border border-primary/20 bg-card/90 shadow-sm'>
     <div className='h-1 bg-gradient-to-r from-primary via-emerald-400 to-amber-300' />
     <div className='p-4 sm:p-5'>
-      <div className='flex flex-wrap items-start justify-between gap-3'><div><div className='flex items-center gap-2'><Badge variant='secondary'>Continue working</Badge><StatusBadge status={next?.status ?? 'planned'} /></div><h1 className='mt-3 text-2xl font-bold tracking-tight'>Welcome back, {name.split(' ')[0]}.</h1><p className='mt-1 text-sm text-muted-foreground'>The next useful action comes before community updates.</p></div><Button asChild><Link to='/workspace'>Open workspace <ArrowRight /></Link></Button></div>
+      <div className='flex flex-wrap items-start justify-between gap-3'><div><div className='flex items-center gap-2'><Badge variant='secondary'>Continue working</Badge><StatusBadge status={context.status} /></div><h1 className='mt-3 text-2xl font-bold tracking-tight'>Welcome back, {name.split(' ')[0]}.</h1><p className='mt-1 text-sm text-muted-foreground'>The next useful action comes before community updates.</p></div><Button asChild><Link to={context.primary.to}>{context.primary.label} <ArrowRight /></Link></Button></div>
       <div className='mt-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center'>
-        <div className='rounded-xl border bg-muted/25 p-4'><div className='flex items-start justify-between gap-3'><div><p className='text-xs font-bold uppercase tracking-wide text-primary'>Next milestone</p><b className='mt-1 block'>{next?.title ?? 'Create your first startup milestone'}</b><p className='mt-1 text-xs text-muted-foreground'>{next?.evidenceDefinition ?? 'Define the evidence that will count as complete.'}</p></div><span className='text-xl font-bold text-primary'>{next?.progress ?? 0}%</span></div><div className='mt-3 h-2 overflow-hidden rounded-full bg-muted'><div className='h-full rounded-full bg-primary' style={{ width: `${next?.progress ?? 0}%` }} /></div></div>
-        <div className='grid grid-cols-2 gap-2 sm:w-52'><Button variant='outline' size='sm' asChild><Link to='/workspace'><Target />Milestones</Link></Button><Button variant='outline' size='sm' asChild><Link to='/mentorship'><GraduationCap />Mentor</Link></Button><Button variant='outline' size='sm' asChild><Link to='/programs'><CalendarDays />Programs</Link></Button><Button variant='outline' size='sm' asChild><Link to='/workspace'><FileCheckIcon />Evidence {pending}</Link></Button></div>
+        <div className='rounded-xl border bg-muted/25 p-4'><div className='flex items-start justify-between gap-3'><div><p className='text-xs font-bold uppercase tracking-wide text-primary'>{context.eyebrow}</p><b className='mt-1 block'>{context.title}</b><p className='mt-1 text-xs text-muted-foreground'>{context.detail}</p></div><span className='text-xl font-bold text-primary'>{context.value}</span></div><div className='mt-3 h-2 overflow-hidden rounded-full bg-muted'><div className='h-full rounded-full bg-primary' style={{ width: `${context.progress}%` }} /></div></div>
+        <div className='grid grid-cols-2 gap-2 sm:w-52'>{context.actions.map(({ label, to, icon: Icon }) => <Button key={label} variant='outline' size='sm' asChild><Link to={to}><Icon />{label}</Link></Button>)}</div>
+      </div>
+      <div className='mt-4 flex flex-wrap items-center gap-3 border-t border-primary/10 pt-4'>
+        <div className='flex -space-x-2' aria-label='Sample of active SSC builders'>
+          {activeBuilders.map((user) => <UserAvatar key={user.id} user={user} className='size-8 border-2 border-card ring-0' />)}
+        </div>
+        <div className='min-w-0 flex-1'>
+          <p className='text-[10px] font-bold uppercase tracking-[0.13em] text-primary'>{dashboardActivity.eyebrow}</p>
+          <p className='truncate text-sm font-semibold'>{dashboardActivity.headline}</p>
+        </div>
+        <span className='rounded-full border border-primary/10 bg-primary/[0.05] px-3 py-1 text-[11px] font-medium text-muted-foreground'>{dashboardActivity.detail}</span>
       </div>
     </div>
   </section>
 }
 
-function FileCheckIcon() { return <ClipboardCheck className='size-4' /> }
+type HomeActionRoute = '/workspace' | '/mentorship' | '/programs' | '/verification' | '/admin' | '/partnerships' | '/investors' | '/network' | '/jobs' | '/startups'
+
+function homeContext(state: ExecutionDemoState, next: ExecutionDemoState['milestones'][number] | undefined): {
+  eyebrow: string
+  title: string
+  detail: string
+  value: string
+  progress: number
+  status: string
+  primary: { label: string; to: HomeActionRoute }
+  actions: Array<{ label: string; to: HomeActionRoute; icon: typeof Target }>
+} {
+  const pendingEvidence = state.evidence.filter((item) => item.status === 'pending').length
+  const pendingVerification = state.verificationRequests.filter((item) => item.status === 'pending').length
+  const pendingApplications = state.programApplications.filter((item) => item.status === 'pending').length
+  const scheduledSessions = state.mentorSessions.filter((item) => item.status === 'scheduled').length
+  const openMentorActions = state.mentorSessions.flatMap((item) => item.actionItems).filter((item) => !item.complete).length
+
+  if (state.selectedPersona === 'student') return {
+    eyebrow: 'Verification step',
+    title: 'Complete your verified student profile',
+    detail: 'Confirm your institution before joining trusted startup workflows.',
+    value: '1/3',
+    progress: 33,
+    status: 'draft',
+    primary: { label: 'Continue verification', to: '/verification' },
+    actions: [
+      { label: 'Verify', to: '/verification', icon: BadgeCheck },
+      { label: 'Find roles', to: '/jobs', icon: Search },
+      { label: 'Programs', to: '/programs', icon: CalendarDays },
+      { label: 'Startups', to: '/startups', icon: Rocket },
+    ],
+  }
+  if (state.selectedPersona === 'mentor') return {
+    eyebrow: 'Next founder session',
+    title: state.mentorSessions.find((item) => item.status === 'scheduled')?.topic ?? 'Review founder context',
+    detail: `${openMentorActions} open founder action item${openMentorActions === 1 ? '' : 's'} across your sample sessions.`,
+    value: String(scheduledSessions),
+    progress: scheduledSessions ? 65 : 15,
+    status: scheduledSessions ? 'scheduled' : 'planned',
+    primary: { label: 'Open mentor workspace', to: '/workspace' },
+    actions: [
+      { label: 'Sessions', to: '/mentorship', icon: CalendarDays },
+      { label: 'Actions', to: '/workspace', icon: ClipboardCheck },
+      { label: 'Founders', to: '/network', icon: Users },
+      { label: 'Programs', to: '/programs', icon: GraduationCap },
+    ],
+  }
+  if (state.selectedPersona === 'investor') return {
+    eyebrow: 'Opportunity review',
+    title: `${pendingEvidence} evidence signal${pendingEvidence === 1 ? '' : 's'} need review`,
+    detail: 'Review missing signals before requesting a consent-based introduction.',
+    value: String(state.watchlist.length),
+    progress: Math.min(100, state.watchlist.length * 20),
+    status: pendingEvidence ? 'pending' : 'complete',
+    primary: { label: 'Review opportunities', to: '/investors' },
+    actions: [
+      { label: 'Matches', to: '/investors', icon: Search },
+      { label: 'Evidence', to: '/investors', icon: ClipboardCheck },
+      { label: 'Watchlist', to: '/investors', icon: Bookmark },
+      { label: 'Introductions', to: '/investors', icon: Handshake },
+    ],
+  }
+  if (state.selectedPersona === 'program_admin' || state.selectedPersona === 'partner' || state.selectedPersona === 'platform_admin') {
+    const pending = pendingEvidence + pendingVerification + pendingApplications
+    const partner = state.selectedPersona === 'partner'
+    const platform = state.selectedPersona === 'platform_admin'
+    return {
+      eyebrow: partner ? 'Partner commitment' : platform ? 'Governance queue' : 'Program operations',
+      title: partner ? 'Review commitments and outcome evidence' : `${pending} workflow decision${pending === 1 ? '' : 's'} need attention`,
+      detail: partner ? 'Keep contributions, agreements and outcome records connected.' : 'Applications, verification and evidence remain reasoned and auditable.',
+      value: partner ? 'Demo' : String(pending),
+      progress: pending ? 55 : 100,
+      status: pending ? 'pending' : 'complete',
+      primary: { label: partner ? 'Open partner workspace' : 'Open operations', to: '/workspace' },
+      actions: [
+        { label: 'Workspace', to: '/workspace', icon: Building2 },
+        { label: 'Programs', to: '/programs', icon: CalendarDays },
+        { label: 'Verification', to: '/verification', icon: BadgeCheck },
+        { label: partner ? 'Outcomes' : platform ? 'Admin' : 'Partners', to: partner ? '/partnerships' : platform ? '/admin' : '/partnerships', icon: partner ? TrendingUp : platform ? Target : Handshake },
+      ],
+    }
+  }
+  return {
+    eyebrow: 'Next milestone',
+    title: next?.title ?? 'Create your first startup milestone',
+    detail: next?.evidenceDefinition ?? 'Define the evidence that will count as complete.',
+    value: `${next?.progress ?? 0}%`,
+    progress: next?.progress ?? 0,
+    status: next?.status ?? 'planned',
+    primary: { label: 'Open workspace', to: '/workspace' },
+    actions: [
+      { label: 'Milestones', to: '/workspace', icon: Target },
+      { label: 'Mentor', to: '/mentorship', icon: GraduationCap },
+      { label: 'Programs', to: '/programs', icon: CalendarDays },
+      { label: `Evidence ${pendingEvidence}`, to: '/workspace', icon: ClipboardCheck },
+    ],
+  }
+}
+
+function HomeOperations({ state }: { state: ExecutionDemoState }) {
+  if (['mentor', 'investor', 'program_admin', 'partner', 'platform_admin'].includes(state.selectedPersona)) {
+    return <StakeholderHomeOperations state={state} />
+  }
+  const startupSlug = 'campus-cart'
+  const startupMilestones = state.milestones.filter((item) => item.startupSlug === startupSlug)
+  const currentMilestone = startupMilestones.find((item) => item.status !== 'complete')
+  const startupEvidence = state.evidence.filter((item) => item.startupSlug === startupSlug)
+  const verifiedEvidence = startupEvidence.filter((item) => item.status === 'verified').length
+  const evidenceCoverage = startupEvidence.length ? Math.round((verifiedEvidence / startupEvidence.length) * 100) : 0
+  const members = state.memberships.filter((item) => item.startupSlug === startupSlug)
+  const openRoles = state.openRoles.filter((item) => item.startupSlug === startupSlug && item.status === 'open')
+  const application = state.programApplications.find((item) => item.startupSlug === startupSlug)
+  const session = state.mentorSessions.find((item) => item.startupSlug === startupSlug && item.status === 'scheduled')
+  const noStartup = state.selectedPersona === 'student'
+
+  const workflow = [
+    { label: 'Team', complete: members.length >= 2 },
+    { label: 'Milestone', complete: startupMilestones.length > 0 },
+    { label: 'Evidence', complete: startupEvidence.length > 0 },
+    { label: 'Mentor', complete: state.mentorSessions.some((item) => item.startupSlug === startupSlug) },
+    { label: 'Program', complete: Boolean(application) },
+    { label: 'Investor', complete: state.introRequests.some((item) => item.startupSlug === startupSlug) },
+  ]
+
+  const actions = [
+    { label: 'Add milestone', to: '/workspace' as const, icon: Target },
+    { label: 'Upload evidence', to: '/workspace' as const, icon: FileUp },
+    { label: 'Find teammate', to: '/network' as const, icon: UserPlus },
+    { label: 'Book mentor', to: '/mentorship' as const, icon: GraduationCap },
+    { label: 'Apply to program', to: '/programs' as const, icon: CalendarDays },
+  ]
+
+  const attention = [
+    startupEvidence.some((item) => item.status === 'needs_changes') ? { text: 'Evidence needs revision', to: '/workspace' as const, status: 'needs_changes' } : { text: 'Seller interview evidence awaits review', to: '/workspace' as const, status: 'pending' },
+    session ? { text: `Mentor session · ${new Date(session.scheduledAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}`, to: '/mentorship' as const, status: 'scheduled' } : { text: 'Book a validation mentor', to: '/mentorship' as const, status: 'planned' },
+    application ? { text: `${application.programName} · ${application.status.replace('_', ' ')}`, to: '/programs' as const, status: application.status } : { text: 'Program application not started', to: '/programs' as const, status: 'draft' },
+  ]
+
+  return <section className='space-y-3' aria-labelledby='home-operations-title'>
+    <div className='flex items-center justify-between gap-3 px-1'><div><p className='text-[10px] font-bold uppercase tracking-[.14em] text-primary'>Execution overview</p><h2 id='home-operations-title' className='mt-1 text-lg font-bold tracking-tight'>Your operating picture</h2></div><DemoDataBadge /></div>
+
+    <Card className='overflow-hidden border-primary/15 bg-card/90'>
+      <CardHeader className='pb-3'>
+        <div className='flex flex-wrap items-start justify-between gap-3'>
+          <div><CardTitle className='flex items-center gap-2'><Building2 className='size-5 text-primary' />{noStartup ? 'Start your first workspace' : 'CampusCart snapshot'}</CardTitle><CardDescription className='mt-1'>{noStartup ? 'Create a startup or join a team to begin the execution loop.' : 'Sample university ecosystem · validation stage'}</CardDescription></div>
+          <StatusBadge status={noStartup ? 'draft' : application?.status ?? 'planned'} />
+        </div>
+      </CardHeader>
+      <CardContent>
+        {noStartup ? <div className='flex flex-col gap-3 rounded-xl border border-dashed p-4 sm:flex-row sm:items-center sm:justify-between'><p className='text-sm leading-6 text-muted-foreground'>Verification, startup creation, open roles and programs are ready in the demo workspace.</p><div className='flex gap-2'><Button asChild><Link to='/startups/new'>Create startup</Link></Button><Button variant='outline' asChild><Link to='/jobs'>Find roles</Link></Button></div></div> : <>
+          <div className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
+            {[['Team', `${members.length} active`], ['Evidence', `${evidenceCoverage}% verified`], ['Open roles', String(openRoles.length)], ['Application', application?.status.replace('_', ' ') ?? 'Not started']].map(([label, value]) => <div key={label} className='rounded-xl border bg-muted/20 p-3'><p className='text-[10px] font-bold uppercase tracking-wider text-muted-foreground'>{label}</p><p className='mt-1 truncate text-sm font-semibold capitalize'>{value}</p></div>)}
+          </div>
+          <div className='mt-3 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center'>
+            <div><p className='text-xs text-muted-foreground'>Current ask</p><p className='mt-1 text-sm font-semibold'>Backend co-founder for a safe checkout pilot</p><p className='mt-1 text-xs text-muted-foreground'>Next best action: finish three seller interviews and submit the decision summary.</p></div>
+            <Button variant='outline' asChild><Link to='/startups/$slug' params={{ slug: startupSlug }}>Open startup <ArrowRight /></Link></Button>
+          </div>
+        </>}
+      </CardContent>
+    </Card>
+
+    <div className='grid gap-3 md:grid-cols-3'>
+      <Card className='border-primary/10'><CardHeader className='pb-2'><CardDescription>Current milestone</CardDescription><CardTitle className='text-base'>{currentMilestone?.title ?? 'Define a milestone'}</CardTitle></CardHeader><CardContent><div className='flex items-center justify-between text-xs text-muted-foreground'><span>Progress</span><b className='text-primary'>{currentMilestone?.progress ?? 0}%</b></div><div className='mt-2 h-2 overflow-hidden rounded-full bg-muted'><div className='h-full rounded-full bg-primary' style={{ width: `${currentMilestone?.progress ?? 0}%` }} /></div><Button variant='ghost' size='sm' className='mt-3 px-0' asChild><Link to='/workspace'>Update milestone <ArrowRight /></Link></Button></CardContent></Card>
+      <Card className='border-primary/10'><CardHeader className='pb-2'><CardDescription>Evidence status</CardDescription><CardTitle className='text-base'>{startupEvidence.length} record{startupEvidence.length === 1 ? '' : 's'} · {verifiedEvidence} verified</CardTitle></CardHeader><CardContent><p className='text-xs leading-5 text-muted-foreground'>{startupEvidence.some((item) => item.status === 'pending') ? 'One evidence record is waiting for an authorized review.' : 'Add the proof that supports your next decision.'}</p><Button variant='ghost' size='sm' className='mt-3 px-0' asChild><Link to='/workspace'>Upload evidence <ArrowRight /></Link></Button></CardContent></Card>
+      <Card className='border-primary/10'><CardHeader className='pb-2'><CardDescription>{session ? 'Mentor session' : 'Program deadline'}</CardDescription><CardTitle className='text-base'>{session?.topic ?? 'Continue your application'}</CardTitle></CardHeader><CardContent><p className='text-xs leading-5 text-muted-foreground'>{session ? `${session.mentorName} · ${new Date(session.scheduledAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}` : 'Review eligibility and evidence requirements.'}</p><Button variant='ghost' size='sm' className='mt-3 px-0' asChild><Link to={session ? '/mentorship' : '/programs'}>Review details <ArrowRight /></Link></Button></CardContent></Card>
+    </div>
+
+    <Card className='border-primary/10'>
+      <CardHeader className='pb-3'><CardTitle className='text-base'>Quick actions</CardTitle><CardDescription>Five execution actions before publishing an update.</CardDescription></CardHeader>
+      <CardContent className='grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6'>
+        {actions.map(({ label, to, icon: Icon }) => <Button key={label} variant='outline' className='h-auto min-h-16 flex-col whitespace-normal px-2 text-center' asChild><Link to={to}><Icon className='size-5 text-primary' />{label}</Link></Button>)}
+        <Button variant='outline' className='h-auto min-h-16 flex-col whitespace-normal px-2 text-center' asChild><a href='#feed-composer'><Sparkles className='size-5 text-primary' />Publish update</a></Button>
+      </CardContent>
+    </Card>
+
+    <Card className='border-primary/10'>
+      <CardHeader className='pb-3'><CardTitle className='text-base'>Workflow progress</CardTitle><CardDescription>Team → Milestone → Evidence → Mentor → Program → Investor</CardDescription></CardHeader>
+      <CardContent>
+        <ol className='grid gap-2 sm:grid-cols-3 lg:grid-cols-6'>
+          {workflow.map((step, index) => <li key={step.label} className={cn('flex min-h-12 items-center gap-2 rounded-xl border px-3 text-xs font-semibold', step.complete ? 'border-primary/20 bg-primary/[0.06] text-foreground' : 'border-border bg-muted/20 text-muted-foreground')}><span className={cn('grid size-6 shrink-0 place-items-center rounded-full text-[10px] font-bold', step.complete ? 'bg-primary text-primary-foreground' : 'bg-muted')}>{step.complete ? <Check className='size-3.5' /> : index + 1}</span>{step.label}</li>)}
+        </ol>
+      </CardContent>
+    </Card>
+
+    <Card className='border-amber-500/20 bg-amber-500/[0.025]'>
+      <CardHeader className='pb-2'><CardTitle className='flex items-center gap-2 text-base'><AlertTriangle className='size-4 text-amber-600' /> Items requiring attention</CardTitle></CardHeader>
+      <CardContent className='grid gap-2 md:grid-cols-3'>
+        {attention.map((item) => <Link key={item.text} to={item.to} className='flex min-h-12 items-center justify-between gap-2 rounded-xl border bg-background/55 px-3 text-sm font-medium outline-none hover:border-primary/25 focus-visible:ring-2 focus-visible:ring-primary'><span className='min-w-0 truncate'>{item.text}</span><StatusBadge status={item.status} className='shrink-0 text-[10px]' /></Link>)}
+      </CardContent>
+    </Card>
+  </section>
+}
+
+function StakeholderHomeOperations({ state }: { state: ExecutionDemoState }) {
+  const persona = state.selectedPersona
+  const pendingEvidence = state.evidence.filter((item) => item.status === 'pending').length
+  const pendingVerification = state.verificationRequests.filter((item) => item.status === 'pending').length
+  const pendingApplications = state.programApplications.filter((item) => item.status === 'pending').length
+  const sessions = state.mentorSessions.filter((item) => item.status === 'scheduled')
+  const openActions = state.mentorSessions.flatMap((item) => item.actionItems).filter((item) => !item.complete)
+  const metrics = persona === 'mentor'
+    ? [
+        { label: 'Scheduled sessions', value: sessions.length, detail: 'Founder context available', icon: CalendarDays },
+        { label: 'Open actions', value: openActions.length, detail: 'Owned follow-ups', icon: ClipboardCheck },
+        { label: 'Linked milestones', value: new Set(openActions.map((item) => item.milestoneId).filter(Boolean)).size, detail: 'Execution context', icon: Target },
+      ]
+    : persona === 'investor'
+      ? [
+          { label: 'Watchlist', value: state.watchlist.length, detail: 'Relevant ventures', icon: Bookmark },
+          { label: 'Evidence to review', value: pendingEvidence, detail: 'Missing or pending signals', icon: ClipboardCheck },
+          { label: 'Intro requests', value: state.introRequests.length, detail: 'Consent-based handoffs', icon: Handshake },
+        ]
+      : persona === 'partner'
+        ? [
+            { label: 'Program records', value: state.programApplications.length, detail: 'Illustrative participation', icon: CalendarDays },
+            { label: 'Evidence records', value: state.evidence.length, detail: 'Outcome support', icon: ClipboardCheck },
+            { label: 'Attention items', value: state.notifications.filter((item) => !item.read).length, detail: 'Sample operator queue', icon: AlertTriangle },
+          ]
+        : [
+            { label: 'Applications', value: state.programApplications.length, detail: `${pendingApplications} pending review`, icon: CalendarDays },
+            { label: 'Verification queue', value: pendingVerification, detail: 'Reasoned decisions', icon: BadgeCheck },
+            { label: 'Evidence review', value: pendingEvidence, detail: 'Safe demo metadata', icon: ClipboardCheck },
+          ]
+  const actions: Array<{ label: string; to: HomeActionRoute; icon: typeof Target }> = persona === 'mentor'
+    ? [
+        { label: 'Prepare session', to: '/mentorship', icon: CalendarDays },
+        { label: 'Review actions', to: '/workspace', icon: ClipboardCheck },
+        { label: 'Find founders', to: '/network', icon: Users },
+        { label: 'View programs', to: '/programs', icon: GraduationCap },
+        { label: 'Open workspace', to: '/workspace', icon: Target },
+      ]
+    : persona === 'investor'
+      ? [
+          { label: 'Review matches', to: '/investors', icon: Search },
+          { label: 'Inspect evidence', to: '/investors', icon: ClipboardCheck },
+          { label: 'Open watchlist', to: '/investors', icon: Bookmark },
+          { label: 'Compare ventures', to: '/investors', icon: TrendingUp },
+          { label: 'Track introductions', to: '/investors', icon: Handshake },
+        ]
+      : persona === 'partner'
+        ? [
+            { label: 'Review commitments', to: '/partnerships', icon: Handshake },
+            { label: 'Record contribution', to: '/partnerships', icon: ClipboardCheck },
+            { label: 'Inspect outcomes', to: '/partnerships', icon: TrendingUp },
+            { label: 'Plan a program', to: '/programs', icon: CalendarDays },
+            { label: 'Request pilot', to: '/partnerships', icon: Building2 },
+          ]
+        : [
+            { label: 'Review applications', to: '/programs', icon: CalendarDays },
+            { label: 'Review verification', to: '/verification', icon: BadgeCheck },
+            { label: 'Review evidence', to: '/workspace', icon: ClipboardCheck },
+            { label: 'Track outcomes', to: '/partnerships', icon: TrendingUp },
+            { label: persona === 'platform_admin' ? 'Open admin' : 'Manage programs', to: persona === 'platform_admin' ? '/admin' : '/programs', icon: Building2 },
+          ]
+  const attention = persona === 'mentor'
+    ? [
+        { title: sessions[0]?.topic ?? 'No session scheduled', detail: sessions[0] ? `With ${sessions[0].mentorName}` : 'Review mentor availability', status: sessions[0]?.status ?? 'planned', to: '/mentorship' as HomeActionRoute },
+        { title: `${openActions.length} open action item${openActions.length === 1 ? '' : 's'}`, detail: 'Confirm owners and deadlines', status: openActions.length ? 'pending' : 'complete', to: '/workspace' as HomeActionRoute },
+      ]
+    : persona === 'investor'
+      ? [
+          { title: `${pendingEvidence} evidence signal${pendingEvidence === 1 ? '' : 's'} pending`, detail: 'Separate relevance from readiness', status: pendingEvidence ? 'pending' : 'complete', to: '/investors' as HomeActionRoute },
+          { title: `${state.introRequests.length} tracked introduction request${state.introRequests.length === 1 ? '' : 's'}`, detail: 'No transaction or success fee', status: state.introRequests.length ? 'requested' : 'planned', to: '/investors' as HomeActionRoute },
+        ]
+      : [
+          { title: `${pendingVerification} verification request${pendingVerification === 1 ? '' : 's'}`, detail: 'Review consent and supporting metadata', status: pendingVerification ? 'pending' : 'complete', to: '/verification' as HomeActionRoute },
+          { title: `${pendingApplications} application${pendingApplications === 1 ? '' : 's'} awaiting decision`, detail: 'Record a reasoned program outcome', status: pendingApplications ? 'pending' : 'complete', to: '/programs' as HomeActionRoute },
+          { title: `${pendingEvidence} evidence record${pendingEvidence === 1 ? '' : 's'} pending`, detail: 'Inspect before reporting outcomes', status: pendingEvidence ? 'pending' : 'complete', to: '/workspace' as HomeActionRoute },
+        ]
+
+  return <section className='space-y-3' aria-labelledby='stakeholder-operations-title'>
+    <div className='flex items-center justify-between gap-3 px-1'><div><p className='text-[10px] font-bold uppercase tracking-[.14em] text-primary'>Role-aware operations</p><h2 id='stakeholder-operations-title' className='mt-1 text-lg font-bold tracking-tight'>Your operating picture</h2></div><DemoDataBadge /></div>
+    <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
+      {metrics.map(({ label, value, detail, icon: Icon }) => <Card key={label} className='border-primary/10'><CardContent className='flex items-center gap-3 p-4'><span className='grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary'><Icon className='size-5' /></span><div className='min-w-0'><p className='text-[10px] font-bold uppercase tracking-wide text-muted-foreground'>{label}</p><b className='text-xl'>{value}</b><p className='truncate text-xs text-muted-foreground'>{detail}</p></div></CardContent></Card>)}
+    </div>
+    <Card className='border-primary/10'><CardHeader className='pb-3'><CardTitle className='text-base'>Quick actions</CardTitle><CardDescription>Operational actions matched to the active demo persona.</CardDescription></CardHeader><CardContent className='grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5'>{actions.map(({ label, to, icon: Icon }) => <Button key={label} variant='outline' className='h-auto min-h-16 flex-col whitespace-normal px-2 text-center' asChild><Link to={to}><Icon className='size-5 text-primary' />{label}</Link></Button>)}</CardContent></Card>
+    <Card className='border-amber-500/20 bg-amber-500/[0.025]'><CardHeader className='pb-2'><CardTitle className='flex items-center gap-2 text-base'><AlertTriangle className='size-4 text-amber-600' />Items requiring attention</CardTitle></CardHeader><CardContent className='grid gap-2 md:grid-cols-3'>{attention.map((item) => <Link key={item.title} to={item.to} className='rounded-xl border bg-background/55 p-3 outline-none hover:border-primary/25 focus-visible:ring-2 focus-visible:ring-primary'><div className='flex items-center justify-between gap-2'><b className='text-sm'>{item.title}</b><StatusBadge status={item.status} className='shrink-0 text-[10px]' /></div><p className='mt-1 text-xs text-muted-foreground'>{item.detail}</p></Link>)}</CardContent></Card>
+  </section>
+}
 
 function FeedComposer({ me }: { me: Snapshot['currentUser'] }) {
   const [content, setContent] = useState('')
@@ -281,6 +579,7 @@ function PostCard({ post, data }: { post: Snapshot['posts'][number]; data: Snaps
             <CardTitle className='text-[15px] tracking-tight'>{author?.name}</CardTitle>
             {author?.verificationStatus === 'verified' && <BadgeCheck className='size-4 text-primary' aria-label='Verified SSC member' />}
             <Badge variant='outline' className={cn('gap-1 border text-[10px] font-semibold uppercase tracking-wider', meta.badge)}><Icon className='size-3' />{meta.label}</Badge>
+            <DemoDataBadge label='Sample post' />
           </div>
           <CardDescription className='mt-0.5 flex flex-wrap items-center gap-1.5 text-xs'>
             <span className='truncate'>{author?.title}</span>
@@ -379,35 +678,41 @@ function CommentThread({ post, data }: { post: Snapshot['posts'][number]; data: 
   )
 }
 
-function MobileDashboardSummary({ data }: { data: Snapshot }) {
-  const me = data.currentUser
-  const event = dashboardEvents[0]
-  return (
-    <Card className='overflow-hidden border-primary/10 bg-card/85 p-0 shadow-sm xl:hidden'>
-      <CardContent className='grid gap-3 p-3 sm:grid-cols-[1fr_auto] sm:items-center sm:p-4'>
-        <div className='flex min-w-0 items-center gap-3'>
-          <UserAvatar user={me} className='size-12 ring-2 ring-primary/10' />
-          <div className='min-w-0'>
-            <div className='flex items-center gap-1.5'><p className='truncate text-sm font-semibold'>{me?.name ?? 'SSC member'}</p><BadgeCheck className='size-4 shrink-0 text-primary' aria-label='Verified member' /></div>
-            <p className='truncate text-xs text-muted-foreground'>{me?.title ?? 'Student founder'}</p>
-          </div>
-          <Button variant='outline' size='sm' className='ml-auto shrink-0 sm:hidden' asChild><Link to='/profile'>Profile</Link></Button>
-        </div>
-        <Link to='/events' className='group flex items-center gap-3 rounded-xl border border-primary/10 bg-primary/[0.045] px-3 py-2 outline-none transition-colors hover:bg-primary/[0.075] focus-visible:ring-2 focus-visible:ring-primary/50'>
-          <span className='grid size-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary'><CalendarDays className='size-4' /></span>
-          <span className='min-w-0'><span className='block text-[10px] font-bold uppercase tracking-wider text-primary'>Up next · {event.timeLabel}</span><span className='block truncate text-xs font-semibold'>{event.title}</span></span>
-          <ArrowRight className='size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5' />
-        </Link>
-      </CardContent>
-    </Card>
-  )
+function nextStepsForPersona(state: ExecutionDemoState) {
+  if (state.selectedPersona === 'mentor') return [
+    { id: 'mentor-prepare', title: 'Prepare the next founder session', description: 'Review the goal, challenge, and linked milestone.', completed: true },
+    { id: 'mentor-evidence', title: 'Review founder evidence', description: 'Separate observations from assumptions.', completed: false },
+    { id: 'mentor-action', title: 'Assign an owned action item', description: 'Add one owner and a clear deadline.', completed: false },
+    { id: 'mentor-followup', title: 'Schedule a follow-up', description: 'Keep the decision loop moving.', completed: false },
+  ]
+  if (state.selectedPersona === 'investor') return [
+    { id: 'investor-thesis', title: 'Confirm the saved thesis', description: 'Keep sector, stage, and geography explicit.', completed: true },
+    { id: 'investor-evidence', title: 'Review missing evidence', description: 'Inspect readiness signals without predicting returns.', completed: false },
+    { id: 'investor-watch', title: 'Prioritize the watchlist', description: 'Record the next review action.', completed: true },
+    { id: 'investor-intro', title: 'Track an introduction', description: 'Use a consent-based request with context.', completed: false },
+  ]
+  if (state.selectedPersona === 'partner') return [
+    { id: 'partner-commitment', title: 'Review partner commitments', description: 'Confirm owners, dates, and delivery status.', completed: true },
+    { id: 'partner-contribution', title: 'Record a contribution', description: 'Link support to a program or outcome.', completed: false },
+    { id: 'partner-evidence', title: 'Inspect outcome evidence', description: 'Report only supported results.', completed: false },
+    { id: 'partner-program', title: 'Plan the next program action', description: 'Coordinate operator and expert capacity.', completed: false },
+  ]
+  if (state.selectedPersona === 'program_admin' || state.selectedPersona === 'platform_admin') return [
+    { id: 'operator-verification', title: 'Review pending verification', description: 'Inspect consent and safe supporting metadata.', completed: false },
+    { id: 'operator-application', title: 'Decide a program application', description: 'Record a transparent review note.', completed: false },
+    { id: 'operator-evidence', title: 'Review submitted evidence', description: 'Approve, reject, or request changes.', completed: false },
+    { id: 'operator-audit', title: 'Inspect the audit trail', description: 'Confirm that operational decisions are attributable.', completed: true },
+  ]
+  return dashboardNextSteps
 }
 
-function FeedLeftRail({ data, onFilter }: { data: Snapshot; onFilter: (filter: FeedFilter) => void }) {
+function FeedLeftRail({ data, state, onFilter }: { data: Snapshot; state: ExecutionDemoState; onFilter: (filter: FeedFilter) => void }) {
   const me = data.currentUser
   const completion = me ? Math.min(100, 45 + (me.skills ? 15 : 0) + (me.about ? 15 : 0) + (me.website ? 10 : 0) + (me.company ? 15 : 0)) : 0
-  const [done, setDone] = useState<boolean[]>(dashboardNextSteps.map((step) => step.completed))
-  const completedSteps = done.filter(Boolean).length
+  const nextSteps = nextStepsForPersona(state)
+  const [done, setDone] = useState<Record<string, boolean>>({})
+  const stepDone = (id: string, initial: boolean) => done[id] ?? initial
+  const completedSteps = nextSteps.filter((step) => stepDone(step.id, step.completed)).length
   return (
     <aside className='hidden space-y-4 xl:block'>
       <Card className='glass-card overflow-hidden border-primary/10 p-0 shadow-sm'>
@@ -433,24 +738,26 @@ function FeedLeftRail({ data, onFilter }: { data: Snapshot; onFilter: (filter: F
       <Card className='glass-card overflow-hidden border-primary/10 p-0 shadow-sm'>
         <CardContent className='p-4'>
           <div className='mb-3 flex items-start justify-between gap-2'>
-            <div><div className='flex items-center gap-2 text-sm font-semibold'><ClipboardCheck className='size-4 text-primary' /> Next steps</div><p className='mt-1 text-[11px] text-muted-foreground'>Build your founder momentum.</p></div>
-            <Badge variant='secondary' className='text-[10px]'>{completedSteps}/{done.length}</Badge>
+            <div><div className='flex items-center gap-2 text-sm font-semibold'><ClipboardCheck className='size-4 text-primary' /> Next steps</div><p className='mt-1 text-[11px] text-muted-foreground'>Move the active workflow forward.</p></div>
+            <Badge variant='secondary' className='text-[10px]'>{completedSteps}/{nextSteps.length}</Badge>
           </div>
-          <div className='mb-3 h-1.5 overflow-hidden rounded-full bg-muted'><div className='h-full rounded-full bg-primary transition-[width] duration-300' style={{ width: `${(completedSteps / done.length) * 100}%` }} /></div>
+          <div className='mb-3 h-1.5 overflow-hidden rounded-full bg-muted'><div className='h-full rounded-full bg-primary transition-[width] duration-300' style={{ width: `${nextSteps.length ? (completedSteps / nextSteps.length) * 100 : 0}%` }} /></div>
           <ul className='space-y-1'>
-            {dashboardNextSteps.map((step, i) => (
+            {nextSteps.map((step) => {
+              const complete = stepDone(step.id, step.completed)
+              return (
               <li key={step.id}>
                 <button
-                  onClick={() => setDone((prev) => prev.map((value, index) => (index === i ? !value : value)))}
+                  onClick={() => setDone((previous) => ({ ...previous, [step.id]: !complete }))}
                   className='group flex w-full items-start gap-2.5 rounded-xl px-2 py-2 text-left transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50'
                 >
-                  <span className={cn('mt-0.5 grid size-4 shrink-0 place-items-center rounded-full border transition-colors', done[i] ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground/40 group-hover:border-primary/50')}>
-                    {done[i] && <Check className='size-3' />}
+                  <span className={cn('mt-0.5 grid size-4 shrink-0 place-items-center rounded-full border transition-colors', complete ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground/40 group-hover:border-primary/50')}>
+                    {complete && <Check className='size-3' />}
                   </span>
-                  <span className='min-w-0'><span className={cn('block text-[12px] font-medium leading-4', done[i] && 'text-muted-foreground line-through')}>{step.title}</span><span className='mt-0.5 block text-[10px] leading-4 text-muted-foreground'>{step.description}</span></span>
+                  <span className='min-w-0'><span className={cn('block text-[12px] font-medium leading-4', complete && 'text-muted-foreground line-through')}>{step.title}</span><span className='mt-0.5 block text-[10px] leading-4 text-muted-foreground'>{step.description}</span></span>
                 </button>
               </li>
-            ))}
+            )})}
           </ul>
         </CardContent>
       </Card>
@@ -461,48 +768,110 @@ function FeedLeftRail({ data, onFilter }: { data: Snapshot; onFilter: (filter: F
           <Button variant='ghost' className='justify-start' asChild><Link to='/events'><CalendarDays />Events <span className='ml-auto size-2 rounded-full bg-emerald-500' aria-label='New events available' /></Link></Button>
         </CardContent>
       </Card>
-      <StartupSummaryCard startup={startupSummary} />
-      <QuickActionsCard actions={dashboardQuickActions} />
-      <MentorSessionCard session={nextMentorSession} />
     </aside>
   )
 }
 
-function FeedRightRail({ data }: { data: Snapshot }) {
+type PersonRecommendation = {
+  user: User
+  suggestion?: SuggestedPerson
+}
+
+function peopleToMeet(data: Snapshot, limit = 4): PersonRecommendation[] {
   const me = data.currentUser
   const connectedIds = new Set(data.connections.filter((pair) => me && pair.includes(me.id)).flat())
-  const people = data.users.filter((u) => u.id !== me?.id && !connectedIds.has(u.id)).slice(0, 4)
+  const available = data.users.filter((user) => user.id !== me?.id && !connectedIds.has(user.id))
+  const curated: PersonRecommendation[] = dashboardPeopleToMeet
+    .flatMap((suggestion) => {
+      const user = available.find((candidate) => candidate.id === suggestion.userId)
+      return user ? [{ user, suggestion }] : []
+    })
+  const curatedIds = new Set(curated.map((item) => item.user.id))
+  const fallback = available.filter((user) => !curatedIds.has(user.id)).map((user) => ({ user }))
+  return [...curated, ...fallback].slice(0, limit)
+}
+
+function PeopleToMeetCard({ data, compact = false }: { data: Snapshot; compact?: boolean }) {
+  const people = peopleToMeet(data, compact ? 3 : 4)
+  return (
+    <Card className='glass-card overflow-hidden border-primary/10 p-0 shadow-sm'>
+      <div className='h-0.5 bg-gradient-to-r from-primary/30 via-primary/10 to-transparent' />
+      <CardHeader className='pb-2'>
+        <div className='flex items-start justify-between gap-3'>
+          <div><CardTitle className='flex items-center gap-2 text-base'><Users className='size-4 text-primary' /> People to meet</CardTitle><CardDescription className='mt-1'>Curated for your stage and interests.</CardDescription></div>
+          <Badge variant='secondary' className='text-[10px]'>For you</Badge>
+        </div>
+      </CardHeader>
+      <CardContent className='space-y-1 px-3 pb-4'>
+        {people.map(({ user, suggestion }) => <PersonRow key={user.id} user={user} suggestion={suggestion} />)}
+        {people.length === 0 && <p className='px-2 py-4 text-xs text-muted-foreground'>You are connected with every current recommendation.</p>}
+      </CardContent>
+    </Card>
+  )
+}
+
+function EventRow({ event, data }: { event: DashboardEvent; data: Snapshot }) {
+  const attendees = event.attendeeUserIds
+    .map((id) => data.users.find((user) => user.id === id))
+    .filter((user): user is User => Boolean(user))
+  return (
+    <Link to='/events' className='group flex gap-3 rounded-xl border border-border/70 bg-card/55 p-3 outline-none transition-all hover:border-primary/20 hover:bg-primary/[0.025] focus-visible:ring-2 focus-visible:ring-primary/50'>
+      <div className='grid size-11 shrink-0 place-items-center rounded-xl border border-primary/10 bg-primary/[0.06] text-center shadow-sm'>
+        <span className='block text-[9px] font-bold uppercase leading-none tracking-wider text-primary'>{event.dateLabel.split(' ')[1]}</span>
+        <span className='mt-0.5 block text-base font-extrabold leading-none'>{event.dateLabel.split(' ')[0]}</span>
+      </div>
+      <div className='min-w-0 flex-1'>
+        <p className='truncate text-[13px] font-semibold transition-colors group-hover:text-primary'>{event.title}</p>
+        <p className='mt-1 flex items-center gap-1 text-[10px] text-muted-foreground'><Clock3 className='size-3' />{event.dayLabel} · {event.timeLabel}</p>
+        <p className='mt-0.5 flex items-center gap-1 truncate text-[10px] text-muted-foreground'>{event.format === 'Online' ? <Video className='size-3' /> : <MapPin className='size-3' />}{event.host} · {event.format}</p>
+        <div className='mt-2 flex items-center gap-1.5'>
+          <div className='flex -space-x-1.5' aria-hidden='true'>
+            {attendees.slice(0, 3).map((user) => <UserAvatar key={user.id} user={user} className='size-5 border-2 border-card ring-0' />)}
+          </div>
+          <span className='text-[9px] font-medium text-muted-foreground'>{event.attendeeCount} attending</span>
+          <span className='ml-auto truncate text-[9px] font-semibold text-primary'>{event.availabilityLabel}</span>
+        </div>
+      </div>
+    </Link>
+  )
+}
+
+function UpcomingEventsCard({ data }: { data: Snapshot }) {
+  return (
+    <Card className='glass-card overflow-hidden border-primary/10 p-0 shadow-sm'>
+      <div className='h-0.5 bg-gradient-to-r from-amber-500/30 via-amber-500/10 to-transparent' />
+      <CardHeader className='pb-2'><div className='flex items-center justify-between gap-2'><CardTitle className='flex items-center gap-2 text-base'><CalendarDays className='size-4 text-amber-500' /> Upcoming events</CardTitle><Button variant='ghost' size='sm' className='h-7 px-2 text-[11px]' asChild><Link to='/events'>View all</Link></Button></div></CardHeader>
+      <CardContent className='space-y-2 px-4 pb-4'>
+        {dashboardEvents.slice(0, 3).map((event) => <EventRow key={event.id} event={event} data={data} />)}
+      </CardContent>
+    </Card>
+  )
+}
+
+function MobileDiscovery({ data }: { data: Snapshot }) {
+  return (
+    <section className='space-y-3 xl:hidden' aria-labelledby='mobile-discovery-title'>
+      <div className='flex items-end justify-between gap-3 px-1'>
+        <div><p className='text-[10px] font-bold uppercase tracking-[0.13em] text-primary'>Keep the momentum</p><h2 id='mobile-discovery-title' className='mt-1 text-lg font-bold tracking-tight'>People and moments worth joining</h2></div>
+        <Button variant='ghost' size='sm' asChild><Link to='/discover'>Discover <ArrowRight /></Link></Button>
+      </div>
+      <div className='grid items-start gap-3 md:grid-cols-2'>
+        <PeopleToMeetCard data={data} compact />
+        <UpcomingEventsCard data={data} />
+      </div>
+    </section>
+  )
+}
+
+function FeedRightRail({ data }: { data: Snapshot }) {
   const tagCounts = new Map<string, number>()
   data.posts.forEach((p) => (p.tags ?? []).forEach((t) => tagCounts.set(t, (tagCounts.get(t) ?? 0) + 1)))
   const trending = [...tagCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4)
   const trendColors = ['from-emerald-500/20 via-emerald-500/5 to-transparent', 'from-amber-500/20 via-amber-500/5 to-transparent', 'from-sky-500/20 via-sky-500/5 to-transparent', 'from-violet-500/20 via-violet-500/5 to-transparent']
   return (
     <aside className='hidden space-y-4 xl:block'>
-      <Card className='glass-card overflow-hidden border-primary/10 p-0 shadow-sm'>
-        <div className='h-0.5 bg-gradient-to-r from-primary/20 via-primary/5 to-transparent' />
-        <CardHeader className='pb-2'><CardTitle className='flex items-center gap-2 text-base'><Users className='size-4 text-primary' /> People to meet</CardTitle><CardDescription>Curated for your stage and interests.</CardDescription></CardHeader>
-        <CardContent className='space-y-1 px-3 pb-4'>{people.map((u) => <PersonRow key={u.id} user={u} />)}</CardContent>
-      </Card>
-
-      <Card className='glass-card overflow-hidden border-primary/10 p-0 shadow-sm'>
-        <div className='h-0.5 bg-gradient-to-r from-amber-500/20 via-amber-500/5 to-transparent' />
-        <CardHeader className='pb-2'><div className='flex items-center justify-between gap-2'><CardTitle className='flex items-center gap-2 text-base'><CalendarDays className='size-4 text-amber-500' /> Upcoming events</CardTitle><Button variant='ghost' size='sm' className='h-7 px-2 text-[11px]' asChild><Link to='/events'>View all</Link></Button></div></CardHeader>
-        <CardContent className='space-y-2 px-4 pb-4'>
-          {dashboardEvents.slice(0, 3).map((event) => (
-            <Link key={event.id} to='/events' className='group flex gap-3 rounded-xl border border-border/70 bg-card/55 p-3 outline-none transition-all hover:border-primary/20 hover:bg-primary/[0.025] focus-visible:ring-2 focus-visible:ring-primary/50'>
-              <div className='grid size-11 shrink-0 place-items-center rounded-xl border border-primary/10 bg-primary/[0.06] text-center'>
-                <span className='block text-[9px] font-bold uppercase leading-none tracking-wider text-primary'>{event.dateLabel.split(' ')[1]}</span>
-                <span className='mt-0.5 block text-base font-extrabold leading-none'>{event.dateLabel.split(' ')[0]}</span>
-              </div>
-              <div className='min-w-0 flex-1'>
-                <p className='truncate text-[13px] font-semibold transition-colors group-hover:text-primary'>{event.title}</p>
-                <p className='mt-1 flex items-center gap-1 text-[10px] text-muted-foreground'><Clock3 className='size-3' />{event.dayLabel} · {event.timeLabel}</p>
-                <p className='mt-0.5 flex items-center gap-1 truncate text-[10px] text-muted-foreground'>{event.format === 'Online' ? <Video className='size-3' /> : <MapPin className='size-3' />}{event.host} · {event.format}</p>
-              </div>
-            </Link>
-          ))}
-        </CardContent>
-      </Card>
+      <PeopleToMeetCard data={data} />
+      <UpcomingEventsCard data={data} />
 
       <Card className='glass-card overflow-hidden border-primary/10 p-0 shadow-sm'>
         <div className='h-0.5 bg-gradient-to-r from-primary/20 via-primary/5 to-transparent' />
@@ -520,10 +889,10 @@ function FeedRightRail({ data }: { data: Snapshot }) {
 
       <Card className='glass-card overflow-hidden border-primary/10 p-0 shadow-sm'>
         <div className='h-0.5 bg-gradient-to-r from-emerald-500/20 via-emerald-500/5 to-transparent' />
-        <CardHeader className='pb-2'><CardTitle className='flex items-center gap-2 text-base'><TrendingUp className='size-4 text-emerald-500' /> Ecosystem pulse</CardTitle><CardDescription className='flex items-center gap-1 text-[11px]'><span className='relative flex size-1.5'><span className='absolute inline-flex size-1.5 animate-ping rounded-full bg-emerald-500 opacity-70' /><span className='relative inline-flex size-1.5 rounded-full bg-emerald-500' /></span> Live this week</CardDescription></CardHeader>
+        <CardHeader className='pb-2'><CardTitle className='flex items-center gap-2 text-base'><TrendingUp className='size-4 text-emerald-500' /> Ecosystem pulse</CardTitle><CardDescription className='flex items-center gap-1 text-[11px]'><span className='size-1.5 rounded-full bg-emerald-500' /> Illustrative week</CardDescription></CardHeader>
         <CardContent className='grid grid-cols-3 gap-2 pt-1 text-center'>
           {dashboardMetrics.map((metric) => (
-            <div key={metric.label} className='rounded-xl border border-border/60 bg-card/55 p-2.5'><div className='text-lg font-extrabold tracking-tight text-foreground'>{metric.value}</div><div className='text-[10px] leading-4 text-muted-foreground'>{metric.label}</div></div>
+            <div key={metric.label} title={metric.detail} className='rounded-xl border border-border/60 bg-card/55 p-2.5'><div className='text-lg font-extrabold tracking-tight text-foreground'>{metric.value}</div><div className='text-[10px] leading-4 text-muted-foreground'>{metric.label}</div></div>
           ))}
         </CardContent>
       </Card>
@@ -576,17 +945,18 @@ function Trend({ icon, title, posts, color }: { icon?: React.ReactNode; title: s
   )
 }
 
-function PersonRow({ user }: { user: User }) {
+function PersonRow({ user, suggestion }: { user: User; suggestion?: SuggestedPerson }) {
   const connect = useAction(() => apiClient.connect(user.id))
   return (
-    <div className='group flex items-center gap-2.5 rounded-xl p-2.5 transition-all duration-200 hover:bg-gradient-to-r hover:from-primary/[0.045] hover:to-transparent'>
-      <UserAvatar user={user} className='size-11 ring-2 ring-transparent transition-all duration-200 group-hover:ring-primary/15' />
+    <div className='group flex items-start gap-2.5 rounded-xl p-2.5 transition-all duration-200 hover:bg-gradient-to-r hover:from-primary/[0.045] hover:to-transparent'>
+      <UserAvatar user={user} className='mt-0.5 size-11 ring-2 ring-transparent transition-all duration-200 group-hover:ring-primary/15' />
       <div className='min-w-0 flex-1'>
         <div className='flex items-center gap-1'><b className='block truncate text-[13px]'>{user.name}</b>{user.verificationStatus === 'verified' && <BadgeCheck className='size-3.5 shrink-0 text-primary' aria-label='Verified member' />}</div>
         <span className='block truncate text-[11px] text-muted-foreground'>{user.title}</span>
-        <span className='mt-0.5 block truncate text-[10px] font-medium text-primary/80'>{user.company || user.industry}</span>
+        <span className='mt-0.5 block truncate text-[10px] font-semibold text-primary/90'>{suggestion?.matchLabel ?? (user.company || user.industry)}</span>
+        {suggestion && <p className='mt-1 line-clamp-2 text-[10px] leading-4 text-muted-foreground' title={suggestion.reason}>{suggestion.reason} · {suggestion.mutualConnections} mutual</p>}
       </div>
-      <Button variant='outline' size='sm' className='h-8 shrink-0 gap-1 border-primary/15 px-2 text-[10px]' onClick={() => connect.mutate()} disabled={connect.isPending} aria-label={`Connect with ${user.name}`}>
+      <Button variant='outline' size='sm' className='mt-0.5 h-8 shrink-0 gap-1 border-primary/15 px-2 text-[10px]' onClick={() => connect.mutate()} disabled={connect.isPending} aria-label={`Connect with ${user.name}`}>
         <UserPlus className='size-3.5' /> Connect
       </Button>
     </div>

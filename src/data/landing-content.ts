@@ -35,11 +35,11 @@ export interface EventItem {
 }
 
 export const ecosystemMetrics = [
-  { value: '1,200+', label: 'student builders' },
-  { value: '18', label: 'university communities' },
-  { value: '45+', label: 'active mentors' },
-  { value: '8', label: 'incubation tracks' },
-  { value: '30+', label: 'ecosystem partners' },
+  { value: 'Verify', label: 'participant eligibility' },
+  { value: 'Build', label: 'teams and milestones' },
+  { value: 'Prove', label: 'evidence and progress' },
+  { value: 'Operate', label: 'programs and mentors' },
+  { value: 'Report', label: 'verified outcomes' },
 ]
 
 export const ecosystemPillars: EcosystemPillar[] = [
@@ -52,14 +52,14 @@ export const ecosystemPillars: EcosystemPillar[] = [
 ]
 
 export const featuredMembers: FeaturedMember[] = [
-  { name: 'Aylin Mammadova', avatarUrl: 'https://i.pravatar.cc/240?img=47', role: 'Product Lead', university: 'Baku Engineering University', skills: ['Discovery', 'Strategy'], focus: 'EdTech', stage: 'Validating' },
-  { name: 'Murad Aliyev', avatarUrl: 'https://i.pravatar.cc/240?img=12', role: 'Student Founder', university: 'ADA University', skills: ['AI', 'Python'], focus: 'Climate intelligence', stage: 'MVP' },
-  { name: 'Leyla Karim', avatarUrl: 'https://i.pravatar.cc/240?img=32', role: 'UX Researcher', university: 'Azerbaijan State University of Economics', skills: ['Research', 'Design'], focus: 'Future of work', stage: 'Exploring' },
-  { name: 'Nihat Abbasov', avatarUrl: 'https://i.pravatar.cc/240?img=11', role: 'Technical Co-founder', university: 'Baku Higher Oil School', skills: ['APIs', 'Data'], focus: 'Industrial SaaS', stage: 'Piloting' },
-  { name: 'Zahra Hasanli', avatarUrl: 'https://i.pravatar.cc/240?img=45', role: 'Community Builder', university: 'Khazar University', skills: ['Growth', 'Events'], focus: 'Creator economy', stage: 'Building' },
-  { name: 'Kamran Vali', avatarUrl: 'https://i.pravatar.cc/240?img=68', role: 'AI Engineer', university: 'Azerbaijan Technical University', skills: ['LLMs', 'MLOps'], focus: 'HealthTech', stage: 'MVP' },
-  { name: 'Farid Rahimli', avatarUrl: 'https://i.pravatar.cc/240?img=14', role: 'Growth Lead', university: 'Baku State University', skills: ['Go-to-market', 'Sales'], focus: 'FinTech', stage: 'Testing' },
-  { name: 'Nigar Safarova', avatarUrl: 'https://i.pravatar.cc/240?img=44', role: 'Impact Founder', university: 'French-Azerbaijani University', skills: ['Impact', 'Operations'], focus: 'Circular economy', stage: 'Validating' },
+  { name: 'Aylin Mammadova', avatarUrl: 'images/founders/aysel-mammadova.webp', role: 'Program Operator', university: 'Sample ecosystem', skills: ['Operations', 'Strategy'], focus: 'Program delivery', stage: 'Demo profile' },
+  { name: 'Reshad Guliyev', avatarUrl: 'images/founders/reshad-quliyev.webp', role: 'Student Founder', university: 'Sample ecosystem', skills: ['Climate', 'Product'], focus: 'Climate intelligence', stage: 'Demo profile' },
+  { name: 'Leyla Aliyeva', avatarUrl: 'images/founders/leyla-aliyeva.webp', role: 'Student Builder', university: 'Sample ecosystem', skills: ['Research', 'Design'], focus: 'Future of work', stage: 'Demo profile' },
+  { name: 'Kamran Vali', avatarUrl: 'images/avatars/kamran-vali.webp', role: 'Technical Teammate', university: 'Sample ecosystem', skills: ['APIs', 'Data'], focus: 'Industrial SaaS', stage: 'Demo profile' },
+  { name: 'Tarlan Yusifzade', avatarUrl: 'images/avatars/tarlan-yusifzade.webp', role: 'Product Mentor', university: 'Sample mentor pool', skills: ['Validation', 'GTM'], focus: 'Product strategy', stage: 'Demo profile' },
+  { name: 'Nargiz Rahim', avatarUrl: 'images/avatars/nargiz-rahim.webp', role: 'Health Founder', university: 'Sample ecosystem', skills: ['Operations', 'Health'], focus: 'HealthTech', stage: 'Demo profile' },
+  { name: 'Elvin Safar', avatarUrl: 'images/avatars/elvin-safar.webp', role: 'Education Founder', university: 'Sample ecosystem', skills: ['Learning', 'Growth'], focus: 'EdTech', stage: 'Demo profile' },
+  { name: 'Nihat Abbasov', avatarUrl: '', role: 'Program Reviewer', university: 'Sample operator', skills: ['Evidence', 'Cohorts'], focus: 'Program operations', stage: 'Initials fallback' },
 ]
 
 export const newsItems: NewsItem[] = [
@@ -74,7 +74,13 @@ export const eventItems: EventItem[] = [
   { day: '03', month: 'AUG', time: '17:00', location: 'Baku', title: 'SSC community demo evening', format: 'Showcase' },
 ]
 
-export const universityWordmarks = ['ADA University', 'BEU', 'BHOS', 'UNEC', 'Khazar University', 'BSU', 'AzTU', 'UFAZ']
+export const universityWordmarks = [
+  'University innovation office',
+  'Entrepreneurship centre',
+  'Campus incubator',
+  'Program operator',
+  'Regional consortium',
+]
 
 export const communityDetails: CommunityDetail[] = [
   {
@@ -83,7 +89,7 @@ export const communityDetails: CommunityDetail[] = [
     category: 'AI',
     description: 'Practical AI products, evaluations and production lessons.',
     descriptionFull: 'A community of engineers, researchers and product builders shipping real AI systems. We share production patterns, evaluation strategies and lessons learned from deploying models in the wild.',
-    coverUrl: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1200&q=80',
+    coverUrl: 'images/feed/greenstack-dashboard.webp',
     members: 22100,
     activity: '34 new discussions',
     joined: true,
@@ -101,7 +107,7 @@ export const communityDetails: CommunityDetail[] = [
     category: 'Startups',
     description: 'A focused space for founders and early operators.',
     descriptionFull: 'For student founders and early-stage operators navigating the journey from idea to traction. We discuss fundraising, team-building, product-market fit, and the emotional reality of building something new.',
-    coverUrl: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&q=80',
+    coverUrl: 'images/feed/ssc-founder-workshop.webp',
     members: 18400,
     activity: '12 events this month',
     joined: false,
@@ -118,7 +124,7 @@ export const communityDetails: CommunityDetail[] = [
     category: 'Design',
     description: 'Design systems, research and product leadership.',
     descriptionFull: 'For designers and design leaders building systems, shaping research practices and driving product decisions. We share case studies, critique processes and frameworks for design leadership.',
-    coverUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&q=80',
+    coverUrl: 'images/feed/eduflow-product.webp',
     members: 9700,
     activity: '8 featured critiques',
     joined: false,
@@ -135,7 +141,7 @@ export const communityDetails: CommunityDetail[] = [
     category: 'Impact',
     description: 'Field pilots, climate measurement, agriculture and operational evidence.',
     descriptionFull: 'A practical working group for teams testing climate and agriculture products. Members review pilot design, field evidence, operational constraints, and responsible impact claims.',
-    coverUrl: 'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?w=1200&q=80',
+    coverUrl: 'images/feed/greenstack-dashboard.webp',
     members: 6800,
     activity: '5 pilot reviews this week',
     joined: false,
@@ -153,7 +159,7 @@ export const communityDetails: CommunityDetail[] = [
     category: 'Marketplaces',
     description: 'Liquidity, campus launches, trust and safety for marketplace builders.',
     descriptionFull: 'Marketplace founders and operators share experiments around campus density, supply activation, trusted transactions, moderation, and repeat usage.',
-    coverUrl: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200&q=80',
+    coverUrl: 'images/feed/ssc-founder-workshop.webp',
     members: 4200,
     activity: '19 operator notes',
     joined: true,
@@ -171,7 +177,7 @@ export const communityDetails: CommunityDetail[] = [
     category: 'Engineering',
     description: 'Architecture reviews, API design, data systems and practical pairing.',
     descriptionFull: 'A hands-on engineering guild for backend, data, and platform builders. Members exchange architecture reviews, pairing requests, reliability lessons, and scoped startup collaboration opportunities.',
-    coverUrl: 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=1200&q=80',
+    coverUrl: 'images/feed/eduflow-product.webp',
     members: 11500,
     activity: '7 open collaboration requests',
     joined: true,

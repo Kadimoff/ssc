@@ -1,7 +1,6 @@
 import type { FounderProfile } from './founder-card.types'
 
-/** Real-feeling, diverse student founders. GreenStack ties into the existing
- *  landing news ("GreenStack Raises Pre-Seed"). No tiers, no trust scores. */
+/** Illustrative profiles for interaction tests. They are not customer or traction claims. */
 export const founderCards: FounderProfile[] = [
   {
     id: 'aysel',
@@ -14,12 +13,12 @@ export const founderCards: FounderProfile[] = [
     stage: 'mvp',
     skills: ['React', 'Sustainability', 'Product'],
     metrics: [
-      { value: 'Pilot', label: 'Live status', icon: 'pilot' },
-      { value: '2', label: 'Faculties', icon: 'campus' },
-      { value: '12%', label: 'Energy saved', icon: 'impact' },
+      { value: 'Sample', label: 'Pilot record', icon: 'pilot' },
+      { value: 'Defined', label: 'Campus scope', icon: 'campus' },
+      { value: 'Pending', label: 'Impact review', icon: 'impact' },
     ],
     lookingFor: { eyebrow: 'Looking for a', title: 'Technical Co-founder', icon: 'code' },
-    tractionBadge: 'Pilot at 2 faculties',
+    tractionBadge: 'Illustrative pilot profile',
     portrait: {
       src: 'images/founders/aysel-mammadova.webp',
       alt: 'Illustrative editorial portrait of Aysel Məmmədova',
@@ -29,7 +28,7 @@ export const founderCards: FounderProfile[] = [
     founderStory: 'Aysel began by comparing energy waste across lecture buildings and discovered that campus teams had data, but no simple way to act on it.',
     mission: 'Help universities turn everyday energy data into measurable reductions that students and facilities teams can understand together.',
     currentFocus: 'Converting two faculty pilots into a repeatable campus-wide deployment and strengthening the technical founding team.',
-    progress: 'Live pilot across two faculties with weekly energy-use reviews and an expanding set of building-level insights.',
+    progress: 'The demo record shows how a team could connect a campus pilot to evidence and weekly operating reviews.',
     profileHref: '/sign-up',
   },
   {
@@ -43,12 +42,12 @@ export const founderCards: FounderProfile[] = [
     stage: 'validation',
     skills: ['Python', 'ML', 'Pedagogy'],
     metrics: [
-      { value: '340+', label: 'Sign-ups', icon: 'users' },
-      { value: '68%', label: 'Weekly active', icon: 'activity' },
-      { value: '4.6/5', label: 'Learner rating', icon: 'rating' },
+      { value: 'Sample', label: 'User record', icon: 'users' },
+      { value: 'Pending', label: 'Usage review', icon: 'activity' },
+      { value: 'Demo', label: 'Feedback', icon: 'rating' },
     ],
     lookingFor: { eyebrow: 'Looking for a', title: 'Product Designer', icon: 'design' },
-    tractionBadge: '340+ student sign-ups',
+    tractionBadge: 'Illustrative validation profile',
     portrait: {
       src: 'images/founders/reshad-quliyev.webp',
       alt: 'Illustrative editorial portrait of Rəşad Quliyev',
@@ -58,7 +57,7 @@ export const founderCards: FounderProfile[] = [
     founderStory: 'Rəşad built the first EduFlow prototype after watching classmates repeatedly pause long recordings without knowing what to practise next.',
     mission: 'Transform passive lecture content into focused, adaptive practice that helps students discover where their understanding is weakest.',
     currentFocus: 'Improving question quality, mapping the complete learner journey, and finding a product designer for the next validation cycle.',
-    progress: 'The early release has attracted 340 student sign-ups and is collecting structured feedback from active learners.',
+    progress: 'The demo record shows a validation cycle with structured feedback from illustrative learners.',
     profileHref: '/sign-up',
   },
   {
@@ -72,12 +71,12 @@ export const founderCards: FounderProfile[] = [
     stage: 'revenue',
     skills: ['Operations', 'Health', 'Strategy'],
     metrics: [
-      { value: '$2.1K', label: 'Monthly revenue', icon: 'revenue' },
-      { value: '18', label: 'Providers', icon: 'providers' },
-      { value: '31%', label: 'Repeat bookings', icon: 'growth' },
+      { value: 'Sample', label: 'Revenue record', icon: 'revenue' },
+      { value: 'Pending', label: 'Provider review', icon: 'providers' },
+      { value: 'Demo', label: 'Repeat signal', icon: 'growth' },
     ],
     lookingFor: { eyebrow: 'Looking for', title: 'Seed Investment', icon: 'funding' },
-    tractionBadge: '$2.1K MRR',
+    tractionBadge: 'Illustrative operating profile',
     portrait: {
       src: 'images/founders/leyla-aliyeva.webp',
       alt: 'Illustrative editorial portrait of Leyla Əliyeva',
@@ -87,7 +86,7 @@ export const founderCards: FounderProfile[] = [
     founderStory: 'Leyla saw students postpone essential appointments because trusted and affordable care was fragmented across informal recommendations.',
     mission: 'Make verified medical support easier to compare and access while giving responsible providers a clearer path to student communities.',
     currentFocus: 'Strengthening provider operations, improving repeat bookings, and preparing the evidence required for a disciplined seed round.',
-    progress: 'Eighteen verified providers now generate $2.1k in monthly recurring revenue across the initial marketplace.',
+    progress: 'The demo record illustrates how provider, revenue and repeat-use evidence could be reviewed without claiming real traction.',
     profileHref: '/sign-up',
   },
 ]

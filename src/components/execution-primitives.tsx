@@ -98,3 +98,36 @@ export function StatusBadge({ status, className }: { status: string; className?:
 export function DemoDataBadge({ label = 'Sample data' }: { label?: string }) {
   return <Badge variant='outline' className='border-amber-500/25 bg-amber-500/5 text-[10px] uppercase tracking-wide text-amber-700 dark:text-amber-300'>{label}</Badge>
 }
+
+export function FormField({
+  label,
+  htmlFor,
+  required,
+  helper,
+  error,
+  count,
+  children,
+  className,
+}: {
+  label: string
+  htmlFor: string
+  required?: boolean
+  helper?: string
+  error?: string
+  count?: { current: number; max: number }
+  children: React.ReactNode
+  className?: string
+}) {
+  return <div className={cn('space-y-2', className)}>
+    <div className='flex items-end justify-between gap-3'>
+      <label htmlFor={htmlFor} className='text-sm font-semibold'>
+        {label} <span className='font-normal text-muted-foreground'>{required ? '(required)' : '(optional)'}</span>
+      </label>
+      {count && <span className={cn('text-xs text-muted-foreground', count.current > count.max && 'text-destructive')} aria-live='polite'>{count.current}/{count.max}</span>}
+    </div>
+    {children}
+    <div className='min-h-5 text-xs leading-5'>
+      {error ? <p role='alert' className='text-destructive'>{error}</p> : helper ? <p className='text-muted-foreground'>{helper}</p> : null}
+    </div>
+  </div>
+}

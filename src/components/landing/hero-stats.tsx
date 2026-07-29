@@ -12,15 +12,15 @@ type Stat = {
 }
 
 const STATS: Stat[] = [
-  { image: buildersIcon, value: '1,200+', label: 'builders', tone: 'emerald' },
-  { image: universitiesIcon, value: '18', label: 'universities', tone: 'gold' },
-  { image: mentorsIcon, value: '45+', label: 'mentors', tone: 'mint' },
-  { image: partnersIcon, value: '30+', label: 'partners', tone: 'amber' },
+  { image: buildersIcon, value: 'Build', label: 'teams', tone: 'emerald' },
+  { image: universitiesIcon, value: 'Verify', label: 'participants', tone: 'gold' },
+  { image: mentorsIcon, value: 'Guide', label: 'milestones', tone: 'mint' },
+  { image: partnersIcon, value: 'Report', label: 'outcomes', tone: 'amber' },
 ]
 
 export function HeroStats() {
   return (
-    <section className='hero-orbit' aria-label='Student Startup Community network statistics'>
+    <section className='hero-orbit' aria-label='SSC execution workflow'>
       <div className='hero-network-stage'>
         <svg className='hero-network' viewBox='0 0 560 460' aria-hidden='true'>
           <defs>

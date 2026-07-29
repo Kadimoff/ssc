@@ -1,17 +1,20 @@
 import { useState } from 'react'
+import { Link } from '@tanstack/react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { BadgeCheck, Check, Flag, GraduationCap, MessageCircle, LayoutDashboard, Rocket, Search, ShieldCheck, Trophy, Users, X } from 'lucide-react'
+import { BadgeCheck, Check, FileCheck2, Flag, GraduationCap, LayoutDashboard, Rocket, Search, ShieldCheck, Trophy, Users, X } from 'lucide-react'
 import { apiClient } from '@/data/client'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import { PageContainer, PageHeading, ProfileInfo } from '@/app/app-shared'
+import { PageContainer, PageHeading } from '@/app/app-shared'
 import { snapshotKey, useSnapshot } from '@/app/app-data'
 import { mentors, startups, type MentorData } from '@/data/platform-content'
 import type { EntityId } from '@/data/types'
+import { DemoDataBadge, StatusBadge } from '@/components/execution-primitives'
+import { useExecutionStore } from '@/features/execution/store'
 
 type AdminTab = 'overview' | 'startups' | 'mentors' | 'verification' | 'moderation'
 
@@ -25,6 +28,7 @@ const ADMIN_TABS: { key: AdminTab; label: string; icon: typeof ShieldCheck }[] =
 
 export function AdminPage() {
   const { data } = useSnapshot()
+  const { state: execution, store: executionStore } = useExecutionStore()
   const [tab, setTab] = useState<AdminTab>('overview')
 
   const [verified, setVerified] = useState<Set<string>>(new Set(['greenstack', 'mediroute']))
@@ -44,13 +48,7 @@ export function AdminPage() {
   const [mentorStatus, setMentorStatus] = useState<Record<EntityId, MentorData['status']>>(() => Object.fromEntries(mentors.map((m) => [m.id, m.status])))
   const setMentor = (id: EntityId, status: MentorData['status']) => { setMentorStatus((p) => ({ ...p, [id]: status })); toast.success(`Mentor ${status}`) }
 
-  const pendingVerifications = [
-    { id: 101, name: 'Emin Qarayev', uni: 'Baku State University', program: 'Computer Science', method: '.edu email' },
-    { id: 102, name: 'Sona Ibrahimli', uni: 'ADA University', program: 'Economics', method: 'Student ID' },
-    { id: 103, name: 'Ramin Sadigli', uni: 'UNEC', program: 'Business', method: 'FIN-based' },
-    { id: 104, name: 'Lala Mammadli', uni: 'Khazar University', program: 'Design', method: '.edu email' },
-  ]
-  const [decided, setDecided] = useState<Record<number, 'approved' | 'rejected'>>({})
+  const verificationQueue = execution.verificationRequests.filter((item) => item.status !== 'draft')
 
   const [flagged, setFlagged] = useState<Set<EntityId>>(new Set(['pst_2', 'pst_6']))
   const queryClient = useQueryClient()
@@ -61,14 +59,15 @@ export function AdminPage() {
 
   const stats = data
     ? [
-        { label: 'Verified users', value: data.users.length, icon: Users, tone: 'text-primary' },
+        { label: 'Verified participants', value: data.users.filter((item) => item.verificationStatus === 'verified').length, icon: Users, tone: 'text-primary' },
         { label: 'Active startups', value: startups.length, icon: Rocket, tone: 'text-emerald-500' },
-        { label: 'Mentors', value: mentors.length, icon: GraduationCap, tone: 'text-amber-500' },
-        { label: 'Posts', value: data.posts.length, icon: MessageCircle, tone: 'text-sky-500' },
+        { label: 'Pending decisions', value: execution.verificationRequests.filter((item) => item.status === 'pending').length + execution.evidence.filter((item) => item.status === 'pending').length + execution.programApplications.filter((item) => item.status === 'pending').length, icon: ShieldCheck, tone: 'text-amber-500' },
+        { label: 'Verified evidence', value: execution.evidence.filter((item) => item.status === 'verified').length, icon: FileCheck2, tone: 'text-sky-500' },
       ]
     : []
 
   return <PageContainer>
+    <div className='mb-3'><DemoDataBadge label='Illustrative administration' /></div>
     <PageHeading eyebrow='Admin control tower' title='Operate a trusted, measurable ecosystem.' description='Manage verification, startup quality, mentor capacity, and moderation — every action is auditable.' />
     <div className='mb-6 flex flex-wrap gap-2'>
       {ADMIN_TABS.map((t) => (
@@ -89,15 +88,12 @@ export function AdminPage() {
         <div className='mt-6 grid gap-6 lg:grid-cols-[1.25fr_.75fr]'>
           <Card className='glass-card'><CardHeader><CardTitle>Ecosystem health</CardTitle><CardDescription>Current cohort operating signals.</CardDescription></CardHeader>
             <CardContent className='space-y-4'>
-              <ProfileInfo label='Mentor utilization' value='72%' />
-              <ProfileInfo label='Application conversion' value='34%' />
-              <ProfileInfo label='Flagged incidents' value={String(flagged.size)} />
-              <ProfileInfo label='Pending verifications' value={String(Object.values(decided).filter((d) => d).length ? pendingVerifications.length - Object.keys(decided).length : pendingVerifications.length)} />
+              {[['Mentor profiles available', String(mentors.filter((item) => mentorStatus[item.id] === 'active').length)], ['Applications pending', String(execution.programApplications.filter((item) => item.status === 'pending').length)], ['Evidence pending review', String(execution.evidence.filter((item) => item.status === 'pending').length)], ['Verification requests', String(verificationQueue.length)]].map(([label, value]) => <div key={label} className='flex items-center justify-between rounded-xl border p-3 text-sm'><span className='text-muted-foreground'>{label}</span><b>{value}</b></div>)}
             </CardContent>
           </Card>
           <Card className='glass-card'><CardHeader><CardTitle>Priority queues</CardTitle><CardDescription>High-frequency approvals.</CardDescription></CardHeader>
             <CardContent className='space-y-2'>
-              {[{ label: 'Student verifications', value: pendingVerifications.length - Object.keys(decided).length }, { label: 'Startup approvals', value: startups.filter((s) => !verified.has(s.slug)).length }, { label: 'Mentor applications', value: mentors.filter((m) => mentorStatus[m.id] === 'pending').length }, { label: 'Moderation alerts', value: flagged.size }].map((q) => (
+              {[{ label: 'Student verifications', value: verificationQueue.filter((item) => item.status === 'pending').length }, { label: 'Startup approvals', value: startups.filter((s) => !verified.has(s.slug)).length }, { label: 'Mentor applications', value: mentors.filter((m) => mentorStatus[m.id] === 'pending').length }, { label: 'Moderation alerts', value: flagged.size }].map((q) => (
                 <button key={q.label} onClick={() => setTab(q.label.includes('Student') ? 'verification' : q.label.includes('Startup') ? 'startups' : q.label.includes('Mentor') ? 'mentors' : 'moderation')} className='flex w-full items-center rounded-xl border p-3 text-left transition-colors hover:bg-muted/50'>
                   <span className='grid size-8 place-items-center rounded-lg bg-primary/10 text-primary'><ShieldCheck className='size-4' /></span>
                   <b className='ml-3 block text-sm'>{q.label}</b><Badge variant='secondary' className='ml-auto'>{q.value}</Badge>
@@ -167,26 +163,22 @@ export function AdminPage() {
 
     {tab === 'verification' && (
       <div className='space-y-3'>
-        {pendingVerifications.map((v) => {
-          const d = decided[v.id]
+        {verificationQueue.map((v) => {
+          const applicant = data?.users.find((item) => item.id === v.userId)
           return (
-            <Card key={v.id} className={cn('glass-card', d && 'opacity-60')}>
+            <Card key={v.id} className='glass-card'>
               <CardContent className='flex flex-col gap-3 p-4 sm:flex-row sm:items-center'>
                 <span className='grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary'><ShieldCheck className='size-5' /></span>
                 <div className='min-w-0 flex-1'>
-                  <div className='flex flex-wrap items-center gap-2'><b className='text-sm'>{v.name}</b>{d && <Badge variant={d === 'approved' ? 'default' : 'destructive'}>{d}</Badge>}</div>
-                  <p className='text-xs text-muted-foreground'>{v.uni} · {v.program} · verified via {v.method}</p>
+                  <div className='flex flex-wrap items-center gap-2'><b className='text-sm'>{applicant?.name ?? 'Demo participant'}</b><StatusBadge status={v.status} /></div>
+                  <p className='text-xs text-muted-foreground'>{v.institution} · {v.institutionalEmail ?? 'legacy request'} · {v.document?.name ?? 'no document attached'}</p>
                 </div>
-                {!d ? (
-                  <div className='flex gap-2'>
-                    <Button size='sm' onClick={() => { setDecided((p) => ({ ...p, [v.id]: 'approved' })); toast.success(`${v.name} verified`) }}><Check className='size-3.5' />Approve</Button>
-                    <Button size='sm' variant='outline' onClick={() => { setDecided((p) => ({ ...p, [v.id]: 'rejected' })); toast.info(`${v.name} rejected`) }}><X className='size-3.5' />Reject</Button>
-                  </div>
-                ) : <span className='text-xs text-muted-foreground'>Decided</span>}
+                <div className='flex flex-wrap gap-2'>{v.status === 'pending' && <Button size='sm' onClick={() => { executionStore.upsertVerification({ ...v, status: 'verified', reviewerNote: 'Reviewed from the platform administration queue.' }); toast.success('Verification approved') }}><Check className='size-3.5' />Approve</Button>}<Button size='sm' variant='outline' asChild><Link to='/verification'>Open full review</Link></Button></div>
               </CardContent>
             </Card>
           )
         })}
+        {!verificationQueue.length && <Card className='border-dashed'><CardContent className='py-12 text-center'><Check className='mx-auto size-9 text-primary' /><p className='mt-3 font-semibold'>Verification queue is clear</p></CardContent></Card>}
       </div>
     )}
 
