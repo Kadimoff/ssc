@@ -72,7 +72,8 @@ export function LandingPage() {
   const { data } = useSnapshot()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  return <div className='relative isolate min-h-svh overflow-hidden'>
+  return <div className='landing-page-shell relative isolate min-h-svh overflow-hidden'>
+    <div className='landing-ambient-background' aria-hidden='true' />
     <header className='glass-header fixed inset-x-0 top-0 z-50 border-b'>
       <div className='app-container flex h-[72px] items-center gap-3'>
         <Link to='/' aria-label='SSC home' className='flex h-12 w-[104px] shrink-0 items-center overflow-hidden rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-primary sm:w-[122px]'>
@@ -224,7 +225,7 @@ function MembersSection() {
       <div data-animate className='max-w-2xl'>
         <Badge variant='secondary' className='px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider'>People of SSC</Badge>
         <h2 className='mt-5 text-3xl font-bold tracking-[-.025em] sm:text-5xl'>Meet the builders behind the momentum.</h2>
-        <p className='mt-5 text-lg leading-8 text-muted-foreground'>Illustrative student, founder, mentor and operator profiles show the range of roles that can work together in SSC.</p>
+        <p className='mt-5 text-lg leading-8 text-muted-foreground'>Students from different universities and disciplines, connected by the ambition to build something useful.</p>
       </div>
     </div>
     <MembersRail />
@@ -321,21 +322,23 @@ function UpdatesSection() {
 
 function UniversitySection() {
   const sectionRef = useRef<HTMLElement>(null)
-  useScrollReveal(sectionRef, { targets: '> .app-container > [data-animate]' })
+  useScrollReveal(sectionRef, { targets: '[data-animate]', stagger: 0.08 })
   useMarquee(sectionRef, '[data-marquee]', { speed: 25 })
 
   return <section ref={sectionRef} data-landing-section='universities' className='relative z-10 py-24 sm:py-28'>
     <div className='app-container text-center'>
       <p data-animate className='text-sm font-semibold uppercase tracking-[.2em] text-muted-foreground'>Built for university entrepreneurship environments</p>
-      <div data-animate className='relative mt-10 overflow-hidden'>
-        <div data-marquee className='flex gap-4'>
-          {[...universityWordmarks, ...universityWordmarks].map((name, index) => (
-            <span key={`${name}-${index}`} aria-hidden={index >= universityWordmarks.length || undefined} className='shrink-0 rounded-xl border bg-card px-6 py-3.5 text-sm font-semibold text-muted-foreground shadow-xs transition-colors hover:border-primary/20 hover:text-foreground'>
-              {name}
-            </span>
-          ))}
-        </div>
+    </div>
+    <div data-animate className='landing-university-marquee relative mt-10 w-full overflow-hidden'>
+      <div data-marquee className='landing-university-track flex w-max gap-4 px-2'>
+        {[...universityWordmarks, ...universityWordmarks].map((name, index) => (
+          <span key={`${name}-${index}`} aria-hidden={index >= universityWordmarks.length || undefined} className='shrink-0 rounded-xl border bg-card px-6 py-3.5 text-sm font-semibold text-muted-foreground shadow-xs transition-colors hover:border-primary/20 hover:text-foreground'>
+            {name}
+          </span>
+        ))}
       </div>
+    </div>
+    <div className='app-container text-center'>
       <p data-animate className='mx-auto mt-8 max-w-2xl text-xs text-muted-foreground'>Demo ecosystem representation. Organization labels do not imply customers, formal partnerships, or endorsements.</p>
     </div>
   </section>
@@ -398,7 +401,7 @@ function MembersRail() {
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerEnd}
       onPointerCancel={handlePointerEnd}
-      className='landing-carousel landing-members-rail mt-12 flex w-full gap-4 overflow-x-auto px-4 py-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:gap-6'
+      className='landing-carousel landing-members-rail mt-12 flex w-full gap-6 overflow-x-auto py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
     >
       {featuredMembers.map((member) => <MemberRailCard key={member.name} member={member} onView={() => { if (!dragRef.current.moved) setSelectedMember(member) }} />)}
       {featuredMembers.map((member) => <MemberRailCard key={`clone-${member.name}`} member={member} clone onView={() => undefined} />)}
@@ -417,15 +420,15 @@ function MembersRail() {
 
 function MemberRailCard({ member, clone = false, onView }: { member: FeaturedMember; clone?: boolean; onView: () => void }) {
   const initials = member.name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2)
-  return <article aria-hidden={clone || undefined} className='landing-member-card w-[210px] shrink-0 rounded-2xl border border-primary/10 bg-card/75 px-4 py-5 text-center shadow-sm'>
-    <Avatar className='mx-auto size-16 border-2 border-background/80 shadow-md'>
+  return <article aria-hidden={clone || undefined} className='landing-member-card w-[190px] shrink-0 px-2 py-3 text-center'>
+    <Avatar className='mx-auto size-16 border-2 border-background/80 shadow-md transition-transform duration-300'>
       <AvatarImage src={member.avatarUrl ? localAsset(member.avatarUrl) : undefined} alt={clone ? '' : `Illustrative demo profile for ${member.name}`} loading='lazy' />
       <AvatarFallback className='bg-primary/10 text-base font-bold text-primary'>{initials}</AvatarFallback>
     </Avatar>
     <div className='mt-3 flex items-center justify-center gap-1.5'><h3 className='truncate text-sm font-semibold'>{member.name}</h3><DemoDataBadge label='Demo' /></div>
-    <p className='mt-1 truncate text-xs text-muted-foreground'>{member.role}</p>
-    <div className='mt-3 flex h-5 justify-center gap-1 overflow-hidden'>{member.skills.slice(0, 2).map((skill) => <Badge key={skill} variant='secondary' className='px-1.5 py-0 text-[9px]'>{skill}</Badge>)}</div>
-    <Button type='button' variant='link' size='sm' tabIndex={clone ? -1 : 0} className='mt-2 h-8 px-1 text-xs' onClick={onView}>View profile <ArrowRight className='size-3' /></Button>
+    <p className='mt-0.5 truncate text-xs text-muted-foreground'>{member.role}</p>
+    <div className='mt-2 flex h-5 justify-center gap-1 overflow-hidden'>{member.skills.slice(0, 2).map((skill) => <Badge key={skill} variant='secondary' className='px-1.5 py-0 text-[9px]'>{skill}</Badge>)}</div>
+    <Button type='button' variant='link' size='sm' tabIndex={clone ? -1 : 0} className='mt-1 h-7 px-1 text-xs' onClick={onView}>View profile <ArrowRight className='size-3' /></Button>
   </article>
 }
 

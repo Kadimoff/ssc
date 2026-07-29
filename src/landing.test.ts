@@ -87,4 +87,36 @@ describe('restored SSC landing page', () => {
     expect(source).toContain('tabIndex={clone ? -1 : 0}')
     expect(new Set(featuredMembers.map((member) => member.name)).size).toBe(featuredMembers.length)
   })
+
+  it('restores the open People of SSC rail from the reference without external portraits', () => {
+    const source = readFileSync(new URL('./pages/landing/index.tsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('Students from different universities and disciplines')
+    expect(source).toContain("className='landing-member-card w-[190px] shrink-0 px-2 py-3 text-center'")
+    expect(source).toContain("className='landing-carousel landing-members-rail mt-12 flex w-full gap-6")
+    expect(source).toContain("label='Demo'")
+  })
+
+  it('uses one animated page background and transparent section surfaces', () => {
+    const source = readFileSync(new URL('./pages/landing/index.tsx', import.meta.url), 'utf8')
+    const styles = readFileSync(new URL('./styles.css', import.meta.url), 'utf8')
+
+    expect(source).toContain("className='landing-page-shell")
+    expect(source).toContain("className='landing-ambient-background'")
+    expect(styles).toContain('@keyframes landing-ambient-drift')
+    expect(styles).toMatch(/\.landing-hero\s*\{\s*background:\s*transparent;/)
+    expect(styles).toMatch(/\.landing-section-mint\s*\{\s*background:\s*transparent;/)
+    expect(styles).toContain('.landing-ambient-background::before')
+    expect(styles).toContain('animation: none !important')
+  })
+
+  it('lets the university marquee animate across the full viewport', () => {
+    const source = readFileSync(new URL('./pages/landing/index.tsx', import.meta.url), 'utf8')
+    const styles = readFileSync(new URL('./styles.css', import.meta.url), 'utf8')
+
+    expect(source).toContain("className='landing-university-marquee relative mt-10 w-full overflow-hidden'")
+    expect(source).toContain("className='landing-university-track flex w-max gap-4 px-2'")
+    expect(styles).toContain('max-width: 100vw')
+    expect(styles).toContain('.landing-university-track')
+  })
 })
