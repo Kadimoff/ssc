@@ -7,6 +7,7 @@ const primitives = readFileSync(new URL('../components/execution-primitives.tsx'
 const styles = readFileSync(new URL('../styles.css', import.meta.url), 'utf8')
 const messages = readFileSync(new URL('../pages/messages/index.tsx', import.meta.url), 'utf8')
 const feed = readFileSync(new URL('../pages/feed/index.tsx', import.meta.url), 'utf8')
+const personaSwitcher = readFileSync(new URL('../features/execution/persona-switcher.tsx', import.meta.url), 'utf8')
 
 describe('responsive application stability', () => {
   it('links the application logo back to the landing page', () => {
@@ -68,6 +69,12 @@ describe('responsive application stability', () => {
   it('keeps the mobile update composer inside the viewport', () => {
     expect(feed).toContain("className='responsive-update-dialog sm:max-w-2xl'")
     expect(styles).toContain(".responsive-landing-navigation > [class*='overflow-y-auto']")
+  })
+
+  it('keeps persona switching buttons stable when the active icon and label change', () => {
+    expect(personaSwitcher).toContain("className='min-w-0 gap-2'")
+    expect(personaSwitcher).toContain("className={cn('flex min-h-14 w-full min-w-0")
+    expect(personaSwitcher).toContain("className='min-w-0 max-w-40 truncate'")
   })
 
   it('detects only genuine document-level horizontal overflow', () => {
