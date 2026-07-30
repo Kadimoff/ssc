@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import {
-  useCounterAnimation,
   useHeroEntrance,
   useMarquee,
   useRevealCards,
@@ -175,7 +174,6 @@ function SectionHeading({ eyebrow, title, description, align = 'center' }: { eye
 function EcosystemSection() {
   const sectionRef = useRef<HTMLElement>(null)
   useScrollReveal(sectionRef, { targets: '> .app-container > [data-animate]', stagger: 0.05 })
-  useCounterAnimation(sectionRef, '[data-counter]')
   useTiltCards(sectionRef, '[data-tilt]', { maxTilt: 5 })
 
   return <section ref={sectionRef} id='ecosystem' data-landing-section='ecosystem' className='relative z-10 scroll-mt-20 py-24 sm:py-32'>
@@ -189,7 +187,7 @@ function EcosystemSection() {
         {ecosystemMetrics.map((metric, index) => (
           <div key={metric.label} className='ecosystem-metric-float relative bg-card p-6 text-center sm:p-8' style={{ animationDelay: `${index * -0.45}s` }}>
             <div className='absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-primary/30 to-transparent' />
-            <strong data-counter className='text-2xl font-extrabold text-primary sm:text-3xl'>{metric.value}</strong>
+            <strong className='text-2xl font-extrabold text-primary sm:text-3xl'>{metric.value}</strong>
             <p className='mt-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground'>{metric.label}</p>
           </div>
         ))}

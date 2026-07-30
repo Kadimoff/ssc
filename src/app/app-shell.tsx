@@ -146,7 +146,7 @@ export function AppShell() {
   return <div className='app-shell relative isolate min-h-svh' data-overlay-open={moreOpen || undefined}>
     <header className='app-header glass-header sticky top-0 z-30 border-b'>
       <div className='app-container flex h-16 items-center gap-2 sm:gap-3'>
-        <Link to='/feed' aria-label='SSC home' className='flex h-11 w-9 shrink-0 items-center overflow-hidden rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-primary xl:w-[116px]'>
+        <Link to='/' aria-label='SSC home' className='flex h-11 w-9 shrink-0 items-center overflow-hidden rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-primary xl:w-[116px]'>
           <img src={sscLogo} alt='SSC — Student Startup Community' className='ssc-brand-logo h-10 w-[116px] max-w-none object-left' />
         </Link>
         <p className='min-w-0 max-w-[76px] truncate text-sm font-bold sm:max-w-[150px] xl:hidden'>{pageTitle(location)}</p>

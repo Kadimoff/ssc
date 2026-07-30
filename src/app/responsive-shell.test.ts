@@ -9,6 +9,10 @@ const messages = readFileSync(new URL('../pages/messages/index.tsx', import.meta
 const feed = readFileSync(new URL('../pages/feed/index.tsx', import.meta.url), 'utf8')
 
 describe('responsive application stability', () => {
+  it('links the application logo back to the landing page', () => {
+    expect(appShell).toContain("<Link to='/' aria-label='SSC home'")
+  })
+
   it('uses a viewport-safe More drawer with scroll lock-compatible focus restoration', () => {
     expect(appShell).toContain("variant='drawer'")
     expect(appShell).toContain('lastMoreTriggerRef')
@@ -45,6 +49,11 @@ describe('responsive application stability', () => {
     expect(feed).toContain('xl:grid-cols-[240px_minmax(0,1fr)_300px]')
     expect(feed).toContain('function MobileWorkspaceSummary')
     expect(feed).toContain('function PeopleToMeetCard')
+  })
+
+  it('keeps both continue-working actions inside equal-width grid columns', () => {
+    expect(feed).toContain("className='mt-3 grid w-full grid-cols-2 gap-2'")
+    expect(feed.match(/className='box-border w-full min-w-0 px-2 text-\[11px\]'/g)).toHaveLength(2)
   })
 
   it('detects only genuine document-level horizontal overflow', () => {

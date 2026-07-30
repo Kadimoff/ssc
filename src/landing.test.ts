@@ -42,7 +42,8 @@ describe('restored SSC landing page', () => {
     expect(source).toContain("label='Illustrative ecosystem'")
     expect(source).toContain("data-landing-section='demo-disclaimer'")
     expect(source).not.toMatch(/1,200\+|18 universities|45\+|trusted by/i)
-    expect(ecosystemMetrics.every((metric) => !/^\d/.test(metric.value))).toBe(true)
+    expect(ecosystemMetrics.map((metric) => metric.value)).toEqual(['Verify', 'Build', 'Prove', 'Operate', 'Report'])
+    expect(source).not.toContain('data-counter')
   })
 
   it('uses a unique local portrait for every featured member', () => {

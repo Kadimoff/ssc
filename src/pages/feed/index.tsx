@@ -728,9 +728,9 @@ function ContinueWorkingCard({ state }: { state: ExecutionDemoState }) {
       <div className='flex items-start justify-between gap-2'><p className='text-[10px] font-bold uppercase tracking-[.13em] text-primary'>Continue working</p><Badge variant='secondary' className='text-[9px]'>{openItems} open</Badge></div>
       <h3 className='mt-2 line-clamp-2 text-sm font-semibold leading-5'>{context.title}</h3>
       <p className='mt-1 line-clamp-2 text-[11px] leading-4 text-muted-foreground'>{context.detail}</p>
-      <div className='mt-3 flex gap-2'>
-        <Button size='sm' className='min-w-0 flex-1 px-2 text-[11px]' asChild><Link to={context.primary.to}>{context.primary.label}</Link></Button>
-        {secondary && <Button size='sm' variant='outline' className='min-w-0 flex-1 px-2 text-[11px]' asChild><Link to={secondary.to}>{secondary.label}</Link></Button>}
+      <div className='mt-3 grid w-full grid-cols-2 gap-2'>
+        <Button size='sm' className='box-border w-full min-w-0 px-2 text-[11px]' asChild><Link to={context.primary.to}>{context.primary.label}</Link></Button>
+        {secondary && <Button size='sm' variant='outline' className='box-border w-full min-w-0 px-2 text-[11px]' asChild><Link to={secondary.to}>{secondary.label}</Link></Button>}
       </div>
     </CardContent>
   </Card>
