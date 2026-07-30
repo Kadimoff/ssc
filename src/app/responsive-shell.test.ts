@@ -60,6 +60,11 @@ describe('responsive application stability', () => {
     expect(feed.match(/className='box-border w-full min-w-0 px-2 text-\[11px\]'/g)).toHaveLength(2)
   })
 
+  it('keeps verification and role actions inside the responsive execution grid', () => {
+    expect(feed).toContain("className='grid min-w-0 w-full grid-cols-2 gap-2 sm:w-52'")
+    expect(feed).toContain("className='min-w-0 w-full whitespace-normal break-words px-2 text-center text-[11px] leading-4'")
+  })
+
   it('keeps the mobile update composer inside the viewport', () => {
     expect(feed).toContain("className='responsive-update-dialog sm:max-w-2xl'")
     expect(styles).toContain(".responsive-landing-navigation > [class*='overflow-y-auto']")
