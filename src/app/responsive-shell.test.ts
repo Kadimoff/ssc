@@ -21,6 +21,10 @@ describe('responsive application stability', () => {
     expect(primitives).toContain("variant === 'drawer'")
     expect(styles).toContain('translate: none !important')
     expect(styles).toContain('grid-template-rows: auto minmax(0, 1fr) auto')
+    expect(styles).toContain('width: 100vw !important')
+    expect(styles).toContain('max-width: 100% !important')
+    expect(styles).toContain('box-sizing: border-box')
+    expect(styles).toContain('overflow-y: auto')
   })
 
   it('keeps bottom navigation and floating actions on one safe-area token system', () => {
@@ -54,6 +58,11 @@ describe('responsive application stability', () => {
   it('keeps both continue-working actions inside equal-width grid columns', () => {
     expect(feed).toContain("className='mt-3 grid w-full grid-cols-2 gap-2'")
     expect(feed.match(/className='box-border w-full min-w-0 px-2 text-\[11px\]'/g)).toHaveLength(2)
+  })
+
+  it('keeps the mobile update composer inside the viewport', () => {
+    expect(feed).toContain("className='responsive-update-dialog sm:max-w-2xl'")
+    expect(styles).toContain(".responsive-landing-navigation > [class*='overflow-y-auto']")
   })
 
   it('detects only genuine document-level horizontal overflow', () => {

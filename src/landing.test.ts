@@ -25,10 +25,18 @@ describe('restored SSC landing page', () => {
 
   it('restores the original hero while keeping the buyer and pilot path', () => {
     const source = readFileSync(new URL('./pages/landing/index.tsx', import.meta.url), 'utf8')
+    const heroStats = readFileSync(new URL('./components/landing/hero-stats.tsx', import.meta.url), 'utf8')
 
-    expect(source).toContain('The network for')
-    expect(source).toContain('student builders')
-    expect(source).toContain('Professional momentum, without the noise')
+    expect(source).toContain('Free for students. Built for the entire university startup ecosystem.')
+    expect(source).toContain('From campus ideas to')
+    expect(source).toContain('verified startup outcomes.')
+    expect(source).toContain('SSC connects founders, universities, mentors, programs and investors in one execution workflow—from team formation and milestones to verified evidence, mentorship, program access and investor introductions.')
+    expect(source).toContain('Start building free')
+    expect(source).toContain('Run a university pilot')
+    expect(heroStats).toContain("value: 'Verify', label: 'participants'")
+    expect(heroStats).toContain("value: 'Build', label: 'teams'")
+    expect(heroStats).toContain("value: 'Guide with', label: 'mentors'")
+    expect(heroStats).toContain("value: 'Connect investors', label: 'Report outcomes'")
     expect(source).toContain('A model that keeps SSC free for students.')
     expect(source).toContain('Institutions, program operators, consortiums and partner organizations')
     expect(source).toContain('Start with one program, not a platform-wide rollout.')
@@ -60,6 +68,7 @@ describe('restored SSC landing page', () => {
 
     expect(source).toContain("title='Explore SSC'")
     expect(source).toContain("aria-label='Mobile landing navigation'")
+    expect(source).toContain("className='responsive-landing-navigation sm:max-w-md'")
     expect(styles).toContain('@media (prefers-reduced-motion: reduce)')
     expect(styles).toContain('.responsive-dialog')
   })

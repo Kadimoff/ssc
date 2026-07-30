@@ -266,14 +266,17 @@ body:has([data-slot='dialog-overlay'][data-state='open']) .mobile-bottom-nav {
   :root { --glass-blur: 8px; }
   .glass-card { backdrop-filter: blur(4px) saturate(125%); -webkit-backdrop-filter: blur(4px) saturate(125%); }
   .feed-workspace-surface::after { display: none; }
-.responsive-dialog {
+  .responsive-dialog {
     inset: 0 !important;
     top: 0 !important;
     left: 0 !important;
-    width: 100% !important;
-    max-width: none !important;
+    width: 100vw !important;
+    max-width: 100% !important;
     height: 100svh;
     max-height: 100svh !important;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    overflow-y: auto;
     transform: none !important;
     translate: none !important;
     scale: none !important;
@@ -282,6 +285,13 @@ body:has([data-slot='dialog-overlay'][data-state='open']) .mobile-bottom-nav {
     grid-template-rows: auto minmax(0, 1fr) auto;
     color: var(--foreground);
     overscroll-behavior: contain;
+  }
+  .responsive-landing-navigation { overflow-y: hidden; }
+  .responsive-landing-navigation > [class*='overflow-y-auto'] {
+    width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
   .responsive-navigation-drawer {
     right: 0 !important;

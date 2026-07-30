@@ -507,7 +507,7 @@ function FeedComposer({ me }: { me: Snapshot['currentUser'] }) {
         onOpenChange={setExpanded}
         title='Share with SSC'
         description='Connect the update to useful execution context. Sample posts remain local in demo mode.'
-        className='sm:max-w-2xl'
+        className='responsive-update-dialog sm:max-w-2xl'
         footer={<div className='flex w-full items-center justify-end gap-2'>
           <Button variant='outline' onClick={() => setExpanded(false)}>Cancel</Button>
           <Button disabled={!me || !content.trim() || create.isPending} onClick={() => create.mutate(undefined, { onSuccess: reset })}><Send />{create.isPending ? 'Publishing…' : 'Publish update'}</Button>

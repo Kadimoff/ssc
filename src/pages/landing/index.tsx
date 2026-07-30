@@ -89,7 +89,7 @@ export function LandingPage() {
             onOpenChange={setMobileMenuOpen}
             title='Explore SSC'
             description='Explore the SSC ecosystem, its people, updates, and institutional model.'
-            className='sm:max-w-md'
+            className='responsive-landing-navigation sm:max-w-md'
             trigger={<Button variant='ghost' size='icon' className='xl:hidden' aria-label='Open navigation'><Menu /></Button>}
             footer={<div className='flex w-full gap-2'><Button variant='outline' className='flex-1' asChild><Link to='/sign-in' onClick={() => setMobileMenuOpen(false)}>Sign in</Link></Button><Button className='flex-1' asChild><Link to='/sign-up' onClick={() => setMobileMenuOpen(false)}>Start free</Link></Button></div>}
           >
@@ -128,18 +128,18 @@ function HeroSection() {
       <div className='relative z-10'>
         <div data-hero-badge className='mb-8 inline-flex items-center gap-2 rounded-full border bg-background/60 px-4 py-1.5 text-xs font-medium text-muted-foreground shadow-xs backdrop-blur'>
           <span className='size-2 animate-pulse rounded-full bg-primary' />
-          Professional momentum, without the noise
+          Free for students. Built for the entire university startup ecosystem.
         </div>
         <h1 className='max-w-4xl text-5xl font-extrabold leading-[1.05] tracking-[-.04em] sm:text-6xl lg:text-7xl xl:text-8xl'>
-          <span data-hero-line className='block'>The network for</span>
-          <span data-hero-line className='animated-gradient-text block'>student builders</span>
+          <span data-hero-line className='block'>From campus ideas to</span>
+          <span data-hero-line className='animated-gradient-text block'>verified startup outcomes.</span>
         </h1>
         <p data-hero-subtitle className='mt-6 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl'>
-          Share meaningful work, meet aligned collaborators, and discover opportunities — all in one focused professional community.
+          SSC connects founders, universities, mentors, programs and investors in one execution workflow—from team formation and milestones to verified evidence, mentorship, program access and investor introductions.
         </p>
         <div data-hero-buttons className='mt-10 flex flex-wrap gap-3'>
-          <span className='hero-button-float'><Button size='lg' className='premium-explore-cta group gap-2 overflow-hidden text-[15px]' asChild><Link to='/feed'>Explore the community <ArrowRight className='transition-transform group-hover:translate-x-0.5' /></Link></Button></span>
-          <span className='hero-button-float hero-button-float-delayed'><Button size='lg' variant='outline' className='text-[15px]' asChild><Link to='/sign-up'>Create your profile <Sparkles /></Link></Button></span>
+          <span className='hero-button-float'><Button size='lg' className='premium-explore-cta group gap-2 overflow-hidden text-[15px]' asChild><Link to='/feed'>Start building free <ArrowRight className='transition-transform group-hover:translate-x-0.5' /></Link></Button></span>
+          <span className='hero-button-float hero-button-float-delayed'><Button size='lg' variant='outline' className='text-[15px]' asChild><Link to='/sign-up'>Run a university pilot <Sparkles /></Link></Button></span>
         </div>
         <div data-hero-metrics className='mt-14 grid max-w-xl grid-cols-3 gap-3 border-t pt-7 sm:gap-6'>
           <Metric value='Sample' label='Student builders' />

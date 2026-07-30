@@ -14,8 +14,8 @@ type Stat = {
 const STATS: Stat[] = [
   { image: buildersIcon, value: 'Build', label: 'teams', tone: 'emerald' },
   { image: universitiesIcon, value: 'Verify', label: 'participants', tone: 'gold' },
-  { image: mentorsIcon, value: 'Guide', label: 'milestones', tone: 'mint' },
-  { image: partnersIcon, value: 'Report', label: 'outcomes', tone: 'amber' },
+  { image: mentorsIcon, value: 'Guide with', label: 'mentors', tone: 'mint' },
+  { image: partnersIcon, value: 'Connect investors', label: 'Report outcomes', tone: 'amber' },
 ]
 
 export function HeroStats() {
