@@ -57,7 +57,7 @@ describe('responsive application stability', () => {
 
   it('keeps both continue-working actions inside equal-width grid columns', () => {
     expect(feed).toContain("className='mt-3 grid w-full grid-cols-2 gap-2'")
-    expect(feed.match(/className='box-border w-full min-w-0 px-2 text-\[11px\]'/g)).toHaveLength(2)
+    expect(feed.match(/className='box-border w-full min-w-0 whitespace-normal break-words px-2 text-center text-\[11px\] leading-4'/g)).toHaveLength(2)
   })
 
   it('keeps verification and role actions inside the responsive execution grid', () => {
