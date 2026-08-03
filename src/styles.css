@@ -140,7 +140,13 @@ button, a, input, textarea { outline-offset: 3px; }
   box-shadow: inset 0 1px 0 var(--glass-highlight), 0 12px 40px -18px color-mix(in oklch, var(--foreground) 30%, transparent);
 }
 .app-header { z-index: var(--layer-header); }
-.mobile-bottom-nav { z-index: var(--layer-bottom-nav); min-height: var(--mobile-bottom-nav-height); }
+.mobile-bottom-nav {
+  z-index: var(--layer-bottom-nav);
+  min-height: var(--mobile-bottom-nav-height);
+  background: var(--background);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
 .ssc-copilot-surface { z-index: var(--layer-floating); }
 .ssc-copilot-launcher {
   right: 1rem;

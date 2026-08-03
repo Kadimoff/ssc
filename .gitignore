@@ -31,5 +31,10 @@ brainfix/.obsidian/
 # Local downloaded assistant/tooling references
 downloaded-skills/
 
+# Local documents and spreadsheets
+*.pdf
+*.xls
+*.xlsx
+
 # Local AI Council state and transcripts
 .ai-council/
