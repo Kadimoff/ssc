@@ -13,6 +13,17 @@ type Stat = {
   tone: 'emerald' | 'gold' | 'mint' | 'amber'
 }
 
+type OrbitOffset = { x: number; y: number }
+
+const BASE_POINTS = [
+  { x: 280, y: 90 },
+  { x: 476, y: 230 },
+  { x: 280, y: 370 },
+  { x: 84, y: 230 },
+] as const
+
+const ZERO_OFFSETS: OrbitOffset[] = BASE_POINTS.map(() => ({ x: 0, y: 0 }))
+
 const STATS: Stat[] = [
   { image: buildersIcon, value: 'Build', label: 'teams', tone: 'emerald' },
   { image: universitiesIcon, value: 'Verify', label: 'participants', tone: 'gold' },
@@ -22,12 +33,61 @@ const STATS: Stat[] = [
 
 export function HeroStats() {
   const [dragging, setDragging] = useState(false)
-  const dragRef = useRef<{ pointerId: number; startX: number; startY: number; target: HTMLDivElement } | null>(null)
+  const [offsets, setOffsets] = useState<OrbitOffset[]>(ZERO_OFFSETS)
+  const offsetsRef = useRef<OrbitOffset[]>(ZERO_OFFSETS)
+  const svgRef = useRef<SVGSVGElement>(null)
+  const frameRef = useRef<HTMLDivElement>(null)
+  const dragRef = useRef<{
+    pointerId: number
+    index: number
+    startX: number
+    startY: number
+    startSvgX: number
+    startSvgY: number
+    startDomX: number
+    startDomY: number
+    startOffset: OrbitOffset
+    target: HTMLDivElement
+  } | null>(null)
+  const frameDragRef = useRef<{ pointerId: number; startX: number; startY: number; startDomX: number; startDomY: number } | null>(null)
+  const pointReturnTweens = useRef<Array<ReturnType<typeof gsap.to> | undefined>>([])
+  const frameReturnTween = useRef<ReturnType<typeof gsap.to> | null>(null)
 
-  const handleDragStart = (event: PointerEvent<HTMLDivElement>) => {
+  const points = BASE_POINTS.map((point, index) => ({ x: point.x + offsets[index].x, y: point.y + offsets[index].y }))
+  const routePath = `M${points[0].x} ${points[0].y} L${points[1].x} ${points[1].y} L${points[2].x} ${points[2].y} L${points[3].x} ${points[3].y} Z`
+  const spokePath = `M${points[0].x} ${points[0].y} L280 178 M${points[1].x} ${points[1].y} L370 230 M${points[2].x} ${points[2].y} L280 282 M${points[3].x} ${points[3].y} L190 230`
+  const curvePath = `M${points[0].x} ${points[0].y} Q385 124 ${points[1].x} ${points[1].y} M${points[1].x} ${points[1].y} Q385 336 ${points[2].x} ${points[2].y} M${points[2].x} ${points[2].y} Q175 336 ${points[3].x} ${points[3].y} M${points[3].x} ${points[3].y} Q175 124 ${points[0].x} ${points[0].y}`
+
+  const setPointOffset = (index: number, offset: OrbitOffset) => {
+    const next = offsetsRef.current.map((current, currentIndex) => currentIndex === index ? offset : current)
+    offsetsRef.current = next
+    setOffsets(next)
+  }
+
+  const screenToSvg = (x: number, y: number) => {
+    const matrix = svgRef.current?.getScreenCTM()
+    if (!matrix) return { x, y }
+    const point = new DOMPoint(x, y).matrixTransform(matrix.inverse())
+    return { x: point.x, y: point.y }
+  }
+
+  const handleDragStart = (event: PointerEvent<HTMLDivElement>, index: number) => {
     if (event.pointerType === 'mouse' && event.button !== 0) return
     gsap.killTweensOf(event.currentTarget)
-    dragRef.current = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, target: event.currentTarget }
+    pointReturnTweens.current[index]?.kill()
+    const startSvg = screenToSvg(event.clientX, event.clientY)
+    dragRef.current = {
+      pointerId: event.pointerId,
+      index,
+      startX: event.clientX,
+      startY: event.clientY,
+      startSvgX: startSvg.x,
+      startSvgY: startSvg.y,
+      startDomX: Number(gsap.getProperty(event.currentTarget, 'x')) || 0,
+      startDomY: Number(gsap.getProperty(event.currentTarget, 'y')) || 0,
+      startOffset: offsetsRef.current[index],
+      target: event.currentTarget,
+    }
     event.currentTarget.setPointerCapture(event.pointerId)
     setDragging(true)
   }
@@ -36,8 +96,13 @@ export function HeroStats() {
     const drag = dragRef.current
     if (!drag || drag.pointerId !== event.pointerId) return
     const rubber = (distance: number) => Math.sign(distance) * (1 - Math.exp(-Math.abs(distance) / 150)) * 150
-    const x = rubber(event.clientX - drag.startX)
-    const y = rubber(event.clientY - drag.startY)
+    const x = drag.startDomX + rubber(event.clientX - drag.startX)
+    const y = drag.startDomY + rubber(event.clientY - drag.startY)
+    const svgPoint = screenToSvg(drag.startX + x - drag.startDomX, drag.startY + y - drag.startDomY)
+    setPointOffset(drag.index, {
+      x: drag.startOffset.x + svgPoint.x - drag.startSvgX,
+      y: drag.startOffset.y + svgPoint.y - drag.startSvgY,
+    })
     gsap.set(drag.target, { x, y, rotation: Math.max(-8, Math.min(8, x / 18)), scale: 1.06 })
   }
 
@@ -46,6 +111,15 @@ export function HeroStats() {
     if (!drag || drag.pointerId !== event.pointerId) return
     if (drag.target.hasPointerCapture(event.pointerId)) drag.target.releasePointerCapture(event.pointerId)
     dragRef.current = null
+    const offsetProxy = { ...offsetsRef.current[drag.index] }
+    pointReturnTweens.current[drag.index] = gsap.to(offsetProxy, {
+      x: 0,
+      y: 0,
+      duration: .9,
+      ease: 'elastic.out(1, .34)',
+      onUpdate: () => setPointOffset(drag.index, { x: offsetProxy.x, y: offsetProxy.y }),
+      onComplete: () => setPointOffset(drag.index, { x: 0, y: 0 }),
+    })
     gsap.to(drag.target, {
       x: 0,
       y: 0,
@@ -58,10 +132,57 @@ export function HeroStats() {
     })
   }
 
+  const handleFrameDragStart = (event: PointerEvent<SVGPathElement>) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) return
+    const frame = frameRef.current
+    if (!frame) return
+    frameReturnTween.current?.kill()
+    gsap.killTweensOf(frame)
+    frameDragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      startDomX: Number(gsap.getProperty(frame, 'x')) || 0,
+      startDomY: Number(gsap.getProperty(frame, 'y')) || 0,
+    }
+    event.currentTarget.setPointerCapture(event.pointerId)
+    setDragging(true)
+  }
+
+  const handleFrameDragMove = (event: PointerEvent<SVGPathElement>) => {
+    const drag = frameDragRef.current
+    const frame = frameRef.current
+    if (!drag || !frame || drag.pointerId !== event.pointerId) return
+    const rubber = (distance: number) => Math.sign(distance) * (1 - Math.exp(-Math.abs(distance) / 190)) * 190
+    gsap.set(frame, {
+      x: drag.startDomX + rubber(event.clientX - drag.startX),
+      y: drag.startDomY + rubber(event.clientY - drag.startY),
+      scale: 1.015,
+    })
+  }
+
+  const handleFrameDragEnd = (event: PointerEvent<SVGPathElement>) => {
+    const drag = frameDragRef.current
+    const frame = frameRef.current
+    if (!drag || !frame || drag.pointerId !== event.pointerId) return
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
+    frameDragRef.current = null
+    frameReturnTween.current = gsap.to(frame, {
+      x: 0,
+      y: 0,
+      scale: 1,
+      duration: 1,
+      ease: 'elastic.out(1, .32)',
+      clearProps: 'transform',
+      onComplete: () => setDragging(false),
+    })
+  }
+
   return (
     <section className={`hero-orbit${dragging ? ' hero-orbit-dragging' : ''}`} aria-label='SSC execution workflow'>
-      <div className='hero-network-stage'>
-        <svg className='hero-network' viewBox='0 0 560 460' aria-hidden='true'>
+      <div ref={frameRef} className='hero-network-drag-frame'>
+        <div className='hero-network-stage'>
+        <svg ref={svgRef} className='hero-network' viewBox='0 0 560 460' aria-hidden='true'>
           <defs>
             <linearGradient id='hero-network-gradient' x1='84' y1='90' x2='476' y2='370' gradientUnits='userSpaceOnUse'>
               <stop stopColor='#2dd4bf' />
@@ -80,25 +201,35 @@ export function HeroStats() {
                 <feMergeNode in='SourceGraphic' />
               </feMerge>
             </filter>
-            <path id='hero-network-route' pathLength='4' d='M280 90 L476 230 L280 370 L84 230 Z' />
+            <path id='hero-network-route' pathLength='4' d={routePath} />
           </defs>
 
           <g className='hero-network-glow' fill='none' stroke='url(#hero-network-gradient)'>
             <use href='#hero-network-route' />
-            <path d='M280 90 L280 178 M476 230 L370 230 M280 370 L280 282 M84 230 L190 230' />
+            <path d={spokePath} />
             <path d='M280 178 L370 230 L280 282 L190 230 Z' />
-            <path d='M280 90 Q385 124 476 230 M476 230 Q385 336 280 370 M280 370 Q175 336 84 230 M84 230 Q175 124 280 90' />
+            <path d={curvePath} />
           </g>
 
           <g className='hero-network-core' fill='none' stroke='url(#hero-network-gradient)'>
             <use href='#hero-network-route' />
-            <path d='M280 90 L280 178 M476 230 L370 230 M280 370 L280 282 M84 230 L190 230' />
+            <path d={spokePath} />
             <path d='M280 178 L370 230 L280 282 L190 230 Z' />
-            <path className='hero-network-dash' d='M280 90 Q385 124 476 230 M476 230 Q385 336 280 370 M280 370 Q175 336 84 230 M84 230 Q175 124 280 90' />
+            <path className='hero-network-dash' d={curvePath} />
           </g>
 
-          {[[280, 90], [476, 230], [280, 370], [84, 230]].map(([cx, cy]) => (
-            <g className='hero-network-node' key={`${cx}-${cy}`} transform={`translate(${cx} ${cy})`}>
+          <path
+            className='hero-network-hit-area'
+            d={`${routePath} ${spokePath} M280 178 L370 230 L280 282 L190 230 Z`}
+            fill='none'
+            onPointerDown={handleFrameDragStart}
+            onPointerMove={handleFrameDragMove}
+            onPointerUp={handleFrameDragEnd}
+            onPointerCancel={handleFrameDragEnd}
+          />
+
+          {points.map(({ x, y }, index) => (
+            <g className='hero-network-node' key={index} transform={`translate(${x} ${y})`}>
               <circle r='21' fill='url(#hero-network-node)' />
               <circle r='4' fill='#a7f3d0' />
             </g>
@@ -124,7 +255,7 @@ export function HeroStats() {
             <div className='hero-orbit-upright'>
               <div
                 className='hero-orbit-drag'
-                onPointerDown={handleDragStart}
+                onPointerDown={(event) => handleDragStart(event, index)}
                 onPointerMove={handleDragMove}
                 onPointerUp={handleDragEnd}
                 onPointerCancel={handleDragEnd}
@@ -142,9 +273,10 @@ export function HeroStats() {
             </div>
           </article>
         ))}
+        </div>
       </div>
 
-      <p className='sr-only'>Icons move between connected network points. Drag an icon and release it to spring back into place.</p>
+      <p className='sr-only'>Drag an icon to stretch its connected lines, or drag the network frame to move the whole ecosystem. Everything springs back into place.</p>
     </section>
   )
 }

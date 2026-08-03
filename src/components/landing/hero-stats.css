@@ -15,6 +15,12 @@
   animation: hero-network-rotate 24s linear infinite;
 }
 
+.hero-network-drag-frame {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+
 .hero-network {
   position: absolute;
   inset: 0;
@@ -24,6 +30,17 @@
   overflow: visible;
   pointer-events: none;
 }
+
+.hero-network-hit-area {
+  cursor: grab;
+  pointer-events: stroke;
+  stroke: transparent;
+  stroke-width: 34px;
+  vector-effect: non-scaling-stroke;
+  touch-action: none;
+}
+
+.hero-network-hit-area:active { cursor: grabbing; }
 
 .hero-network-glow {
   opacity: .18;
