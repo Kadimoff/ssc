@@ -231,14 +231,14 @@ export function InvestorPipeline({
         <div><h2 className='text-2xl font-bold'>Investment review pipeline</h2><p className='mt-1 max-w-3xl text-sm text-muted-foreground'>Manage venture reviews, notes, evidence gaps and next actions. Pipeline data persists in this browser.</p></div>
         <div className='inline-flex rounded-lg border bg-card p-1' aria-label='Pipeline view'>
           <button type='button' onClick={() => setView('board')} className={cn('inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold', view === 'board' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground')}><LayoutGrid className='size-3.5' />Board</button>
-          <button type='button' onClick={() => setView('table')} className={cn('inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold', view === 'table' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground')}><List className='size-3.5' />Table</button>
+          <button type='button' onClick={() => setView('table')} className={cn('hidden items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold md:inline-flex', view === 'table' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground')}><List className='size-3.5' />Table</button>
         </div>
       </div>
 
       {view === 'board' ? (
         <div className='-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-3'>
           {pipelineStages.map((stage) => (
-            <section key={stage} className='w-[285px] shrink-0 snap-start rounded-xl border bg-muted/20 p-3 xl:w-[calc((100%-3rem)/5)]'>
+            <section key={stage} className='w-[260px] shrink-0 snap-start rounded-xl border bg-muted/20 p-3 sm:w-[285px] xl:w-[calc((100%-3rem)/5)]'>
               <div className='mb-3 flex items-center justify-between gap-2'><h3 className='text-xs font-bold uppercase tracking-wide'>{pipelineLabels[stage]}</h3><Badge variant='outline'>{count(stage)}</Badge></div>
               <div className='space-y-3'>
                 {startups.filter((startup) => (pipeline[startup.slug] ?? 'sourced') === stage).map((startup) => (
@@ -364,13 +364,36 @@ export function InvestorCompare({
   ]
   return (
     <div className='space-y-5'>
-      <div><h2 className='text-2xl font-bold'>Side-by-side evidence comparison</h2><p className='mt-1 text-sm text-muted-foreground'>Compare current records without generating a “best startup” recommendation.</p></div>
-      <div className='overflow-x-auto rounded-xl border bg-card'>
+      <div><h2 className='text-2xl font-bold'>Side-by-side evidence comparison</h2><p className='mt-1 text-sm text-muted-foreground'>Compare current records without generating a "best startup" recommendation.</p></div>
+
+      {/* Desktop: side-by-side table (hidden on mobile) */}
+      <div className='hidden overflow-x-auto rounded-xl border bg-card md:block'>
         <table className='w-full min-w-[860px] text-sm'>
           <thead><tr className='border-b bg-muted/30'><th className='sticky left-0 z-10 bg-muted p-4 text-left'>Signal</th>{selected.map((startup) => <th key={startup.slug} className='min-w-64 p-4 text-left'><div className='flex items-center justify-between gap-2'><span>{startup.name}</span><Button variant='ghost' size='sm' onClick={() => onRemove(startup)}>Remove</Button></div></th>)}</tr></thead>
           <tbody>{rows.map((row) => <tr key={row.label} className='border-b last:border-0'><th className='sticky left-0 bg-card p-4 text-left font-medium text-muted-foreground'>{row.label}</th>{selected.map((startup) => <td key={startup.slug} className='p-4 align-top leading-6'>{row.render(startup)}</td>)}</tr>)}</tbody>
         </table>
       </div>
+
+      {/* Mobile: stacked card-based comparison */}
+      <div className='space-y-4 md:hidden'>
+        {selected.map((startup) => (
+          <Card key={startup.slug} className='overflow-hidden py-0'>
+            <div className='flex items-center justify-between gap-2 border-b bg-muted/30 p-4'>
+              <h3 className='font-bold'>{startup.name}</h3>
+              <Button variant='ghost' size='sm' onClick={() => onRemove(startup)}>Remove</Button>
+            </div>
+            <CardContent className='divide-y p-0'>
+              {rows.map((row) => (
+                <div key={row.label} className='flex min-w-0 items-start justify-between gap-3 px-4 py-3'>
+                  <span className='shrink-0 text-xs font-medium text-muted-foreground'>{row.label}</span>
+                  <span className='min-w-0 text-right text-sm font-medium leading-5 [overflow-wrap:anywhere]'>{row.render(startup)}</span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
       <Card className='gap-0 py-0'><CardContent className='flex gap-3 p-4 text-sm text-muted-foreground'><AlertTriangle className='size-5 shrink-0 text-amber-500' /><p>Comparison supports review prioritization only. It does not model valuation, investment return, or funding probability.</p></CardContent></Card>
     </div>
   )

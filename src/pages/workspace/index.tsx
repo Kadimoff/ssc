@@ -73,7 +73,14 @@ function StudentWorkspace() {
   const openPrograms = 3
   const pendingVerification = state.verificationRequests.some((item) => item.userId === 'usr_3' && item.status === 'pending')
   return <div className='space-y-6'>
-    <section className='grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
+    {/* Mobile: compact 2x2 icon grid | Desktop: full cards */}
+    <section className='grid grid-cols-2 gap-2 sm:hidden'>
+      <CompactActionTile icon={Rocket} title='Create startup' to='/startups/new' />
+      <CompactActionTile icon={Users} title='Join a team' to='/startups' badge={state.openRoles.filter((item) => item.status === 'open').length} />
+      <CompactActionTile icon={CalendarCheck} title='Join program' to='/programs' />
+      <CompactActionTile icon={BadgeCheck} title='Verify status' to='/verification' pulse={pendingVerification} />
+    </section>
+    <section className='hidden gap-4 sm:grid sm:grid-cols-2 xl:grid-cols-4'>
       <ActionCard icon={Rocket} title='Create a startup' text='Start with the problem and current evidence.' to='/startups/new' action='Create profile' />
       <ActionCard icon={Users} title='Join a team' text={`${state.openRoles.filter((item) => item.status === 'open').length} sample roles need collaborators.`} to='/startups' action='Review roles' />
       <ActionCard icon={CalendarCheck} title='Join a program' text={`${openPrograms} sample programs have application workflows.`} to='/programs' action='Discover programs' />
@@ -179,13 +186,40 @@ function InvestorWorkspace() {
 function InstitutionWorkspace() {
   const { state } = useExecutionStore()
   const verifiedEvidence = state.evidence.filter((item) => item.status === 'verified').length
-  return <div className='space-y-6'><section className='grid gap-4 sm:grid-cols-3'><Signal icon={ClipboardCheck} label='Applications' value={String(state.programApplications.length)} detail={`${state.programApplications.filter((item) => item.status === 'pending').length} pending review`} /><Signal icon={ShieldCheck} label='Verification queue' value={String(state.verificationRequests.filter((item) => item.status === 'pending').length)} detail='Student and authority checks' /><Signal icon={Building2} label='Verified evidence' value={`${verifiedEvidence}/${state.evidence.length}`} detail='Illustrative workflow records' /></section><div className='grid gap-4 md:grid-cols-3'><ActionCard icon={ClipboardCheck} title='Review applications' text='Move startup applications through a transparent decision queue.' to='/programs' action='Open queue' /><ActionCard icon={BadgeCheck} title='Review verification' text='Inspect safe document metadata and leave a reasoned decision.' to='/verification' action='Open queue' /><ActionCard icon={Handshake} title='Partner outcomes' text='Track agreements, commitments, contributions, and audit history.' to='/partnerships' action='View operations' /></div></div>
+  return <div className='space-y-6'>
+    <section className='grid gap-4 sm:grid-cols-3'><Signal icon={ClipboardCheck} label='Applications' value={String(state.programApplications.length)} detail={`${state.programApplications.filter((item) => item.status === 'pending').length} pending review`} /><Signal icon={ShieldCheck} label='Verification queue' value={String(state.verificationRequests.filter((item) => item.status === 'pending').length)} detail='Student and authority checks' /><Signal icon={Building2} label='Verified evidence' value={`${verifiedEvidence}/${state.evidence.length}`} detail='Illustrative workflow records' /></section>
+    <section className='grid grid-cols-3 gap-2 sm:hidden'>
+      <CompactActionTile icon={ClipboardCheck} title='Applications' to='/programs' />
+      <CompactActionTile icon={BadgeCheck} title='Verification' to='/verification' />
+      <CompactActionTile icon={Handshake} title='Partners' to='/partnerships' />
+    </section>
+    <div className='hidden gap-4 sm:grid md:grid-cols-3'><ActionCard icon={ClipboardCheck} title='Review applications' text='Move startup applications through a transparent decision queue.' to='/programs' action='Open queue' /><ActionCard icon={BadgeCheck} title='Review verification' text='Inspect safe document metadata and leave a reasoned decision.' to='/verification' action='Open queue' /><ActionCard icon={Handshake} title='Partner outcomes' text='Track agreements, commitments, contributions, and audit history.' to='/partnerships' action='View operations' /></div>
+  </div>
 }
 
 function PlatformWorkspace() {
   const { state } = useExecutionStore()
   const pending = state.evidence.filter((item) => item.status === 'pending').length + state.verificationRequests.filter((item) => item.status === 'pending').length + state.programApplications.filter((item) => item.status === 'pending').length
-  return <div className='space-y-6'><section className='grid gap-4 sm:grid-cols-3'><Signal icon={ShieldCheck} label='Pending decisions' value={String(pending)} detail='Across execution workflows' /><Signal icon={Users} label='Demo personas' value='8' detail='Role-aware acceptance views' /><Signal icon={FileCheck2} label='Verified evidence' value={String(state.evidence.filter((item) => item.status === 'verified').length)} detail='Frontend demonstration records' /></section><div className='grid gap-4 md:grid-cols-3'><ActionCard icon={ShieldCheck} title='Administration' text='Review platform authority and moderation.' to='/admin' action='Open admin' /><ActionCard icon={BadgeCheck} title='Verification' text='Review student submissions and change requests.' to='/verification' action='Open review queue' /><ActionCard icon={Handshake} title='Partnership audit' text='Inspect contribution and agreement mutations.' to='/partnerships' action='Open audit' /></div></div>
+  return <div className='space-y-6'>
+    <section className='grid gap-4 sm:grid-cols-3'><Signal icon={ShieldCheck} label='Pending decisions' value={String(pending)} detail='Across execution workflows' /><Signal icon={Users} label='Demo personas' value='8' detail='Role-aware acceptance views' /><Signal icon={FileCheck2} label='Verified evidence' value={String(state.evidence.filter((item) => item.status === 'verified').length)} detail='Frontend demonstration records' /></section>
+    <section className='grid grid-cols-3 gap-2 sm:hidden'>
+      <CompactActionTile icon={ShieldCheck} title='Admin' to='/admin' />
+      <CompactActionTile icon={BadgeCheck} title='Verification' to='/verification' />
+      <CompactActionTile icon={Handshake} title='Audit' to='/partnerships' />
+    </section>
+    <div className='hidden gap-4 sm:grid md:grid-cols-3'><ActionCard icon={ShieldCheck} title='Administration' text='Review platform authority and moderation.' to='/admin' action='Open admin' /><ActionCard icon={BadgeCheck} title='Verification' text='Review student submissions and change requests.' to='/verification' action='Open review queue' /><ActionCard icon={Handshake} title='Partnership audit' text='Inspect contribution and agreement mutations.' to='/partnerships' action='Open audit' /></div>
+  </div>
+}
+
+function CompactActionTile({ icon: Icon, title, to, badge, pulse }: { icon: typeof Rocket; title: string; to: string; badge?: number; pulse?: boolean }) {
+  return <Link to={to} className='relative flex flex-col items-center gap-2 rounded-2xl border bg-card p-4 text-center transition-all hover:border-primary/30 hover:bg-primary/5 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'>
+    <span className='relative grid size-12 place-items-center rounded-xl bg-primary/10 text-primary'>
+      <Icon className='size-5' />
+      {badge ? <span className='absolute -right-1.5 -top-1.5 grid size-5 place-items-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground'>{badge}</span> : null}
+      {pulse && <span className='absolute -right-1.5 -top-1.5 size-2.5 animate-pulse rounded-full bg-amber-500' />}
+    </span>
+    <span className='text-xs font-semibold leading-tight'>{title}</span>
+  </Link>
 }
 
 function ActionCard({ icon: Icon, title, text, to, action }: { icon: typeof Rocket; title: string; text: string; to: string; action: string }) {

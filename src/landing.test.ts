@@ -105,7 +105,7 @@ describe('restored SSC landing page', () => {
     const source = readFileSync(new URL('./pages/landing/index.tsx', import.meta.url), 'utf8')
 
     expect(source).toContain('Students from different universities and disciplines')
-    expect(source).toContain("className='landing-member-card w-[190px] shrink-0 px-2 py-3 text-center'")
+    expect(source).toContain("className='landing-member-card w-[160px] shrink-0 px-2 py-3 text-center sm:w-[190px]'")
     expect(source).toContain("className='landing-carousel landing-members-rail mt-12 flex w-full gap-6")
     expect(source).not.toContain("<DemoDataBadge label='Demo' />")
   })

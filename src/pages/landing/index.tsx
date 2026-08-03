@@ -417,7 +417,7 @@ function MembersRail() {
 
 function MemberRailCard({ member, clone = false, onView }: { member: FeaturedMember; clone?: boolean; onView: () => void }) {
   const initials = member.name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2)
-  return <article aria-hidden={clone || undefined} className='landing-member-card w-[190px] shrink-0 px-2 py-3 text-center'>
+  return <article aria-hidden={clone || undefined} className='landing-member-card w-[160px] shrink-0 px-2 py-3 text-center sm:w-[190px]'>
     <Avatar className='mx-auto size-16 border-2 border-background/80 shadow-md transition-transform duration-300'>
       <AvatarImage src={member.avatarUrl ? localAsset(member.avatarUrl) : undefined} alt={clone ? '' : `Illustrative demo profile for ${member.name}`} loading='lazy' />
       <AvatarFallback className='bg-primary/10 text-base font-bold text-primary'>{initials}</AvatarFallback>
