@@ -1,3 +1,5 @@
+import { useRef, useState, type PointerEvent } from 'react'
+import gsap from 'gsap'
 import buildersIcon from '../../../components/orbit-builders.webp'
 import universitiesIcon from '../../../components/orbit-universities.webp'
 import mentorsIcon from '../../../components/orbit-mentors.webp'
@@ -19,8 +21,45 @@ const STATS: Stat[] = [
 ]
 
 export function HeroStats() {
+  const [dragging, setDragging] = useState(false)
+  const dragRef = useRef<{ pointerId: number; startX: number; startY: number; target: HTMLDivElement } | null>(null)
+
+  const handleDragStart = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) return
+    gsap.killTweensOf(event.currentTarget)
+    dragRef.current = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, target: event.currentTarget }
+    event.currentTarget.setPointerCapture(event.pointerId)
+    setDragging(true)
+  }
+
+  const handleDragMove = (event: PointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current
+    if (!drag || drag.pointerId !== event.pointerId) return
+    const rubber = (distance: number) => Math.sign(distance) * (1 - Math.exp(-Math.abs(distance) / 150)) * 150
+    const x = rubber(event.clientX - drag.startX)
+    const y = rubber(event.clientY - drag.startY)
+    gsap.set(drag.target, { x, y, rotation: Math.max(-8, Math.min(8, x / 18)), scale: 1.06 })
+  }
+
+  const handleDragEnd = (event: PointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current
+    if (!drag || drag.pointerId !== event.pointerId) return
+    if (drag.target.hasPointerCapture(event.pointerId)) drag.target.releasePointerCapture(event.pointerId)
+    dragRef.current = null
+    gsap.to(drag.target, {
+      x: 0,
+      y: 0,
+      rotation: 0,
+      scale: 1,
+      duration: .9,
+      ease: 'elastic.out(1, .34)',
+      clearProps: 'transform',
+      onComplete: () => setDragging(false),
+    })
+  }
+
   return (
-    <section className='hero-orbit' aria-label='SSC execution workflow'>
+    <section className={`hero-orbit${dragging ? ' hero-orbit-dragging' : ''}`} aria-label='SSC execution workflow'>
       <div className='hero-network-stage'>
         <svg className='hero-network' viewBox='0 0 560 460' aria-hidden='true'>
           <defs>
@@ -83,21 +122,29 @@ export function HeroStats() {
             aria-label={`${stat.value} ${stat.label}`}
           >
             <div className='hero-orbit-upright'>
-              <div className='hero-orbit-card'>
-                <span className='hero-orbit-icon' aria-hidden='true'>
-                  <img src={stat.image} alt='' />
-                </span>
-                <span className='hero-orbit-copy'>
-                  <strong>{stat.value}</strong>
-                  <small>{stat.label}</small>
-                </span>
+              <div
+                className='hero-orbit-drag'
+                onPointerDown={handleDragStart}
+                onPointerMove={handleDragMove}
+                onPointerUp={handleDragEnd}
+                onPointerCancel={handleDragEnd}
+              >
+                <div className='hero-orbit-card'>
+                  <span className='hero-orbit-icon' aria-hidden='true'>
+                    <img src={stat.image} alt='' draggable={false} />
+                  </span>
+                  <span className='hero-orbit-copy'>
+                    <strong>{stat.value}</strong>
+                    <small>{stat.label}</small>
+                  </span>
+                </div>
               </div>
             </div>
           </article>
         ))}
       </div>
 
-      <p className='sr-only'>Icons move between connected network points. Hover or focus an icon to pause and highlight it.</p>
+      <p className='sr-only'>Icons move between connected network points. Drag an icon and release it to spring back into place.</p>
     </section>
   )
 }

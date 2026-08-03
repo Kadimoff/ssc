@@ -84,6 +84,16 @@
   animation: hero-network-counter-rotate 24s linear infinite;
 }
 
+.hero-orbit-drag {
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.hero-orbit-drag:active { cursor: grabbing; }
+
 .hero-orbit-card {
   position: relative;
   display: flex;
@@ -175,6 +185,14 @@
 .hero-orbit:focus-within .hero-network-dash,
 .hero-orbit:hover .hero-network-node,
 .hero-orbit:focus-within .hero-network-node {
+  animation-play-state: paused;
+}
+
+.hero-orbit-dragging .hero-network-stage,
+.hero-orbit-dragging .hero-orbit-item,
+.hero-orbit-dragging .hero-orbit-upright,
+.hero-orbit-dragging .hero-network-dash,
+.hero-orbit-dragging .hero-network-node {
   animation-play-state: paused;
 }
 

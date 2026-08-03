@@ -352,12 +352,12 @@ body:has([data-slot='dialog-overlay'][data-state='open']) .mobile-bottom-nav {
   .responsive-navigation-drawer .more-navigation-content a { min-width: 0; }
   .responsive-dialog > [class*='overflow-y-auto'] { padding-bottom: calc(1.25rem + env(safe-area-inset-bottom)); }
   .landing-hero-visual {
-    height: 318px;
+    height: 350px;
     overflow: hidden;
   }
   .landing-hero-visual .hero-orbit {
     position: absolute;
-    top: 0;
+    top: 1.5rem;
     left: 50%;
     width: 560px;
     max-width: none;
