@@ -268,6 +268,45 @@ body:has([data-slot='dialog-overlay'][data-state='open']) .mobile-bottom-nav {
 .dark .feed-workspace-surface::before { opacity: .62; }
 .dark .feed-workspace-surface::after { opacity: .1; }
 
+@media (max-width: 1279px) {
+  .more-navigation-drawer {
+    inset: 0 0 0 auto !important;
+    width: min(30rem, 100vw) !important;
+    max-width: none !important;
+    height: 100svh;
+    max-height: 100svh !important;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    overflow: hidden;
+    transform: none !important;
+    translate: none !important;
+    scale: none !important;
+    border-radius: 0 !important;
+    border-block: 0;
+    border-right: 0;
+    background: var(--background);
+  }
+  .more-navigation-drawer [data-slot='dialog-header'] {
+    padding: 1.25rem 3.5rem 1.25rem 1.25rem;
+    background: var(--background);
+  }
+  .more-navigation-drawer > [class*='overflow-y-auto'] {
+    width: 100%;
+    min-width: 0;
+    padding: 1.25rem;
+    overflow-x: hidden;
+  }
+  .more-navigation-drawer [data-slot='dialog-footer'] {
+    padding: .875rem 1rem calc(.875rem + env(safe-area-inset-bottom));
+    background: var(--background);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .more-navigation-drawer .more-navigation-content,
+  .more-navigation-drawer .more-navigation-content section,
+  .more-navigation-drawer .more-navigation-content a { min-width: 0; }
+  .more-navigation-drawer .more-navigation-content section > div { grid-template-columns: minmax(0, 1fr); }
+}
+
 @media (max-width: 767px) {
   :root { --glass-blur: 8px; }
   .glass-card { backdrop-filter: blur(4px) saturate(125%); -webkit-backdrop-filter: blur(4px) saturate(125%); }
@@ -304,6 +343,11 @@ body:has([data-slot='dialog-overlay'][data-state='open']) .mobile-bottom-nav {
     bottom: 0 !important;
     min-width: 0 !important;
     overflow: hidden;
+  }
+  .more-navigation-drawer {
+    width: 100% !important;
+    border: 0;
+    box-shadow: none;
   }
   .responsive-navigation-drawer [data-slot='dialog-header'] { padding-inline: 1rem 3.25rem; }
   .responsive-navigation-drawer [data-slot='dialog-footer'] {

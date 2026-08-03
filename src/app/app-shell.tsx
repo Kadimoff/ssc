@@ -206,7 +206,7 @@ export function AppShell() {
                 key={to}
                 to={to}
                 onClick={() => setMoreOpen(false)}
-                className={cn('flex min-h-14 min-w-0 items-center gap-3 rounded-xl border p-3 text-foreground outline-none transition-colors hover:border-primary/30 hover:bg-primary/[0.04] focus-visible:ring-2 focus-visible:ring-primary', routeActive(location, to) && 'border-primary/30 bg-primary/[0.06]')}
+                className={cn('flex min-h-16 min-w-0 items-center gap-3 rounded-xl border bg-card p-3 text-foreground shadow-sm outline-none transition-colors hover:border-primary/30 hover:bg-primary/[0.04] focus-visible:ring-2 focus-visible:ring-primary', routeActive(location, to) && 'border-primary/35 bg-primary/[0.08]')}
               >
                 <span className='grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary'><Icon className='size-5' /></span>
                 <span className='min-w-0'><b className='block text-sm'>{label}</b><span className='mt-0.5 block text-xs leading-5 text-muted-foreground'>{description}</span></span>
