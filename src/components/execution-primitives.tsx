@@ -35,7 +35,7 @@ export function ResponsiveDialog({
 }) {
   return <Dialog open={open} onOpenChange={onOpenChange}>
     {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-    <DialogContent className={cn('responsive-dialog max-h-[92svh] gap-0 overflow-hidden p-0 sm:max-w-xl', variant === 'drawer' && 'responsive-navigation-drawer', className)}>
+    <DialogContent className={cn('responsive-dialog max-h-[92svh] gap-0 overflow-hidden p-0 sm:max-w-xl', variant === 'drawer' && 'responsive-navigation-drawer left-0 top-0 translate-x-0 translate-y-0', className)}>
       <DialogHeader className='border-b px-5 py-5 text-left'>
         <DialogTitle>{title}</DialogTitle>
         {description && <DialogDescription>{description}</DialogDescription>}
