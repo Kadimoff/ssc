@@ -6,7 +6,7 @@ import { Toaster } from 'sonner'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import {
-  AccessDeniedPage, AccessGate, AdminPage, AppShell, AssistantPage, CommunitiesPage, CommunityDetailPage, EventDetailPage,
+  AccessDeniedPage, AccessGate, AdminPage, AppShell, AssistantPage, CommunitiesPage, CommunityDetailPage, ContactPage, EventDetailPage,
   EventsPage, FeedPage, HelpPage, InvestorsPage, JobDetailPage, JobsPage, LandingPage, LivePage,
   MemberProfilePage, MentorshipPage, MessagesPage, NetworkPage, NewsDetailPage, NewsPage, NotFoundPage,
   NotificationsPage, PartnershipsPage, PrivacyPage, ProfilePage, ProgramsPage, RankingsPage, SearchPage,
@@ -57,6 +57,7 @@ const accessDeniedRoute = createRoute({ getParentRoute: () => appRoute, path: '/
 const liveRoute = createRoute({ getParentRoute: () => appRoute, path: '/live', component: LivePage })
 const signInRoute = createRoute({ getParentRoute: () => rootRoute, path: '/sign-in', component: SignInPage })
 const signUpRoute = createRoute({ getParentRoute: () => rootRoute, path: '/sign-up', component: SignUpPage })
+const contactRoute = createRoute({ getParentRoute: () => rootRoute, path: '/contact', component: ContactPage })
 const guardedPartnershipsRoute = createRoute({ getParentRoute: () => appRoute, path: '/partnerships', component: () => <AccessGate area='partnerships'><PartnershipsPage /></AccessGate> })
 const routeTree = rootRoute.addChildren([landingRoute, appRoute.addChildren([
   feedRoute, workspaceRoute, discoverRoute, profileRoute, networkRoute, memberProfileRoute, startupsRoute, startupCreateRoute, startupDetailRoute,
@@ -64,7 +65,7 @@ const routeTree = rootRoute.addChildren([landingRoute, appRoute.addChildren([
   communitiesRoute, communityDetailRoute, messagesRoute, notificationsRoute, jobsRoute, jobDetailRoute,
   newsRoute, newsDetailRoute, eventsRoute, eventDetailRoute, liveRoute, searchRoute, assistantRoute, settingsRoute,
   verificationRoute, goalsRoute, helpRoute, privacyRoute, termsRoute, accessDeniedRoute,
-]), signInRoute, signUpRoute])
+]), signInRoute, signUpRoute, contactRoute])
 const router = createRouter({ routeTree, defaultPreload: 'intent', basepath: '/ssc' })
 
 declare module '@tanstack/react-router' { interface Register { router: typeof router } }

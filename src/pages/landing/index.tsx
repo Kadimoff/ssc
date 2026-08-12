@@ -541,6 +541,7 @@ function LandingFooter() {
         <a href='#members' className='transition-colors hover:text-foreground'>Members</a>
         <a href='#updates' className='transition-colors hover:text-foreground'>Updates</a>
         <a href='#business-model' className='transition-colors hover:text-foreground'>Business model</a>
+        <Link to='/contact' className='transition-colors hover:text-foreground'>Contact</Link>
         <Link to='/privacy' className='transition-colors hover:text-foreground'>Privacy</Link>
         <Link to='/terms' className='transition-colors hover:text-foreground'>Terms</Link>
       </nav>
