@@ -35,7 +35,10 @@ jobs:
         run: npm run build
 
       - name: Prepare SPA fallback
-        run: cp dist/index.html dist/404.html
+        run: |
+          cp dist/index.html dist/404.html
+          mkdir -p dist/contact
+          cp dist/index.html dist/contact/index.html
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
